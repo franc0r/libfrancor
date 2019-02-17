@@ -31,11 +31,33 @@ Image::Image(Image&& image)
     colour_space_(image.colour_space_)
 {
   image.release();
+  image.colour_space_ = ColourSpace::NONE;
 }
 
 Image::~Image(void)
 {
-  std::cout << __PRETTY_FUNCTION__ << std::endl;
+
+}
+
+Image& Image::operator=(const Image& image)
+{
+  image.copyTo(*this);
+  colour_space_ = image.colour_space_;
+
+  return *this;
+}
+
+Image& Image::operator=(Image&& image)
+{
+  // get attributes of origin image
+  cv::Mat::operator=(image);
+  colour_space_ = image.colour_space_;
+
+  // clear attributes of origin image
+  image.release();
+  image.colour_space_ = ColourSpace::NONE;
+
+  return *this;
 }
 
 } // end namespace vision

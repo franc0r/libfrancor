@@ -39,7 +39,8 @@ public:
   Image(const std::size_t rows, const std::size_t cols, const ColourSpace space);
 
   /**
-   * \brief Constructs a copy of the given image.
+   * \brief Constructs a copy of the given image. Corrects the copy contructor of cv::Mat, because it is actually 
+   *        like a shared pointer.
    * \param image Origin image that will be copied.
    */
   Image(const Image& image);
@@ -56,6 +57,23 @@ public:
    * \brief Destructor.
    */
   ~Image(void);
+
+  /**
+   * \brief Copy assignment operator. Creates a copy of the origin image.
+   * 
+   * \param image Origin image that will be copied.
+   * \return a reference to this image.
+   */
+  Image& operator=(const Image& image);
+
+  /**
+   * \brief Move assignment operator. Corrects the copy assignment operator of cv::Mat, because it is actually like a shared
+   *        pointer. This constructor releases the data from the origin image.
+   * 
+   * \param image Origin image that will be moved.
+   * \return a reference to this image.
+   */
+  Image& operator=(Image&& image);
 
   /**
    * Returns the current colour space of this image.
