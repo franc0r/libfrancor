@@ -1,3 +1,9 @@
+/**
+ * Unit test for the line class.
+ *
+ * \author Christian Merkl (knueppl@gmx.de)
+ * \date 16. February 2019
+ */
 #include <gtest/gtest.h>
 
 #include "francor_base/line.h"

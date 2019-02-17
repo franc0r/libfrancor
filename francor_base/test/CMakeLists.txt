@@ -12,10 +12,9 @@ target_include_directories(unit-test-line
 )
 
 target_link_libraries(unit-test-line PRIVATE
-#  ${GTEST_BOTH_LIBRARIES}
   PRIVATE GTest::GTest
   PRIVATE GTest::Main
-  INTERFACE francor_base
+  INTERFACE francor-base
   PRIVATE Eigen3::Eigen
 )
 

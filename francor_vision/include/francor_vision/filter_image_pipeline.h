@@ -4,7 +4,7 @@
  * \author Christian Merkl (knueppl@gmx.de)
  * \date 16. February 2019
  */
-#include <opencv2/opencv.hpp>
+#include "francor_vision/image.h"
 
 namespace francor
 {
@@ -25,8 +25,7 @@ public:
 
   virtual bool process(const cv::Mat& image, cv::Mat& mask) const = 0;
 
-protected:
-  bool safetyCheck(const cv::Mat& image, cv::Mat& mask) const
+  static bool safetyCheck(const cv::Mat& image, cv::Mat& mask)
   {
     return image.type() == CV_8UC3
            &&

@@ -11,8 +11,8 @@ add_library(${PROJECT_NAME} INTERFACE
 
 target_link_libraries(${PROJECT_NAME}
   INTERFACE Eigen3::Eigen
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}>
-  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
+  $<INSTALL_INTERFACE:include/>
 )
 
 #enable_testing()
