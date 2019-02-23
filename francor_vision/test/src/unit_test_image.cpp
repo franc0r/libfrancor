@@ -85,31 +85,31 @@ TEST(ImageTest, MoveConstructor)
   EXPECT_EQ(origin.colourSpace(), francor::vision::ColourSpace::NONE);
 }
 
-// TEST(ImageTest, MoveFromCvMat)
-// {
-//   constexpr std::size_t rows = 1;
-//   constexpr std::size_t cols = 2;
-//   cv::Mat origin(rows, cols, CV_8UC1);
+TEST(ImageTest, MoveFromCvMat)
+{
+  constexpr std::size_t rows = 1;
+  constexpr std::size_t cols = 2;
+  cv::Mat origin(rows, cols, CV_8UC1);
 
-//   // init origin with 10s
-//   origin(0, 0).gray() = 10;
-//   origin(0, 1).gray() = 10;
+  // init origin with 10s
+  origin.at<std::uint8_t>(0, 0) = 10;
+  origin.at<std::uint8_t>(0, 1) = 10;
 
-//   francor::vision::Image moved(std::move(origin), francor::vision::ColourSpace::GRAY);
+  francor::vision::Image moved(std::move(origin), francor::vision::ColourSpace::GRAY);
 
-//   // size and type must be moved
-//   ASSERT_EQ(moved.cols(), cols);
-//   ASSERT_EQ(moved.rows(), rows);
-//   EXPECT_EQ(moved.colourSpace(), francor::vision::ColourSpace::GRAY);
+  // size and type must be moved
+  ASSERT_EQ(moved.cols(), cols);
+  ASSERT_EQ(moved.rows(), rows);
+  EXPECT_EQ(moved.colourSpace(), francor::vision::ColourSpace::GRAY);
 
-//   // moved image contains all attributes from origin
-//   EXPECT_EQ(moved(0, 0).gray(), 10);
-//   EXPECT_EQ(moved(0, 1).gray(), 10);
+  // moved image contains all attributes from origin
+  EXPECT_EQ(moved(0, 0).gray(), 10);
+  EXPECT_EQ(moved(0, 1).gray(), 10);
 
-//   // origin is reinitialized as empty image
-//   EXPECT_EQ(origin.cols(), 0);
-//   EXPECT_EQ(origin.rows(), 0);  
-// }
+  // origin is reinitialized as empty image
+  EXPECT_EQ(origin.cols, 0);
+  EXPECT_EQ(origin.rows, 0);  
+}
 
 TEST(ImageTest, CopyFromCvMat)
 {

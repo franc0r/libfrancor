@@ -55,6 +55,12 @@ Image::Image(const cv::Mat& mat, const ColourSpace space)
   this->copyFromCvMat(mat, space);
 }
 
+Image::Image(cv::Mat&& mat, const ColourSpace space)
+{
+  this->fromCvMat(mat, space);
+  mat.release();
+}
+
 Image::~Image(void)
 {
 

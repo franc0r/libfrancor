@@ -41,6 +41,13 @@ public:
   Image(const cv::Mat& mat, const ColourSpace space);
 
   /**
+   * \brief Constructs a image that refers to the cv::Mat data. The colour space must be given. No data will be coped.
+   * \param mat Original image. No data will be copied from the original image.
+   * \param colourSpace The colour space of the image. It must be chosen manually.
+   */
+  Image(cv::Mat&& mat, const ColourSpace space);
+
+  /**
    * \brief Constructs a copy of the given image. Corrects the copy contructor of cv::Mat, because it is actually 
    *        like a shared pointer.
    * \param image Origin image that will be copied.
