@@ -4,6 +4,10 @@
  * \author Christian Merkl (knueppl@gmx.de)
  * \date 16. February 2019
  */
+#include "francor_vision/pixel.h"
+
+#include <vector>
+
 #include <opencv2/opencv.hpp>
 
 namespace francor
@@ -12,18 +16,9 @@ namespace francor
 namespace vision
 {
 
-class Image : public cv::Mat
+class Image
 {
 public:
-
-  enum class ColourSpace {
-    NONE,
-    GRAY,
-    BGR,
-    RGB,
-    HSV,
-    BIT_MASK,
-  };
 
   /**
    * \brief Default constructor. A empty image will be constructed.
@@ -37,6 +32,13 @@ public:
    * \param space The colour space of the construced image.
    */
   Image(const std::size_t rows, const std::size_t cols, const ColourSpace space);
+
+  /**
+   * \brief Constructs a image from a cv::Mat. The colour space must be given. The cv::Mat image data will be copied.
+   * \param mat Original image. The data are copied from the original image.
+   * \param colourSpace The colour space of the image. It must be chosen manually.
+   */
+  Image(const cv::Mat& mat, const ColourSpace space);
 
   /**
    * \brief Constructs a copy of the given image. Corrects the copy contructor of cv::Mat, because it is actually 
@@ -83,30 +85,86 @@ public:
   ColourSpace colourSpace(void) const noexcept { return colour_space_; }
 
   /**
+   * \brief Returns the pixel at (row, col).
+   * 
+   * \param row
+   * \param col
+   * \return pixel that contains references to the data
+   */
+  inline Pixel operator()(const std::size_t row, const std::size_t col) { return { data_ + (row * stride_ + col * Image::solveBytesPerPixel(colour_space_)), colour_space_ }; }
+
+  /**
+   * \brief Returns the const pixel at (row, col).
+   * 
+   * \param row
+   * \param col
+   * \return pixel that contains const references to the data
+   */
+  inline ConstPixel operator()(const std::size_t row, const std::size_t col) const { return { data_ + (row * stride_ + col * Image::solveBytesPerPixel(colour_space_)), colour_space_ }; }
+  
+  /**
+   * \brief Return the number of rows of this image.
+   * 
+   * \return number of rows of this image
+   */
+  inline std::size_t rows(void) const noexcept { return rows_; }
+
+  /**
+   * \brief Return the number of columns of this image.
+   * 
+   * \return number of columns of this image
+   */  
+  inline std::size_t cols(void) const noexcept { return cols_; }
+
+  /**
+   * \brief Creates a cv::Mat that uses the data of this image. That can be used for opencv image operations. No data are copied.
+   * 
+   * \return cv::Mat that uses data of this image without coping of data
+   */
+  inline cv::Mat cvMat(void) { return { static_cast<int>(rows_), static_cast<int>(cols_), Image::solveType(colour_space_), data_, stride_ }; }
+
+  /**
+   * \brief Gets a refernce to the data of a cv::Mat. The cv::Mat uses internally shared memory. The reference counter of the data will be incremented. No data are copied.
+   * 
+   * \param mat This image will refer to the internal data of mat.
+   * \param space The colour space of the image. The space must be match to the opencv type (CV_8UC1: Gray, BitMask; CV_8UC3: RGB, BGR; HSV).
+   * \return true if no error is orrucred.
+   */
+  bool fromCvMat(const cv::Mat& mat, const ColourSpace space);
+
+  /**
+   * \brief Copys the data from a cv::Mat.
+   * 
+   * \param mat The data of mat will be copied.
+   * \param space The colour space of the image. The space must be match to the opencv type (CV_8UC1: Gray, BitMask; CV_8UC3: RGB, BGR; HSV).
+   * \return true if no error is orrucred.
+   */
+  bool copyFromCvMat(const cv::Mat& mat, const ColourSpace space);
+
+  /**
+   * \brief Resets this image. All attributes will be set to default values. If a cv::Mat is used as external data source the reference will be removed.
+   */
+  void clear(void);
+
+private:
+  /**
    * \brief Solves the colour space to the cooresponding open cv mat type.
    * \param space Colour space.
    * \return open cv mat type.
    */
-  static int solveType(const ColourSpace space)
-  {
-    switch (space)
-    {
-      case ColourSpace::BGR:
-      case ColourSpace::RGB:
-      case ColourSpace::HSV:
-        return CV_8UC3;
+  static int solveType(const ColourSpace space);
 
-      case ColourSpace::GRAY:
-      case ColourSpace::BIT_MASK:
-        return CV_8UC1;
+  static std::size_t solveBytesPerPixel(const ColourSpace space);
 
-      default:
-        return CV_8UC1;
-    }
-  }
-
-private:
+  // members
   ColourSpace colour_space_ = ColourSpace::NONE;
+  std::vector<std::uint8_t> data_storage_;
+  std::uint8_t* data_ = nullptr;
+  cv::Mat data_cv_mat_extern_; // uses cv::Mat to handle the shared memory reference counter of the opencv memory handling
+  bool use_external_data_ = false;
+  std::size_t stride_ = 0;
+  std::size_t rows_ = 0;
+  std::size_t cols_ = 0;
 };
 
 } // end namespace vision

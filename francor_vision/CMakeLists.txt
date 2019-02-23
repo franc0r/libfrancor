@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.12)
+cmake_minimum_required (VERSION 3.7.2)
 
 project(francor-vision VERSION 0.1
                        LANGUAGES CXX)
