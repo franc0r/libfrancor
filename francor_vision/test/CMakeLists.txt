@@ -12,8 +12,22 @@ target_link_libraries(unit-test-image PRIVATE
   PRIVATE francor-vision
 )
 
+add_executable(unit-test-filter-image
+  src/unit_test_filter_image.cpp
+)
+
+target_link_libraries(unit-test-filter-image PRIVATE
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-vision
+)
+
 enable_testing()
 
 add_test(test-image
   COMMAND unit-test-image
+)
+
+add_test(test-filter-image
+  COMMAND unit-test-filter-image
 )

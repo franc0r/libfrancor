@@ -54,6 +54,14 @@ public:
    */
   Image(const Image& image);
 
+  Image(const Image& image, const ColourSpace space)
+  {
+    cv::Mat transformed;
+    
+    image.cvMat().convertTo(transformed, this->solveType(space));
+    this->fromCvMat(transformed, space);
+  }
+
   /**
    * \brief Move constructor. Corrects the copy contructor of cv::Mat, because it is actually like a shared pointer.
    *        This constructor releases the data from the origin image.
@@ -128,7 +136,7 @@ public:
    * 
    * \return cv::Mat that uses data of this image without coping of data
    */
-  inline cv::Mat cvMat(void) { return { static_cast<int>(rows_), static_cast<int>(cols_), Image::solveType(colour_space_), data_, stride_ }; }
+  inline cv::Mat cvMat(void) const { return { static_cast<int>(rows_), static_cast<int>(cols_), Image::solveType(colour_space_), data_, stride_ }; }
 
   /**
    * \brief Gets a refernce to the data of a cv::Mat. The cv::Mat uses internally shared memory. The reference counter of the data will be incremented. No data are copied.
@@ -153,7 +161,19 @@ public:
    */
   void clear(void);
 
+  void applyMask(const Image& image)
+  {
+    if (image.colourSpace() != ColourSpace::BIT_MASK || rows_ != image.rows_ || cols_ != image.cols_)
+      return;
+
+    for (std::size_t row = 0; row < rows_; ++row)
+      for (std::size_t col = 0; col < cols_; ++col)
+        for (std::size_t byte = 0; byte < this->solveBytesPerPixel(colour_space_); ++byte)
+          data_[row * stride_ + col * byte] = 0;
+  }
+
 private:
+
   /**
    * \brief Solves the colour space to the cooresponding open cv mat type.
    * \param space Colour space.

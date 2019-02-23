@@ -107,8 +107,9 @@ TEST(ImageTest, MoveFromCvMat)
   EXPECT_EQ(moved(0, 1).gray(), 10);
 
   // origin is reinitialized as empty image
+  EXPECT_TRUE(origin.empty());  
   EXPECT_EQ(origin.cols, 0);
-  EXPECT_EQ(origin.rows, 0);  
+  EXPECT_EQ(origin.rows, 0);
 }
 
 TEST(ImageTest, CopyFromCvMat)
