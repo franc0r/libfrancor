@@ -85,6 +85,7 @@ TEST(ImageTest, MoveConstructor)
   EXPECT_EQ(origin.colourSpace(), francor::vision::ColourSpace::NONE);
 }
 
+// tests implicit fromCvMat() too
 TEST(ImageTest, MoveFromCvMat)
 {
   constexpr std::size_t rows = 1;
@@ -201,6 +202,26 @@ TEST(ImageTest, AssignMoveOperator)
   EXPECT_EQ(origin.rows(), 0);
   EXPECT_EQ(origin.colourSpace(), francor::vision::ColourSpace::NONE);
 }
+
+// TEST(ImageTest, Clear)
+// {
+
+// }
+
+// TEST(ImageTest, Resize)
+// {
+
+// }
+
+// TEST(ImageTest, TransfromTo)
+// {
+
+// }
+
+// TEST(ImageTest, ApplyMask)
+// {
+
+// }
 
 int main(int argc, char **argv)
 {

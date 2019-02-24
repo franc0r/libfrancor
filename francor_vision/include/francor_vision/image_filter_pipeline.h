@@ -4,9 +4,9 @@
  * \author Christian Merkl (knueppl@gmx.de)
  * \date 16. February 2019
  */
-#include <memory>
+#include "francor_vision/image_filter.h"
 
-#include "francor_vision/image.h"
+#include <memory>
 
 namespace francor
 {
@@ -14,93 +14,20 @@ namespace francor
 namespace vision
 {
 
-/**
- * Interface for image filter that creates a bitmask. The bitmask is also an input for each filter stage.
- */
-class ImageFilter
-{
-protected:
-  ImageFilter(void) = default;
-
-public:
-  virtual ~ImageFilter(void) = default;
-
-  bool process(Image& image) const
-  {
-    if (image.colourSpace() == ColourSpace::NONE)
-      return false;
-
-    return this->processImpl(image);    
-  }
-
-  bool process(const Image& image, Image& mask) const
-  {
-    if (this->safetyCheck(image, mask))
-      return false;
-
-    return this->processImpl(image, mask);
-  }
-
-  virtual ColourSpace requiredColourSpace(void) const = 0;
-  virtual bool isValid(void) const = 0;
-
-protected:
-  virtual bool processImpl(Image& image) const = 0;
-  virtual bool processImpl(const Image& image, Image& mask) const = 0;
-
-private:
-  static bool safetyCheck(const Image& image, Image& mask)
-  {
-    return image.colourSpace() != ColourSpace::NONE
-           &&
-           image.cols() == mask.cols()
-           &&
-           image.rows() == mask.cols();
-  }
-};
-
-
-class ImageFilterPipeline
+template <class T>
+class ImageFilterPipeline_
 {
 public:
-  ImageFilterPipeline(void) = default;
-  ImageFilterPipeline(const ImageFilterPipeline&) = default;
-  ImageFilterPipeline(ImageFilterPipeline&&) = default;
+  ImageFilterPipeline_(void) = default;
+  ImageFilterPipeline_(const ImageFilterPipeline_<T>&) = default;
+  ImageFilterPipeline_(ImageFilterPipeline_<T>&&) = default;
+  virtual ~ImageFilterPipeline_(void) = default;
 
-  ImageFilterPipeline& operator=(const ImageFilterPipeline&) = default;
-  ImageFilterPipeline& operator=(ImageFilterPipeline&&) = default;
+  ImageFilterPipeline_<T>& operator=(const ImageFilterPipeline_<T>&) = default;
+  ImageFilterPipeline_<T>& operator=(ImageFilterPipeline_<T>&&) = default;
 
-  bool process(Image& image)
-  {
-    this->createRequiredImages(image);
-
-    for (auto& filter : filter_)
-    {
-      if (image.colourSpace() == filter.second->requiredColourSpace())
-        filter.second->process(image);
-      else      
-        filter.second->process(*required_images_[filter.second->requiredColourSpace()]);
-    }
-
-    return true;
-  }
   
-  bool process(const Image& image, Image& mask)
-  {
-    this->createRequiredImages(image);
-
-    for (auto& filter : filter_)
-    {
-      if (image.colourSpace() == filter.second->requiredColourSpace())
-        filter.second->process(image, mask);
-      else      
-        filter.second->process(*required_images_[filter.second->requiredColourSpace()], mask);
-    }
-
-    return true;
-  }
-
-  bool addFilter(const std::string& name, std::unique_ptr<const ImageFilter> filter)
+  bool addFilter(const std::string& name, std::unique_ptr<const T> filter)
   {
     // check if pointer and filter is valid
     if (!filter || !filter->isValid())
@@ -137,19 +64,84 @@ public:
     return valid;
   }
 
-private:
+protected:
   void createRequiredImages(const Image& image)
   {
     for (auto& it : required_images_)
     {
+      // skip if image is from same type
+      if (it.second->colourSpace() == image.colourSpace())
+        continue;
+
       *it.second = std::move(Image(image, it.first));
     }
   }
 
   std::map<ColourSpace, std::shared_ptr<Image>> required_images_;
-  std::map<std::string, std::unique_ptr<const ImageFilter>> filter_;
+  std::map<std::string, std::unique_ptr<const T>> filter_;
 };
 
+class ImageFilterPipeline : public ImageFilterPipeline_<ImageFilter>
+{
+public:
+  ImageFilterPipeline(void) = default;
+  virtual ~ImageFilterPipeline(void) = default;
+
+  bool process(Image& image)
+  {
+    for (auto& filter : filter_)
+    {
+      if (image.colourSpace() != filter.second->requiredColourSpace())
+      {
+        // TODO: print error
+        return false;
+      }
+      
+      if (!filter.second->process(image))
+      {
+        // TODO: print error
+        return false;
+      }
+    }
+
+    return true;
+  }
+};
+
+class ImageMaskFilterPipeline : public ImageFilterPipeline_<ImageMaskFilter>
+{
+public:
+  ImageMaskFilterPipeline(void) = default;
+  virtual ~ImageMaskFilterPipeline(void) = default;
+
+  bool process(const Image& image, Image& mask)
+  {
+    this->createRequiredImages(image);
+    mask.resize(image.rows(), image.cols(), ColourSpace::BIT_MASK);
+
+    for (auto& filter : filter_)
+    {
+      if (image.colourSpace() == filter.second->requiredColourSpace())
+      {
+        if (!filter.second->process(image, mask))
+        {
+          // TODO: print error
+          return false;
+        }
+      }
+      else
+      {      
+        if (!filter.second->process(*required_images_[filter.second->requiredColourSpace()], mask))
+        {
+          // TODO: print error
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+};
 
 } // end namespace vision
 

@@ -159,6 +159,20 @@ public:
    */
   void clear(void);
 
+  void resize(const std::size_t rows, const std::size_t cols, const ColourSpace space = ColourSpace::NONE)
+  {
+    const ColourSpace targetSpace = (space == ColourSpace::NONE ? colour_space_ : space);
+    const std::size_t bytesPerPixel = this->solveBytesPerPixel(targetSpace);
+
+    data_cv_mat_extern_.release();
+    data_storage_.resize(rows * cols * bytesPerPixel);
+    data_ = data_storage_.data();
+    use_external_data_ = false;
+    rows_ = rows;
+    cols_ = cols;
+    colour_space_ = targetSpace;
+  }
+
   void applyMask(const Image& image)
   {
     if (image.colourSpace() != ColourSpace::BIT_MASK || rows_ != image.rows_ || cols_ != image.cols_)
