@@ -8,6 +8,31 @@
 
 #include "francor_vision/image_filter_pipeline.h"
 
+using francor::vision::ImageFilter;
+using francor::vision::ImageMaskFilter;
+using francor::vision::Image;
+using francor::vision::ColourSpace;
+
+class DummyFilter : public ImageFilter
+{
+protected:
+  DummyFilter(const ColourSpace space) : ImageFilter(space) { }
+
+public:
+  virtual bool isValid(void) const override { return true; }
+};
+
+class DummyMaskFilter : public ImageMaskFilter
+{
+protected:
+  DummyMaskFilter(const ColourSpace space) : ImageMaskFilter(space) { }
+
+public:
+  virtual bool isValid(void) const override { return true; }
+};
+
+
+
 TEST(ImageFilterPipelineTest, instantiateEmptyPipeline)
 {
   francor::vision::ImageFilterPipeline pipeline;
@@ -15,58 +40,65 @@ TEST(ImageFilterPipelineTest, instantiateEmptyPipeline)
   EXPECT_TRUE(pipeline.isValid());
 }
 
-using francor::vision::ImageMaskFilter;
-using francor::vision::Image;
-using francor::vision::ColourSpace;
+// TEST(ImageFilterPipelineTest, AddFilter)
+// {
 
-class DummyFilter : public ImageMaskFilter
-{
-protected:
-  DummyFilter(const ColourSpace space) : ImageMaskFilter(space) { }
+// }
 
-public:
-  virtual bool isValid(void) const override { return true; }
-};
+// TEST(ImageFilterPipelineTest, Process)
+// {
 
-TEST(ImageFilterPipeLineTest, CreateRequiredImageTypes)
+// }
+
+// TEST(ImageMaskFilterPipeLineTest, Process)
+// {
+
+// }
+
+// TEST(ImageMaskFilterPipeLineTest, CombinedMaskFromTwoFilters)
+// {
+
+// }
+
+TEST(ImageMaskFilterPipeLineTest, CreateRequiredImageTypes)
 {
   // uses declarations and class definitions to check if the correct colour space is supplied for each filter
   static ColourSpace rgb = ColourSpace::NONE, bgr = ColourSpace::NONE, hsv = ColourSpace::NONE, gray = ColourSpace::NONE;
 
-  class DummyFilterRgb  : public DummyFilter
+  class DummyMaskFilterRgb  : public DummyMaskFilter
   {
   public:
-    DummyFilterRgb(void) : DummyFilter(ColourSpace::RGB) { }
+    DummyMaskFilterRgb(void) : DummyMaskFilter(ColourSpace::RGB) { }
     virtual bool processImpl(const Image& image, Image& mask) const override { rgb = image.colourSpace(); return true; }
   };
-  class DummyFilterBgr  : public DummyFilter
+  class DummyMaskFilterBgr  : public DummyMaskFilter
   {
   public:
-    DummyFilterBgr(void) : DummyFilter(ColourSpace::BGR) { }
+    DummyMaskFilterBgr(void) : DummyMaskFilter(ColourSpace::BGR) { }
     virtual bool processImpl(const Image& image, Image& mask) const override { bgr = image.colourSpace(); return true; }
   };
-  class DummyFilterHsv  : public DummyFilter
+  class DummyMaskFilterHsv  : public DummyMaskFilter
   {
   public:
-    DummyFilterHsv(void) : DummyFilter(ColourSpace::HSV) { }
+    DummyMaskFilterHsv(void) : DummyMaskFilter(ColourSpace::HSV) { }
     virtual bool processImpl(const Image& image, Image& mask) const override { hsv = image.colourSpace(); return true; }
   };
-  class DummyFilterGray  : public DummyFilter
+  class DummyMaskFilterGray  : public DummyMaskFilter
   {
   public:
-    DummyFilterGray(void) : DummyFilter(ColourSpace::GRAY) { }
+    DummyMaskFilterGray(void) : DummyMaskFilter(ColourSpace::GRAY) { }
     virtual bool processImpl(const Image& image, Image& mask) const override { gray = image.colourSpace(); return true; }
   };
 
   francor::vision::ImageMaskFilterPipeline pipeline;
+
+  ASSERT_TRUE(pipeline.addFilter("rgb" , std::make_unique<DummyMaskFilterRgb >()));
+  ASSERT_TRUE(pipeline.addFilter("bgr" , std::make_unique<DummyMaskFilterBgr >()));
+  ASSERT_TRUE(pipeline.addFilter("hsv" , std::make_unique<DummyMaskFilterHsv >()));
+  ASSERT_TRUE(pipeline.addFilter("gray", std::make_unique<DummyMaskFilterGray>()));
+
+  Image image(10, 10, ColourSpace::BGR);
   Image mask;
-
-  ASSERT_TRUE(pipeline.addFilter("rgb" , std::make_unique<DummyFilterRgb >()));
-  ASSERT_TRUE(pipeline.addFilter("bgr" , std::make_unique<DummyFilterBgr >()));
-  ASSERT_TRUE(pipeline.addFilter("hsv" , std::make_unique<DummyFilterHsv >()));
-  ASSERT_TRUE(pipeline.addFilter("gray", std::make_unique<DummyFilterGray>()));
-
-  Image image(100, 100, ColourSpace::BGR);
 
   // check if correct colour space was supplied.
   ASSERT_TRUE(pipeline.process(image, mask));

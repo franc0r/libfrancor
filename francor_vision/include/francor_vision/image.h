@@ -187,7 +187,6 @@ public:
   bool transformTo(const ColourSpace space)
   {
     cv::Mat mat(this->cvMat());
-    cv::Mat result;
 
     switch (colour_space_)
     {

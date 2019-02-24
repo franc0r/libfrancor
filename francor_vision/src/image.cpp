@@ -154,6 +154,7 @@ bool Image::fromCvMat(const cv::Mat& mat, const ColourSpace space)
   colour_space_ = space;
 
   // TODO: not sure if the check below is valid at all
+  //       - I think the reference counter of the cv::Mat should be checked, too. I read the counter is NULL if a external source is used.
   if (mat.data == data_storage_.data())
   // mat was exported before
   {
