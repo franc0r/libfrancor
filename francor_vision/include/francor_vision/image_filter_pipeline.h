@@ -64,6 +64,8 @@ public:
     return valid;
   }
 
+  std::size_t numOfFilters(void) const noexcept { return filter_.size(); }
+
 protected:
   void createRequiredImages(const Image& image)
   {

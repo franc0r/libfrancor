@@ -13,6 +13,7 @@ using francor::vision::ImageMaskFilter;
 using francor::vision::Image;
 using francor::vision::ColourSpace;
 
+// helper image filter classes
 class DummyFilter : public ImageFilter
 {
 protected:
@@ -20,6 +21,29 @@ protected:
 
 public:
   virtual bool isValid(void) const override { return true; }
+};
+
+class DummyFilterRgb : public DummyFilter
+{
+public:
+  DummyFilterRgb(const bool valid = true) : DummyFilter(ColourSpace::RGB), is_valid_(valid) { }
+
+  virtual bool isValid(void) const override { return is_valid_; }
+
+private:
+  virtual bool processImpl(Image& image) const override
+  {
+    if (image.rows() == 0 || image.cols() == 0)
+      return true;
+
+    image(0, 0).r() = 10;
+    image(0, 0).g() = 20;
+    image(0, 0).b() = 30;
+
+    return true;
+  }
+
+  const bool is_valid_;
 };
 
 class DummyMaskFilter : public ImageMaskFilter
@@ -40,10 +64,24 @@ TEST(ImageFilterPipelineTest, instantiateEmptyPipeline)
   EXPECT_TRUE(pipeline.isValid());
 }
 
-// TEST(ImageFilterPipelineTest, AddFilter)
-// {
+TEST(ImageFilterPipelineTest, AddFilter)
+{
+  francor::vision::ImageFilterPipeline pipeline;
 
-// }
+  // add a not valid filter
+  ASSERT_FALSE(pipeline.addFilter("rgb", std::make_unique<DummyFilterRgb>(false)));
+  ASSERT_EQ(pipeline.numOfFilters(), 0);
+
+  // add a valid filter
+  ASSERT_TRUE(pipeline.addFilter("rgb", std::make_unique<DummyFilterRgb>(true)));
+  ASSERT_EQ(pipeline.numOfFilters(), 1);
+
+  // use the filter name twice
+  ASSERT_FALSE(pipeline.addFilter("rgb", std::make_unique<DummyFilterRgb>(true)));
+  ASSERT_EQ(pipeline.numOfFilters(), 1);
+
+  EXPECT_TRUE(pipeline.isValid());
+}
 
 // TEST(ImageFilterPipelineTest, Process)
 // {
