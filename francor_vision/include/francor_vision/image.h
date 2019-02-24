@@ -134,16 +134,16 @@ public:
    * 
    * \return cv::Mat that uses data of this image without coping of data
    */
-  inline cv::Mat cvMat(void) const { return { static_cast<int>(rows_), static_cast<int>(cols_), Image::solveType(colour_space_), data_, stride_ }; }
+  inline cv::Mat cvMat(void) const { return data_source_; }
 
   /**
    * \brief Gets a refernce to the data of a cv::Mat. The cv::Mat uses internally shared memory. The reference counter of the data will be incremented. No data are copied.
    * 
-   * \param mat This image will refer to the internal data of mat.
+   * \param mat It will be established a reference to the image data of mat. mat will be released.
    * \param space The colour space of the image. The space must be match to the opencv type (CV_8UC1: Gray, BitMask; CV_8UC3: RGB, BGR; HSV).
    * \return true if no error is orrucred.
    */
-  bool fromCvMat(const cv::Mat& mat, const ColourSpace space);
+  bool fromCvMat(cv::Mat& mat, const ColourSpace space);
 
   /**
    * \brief Copys the data from a cv::Mat.
@@ -159,30 +159,21 @@ public:
    */
   void clear(void);
 
-  void resize(const std::size_t rows, const std::size_t cols, const ColourSpace space = ColourSpace::NONE)
-  {
-    const ColourSpace targetSpace = (space == ColourSpace::NONE ? colour_space_ : space);
-    const std::size_t bytesPerPixel = this->solveBytesPerPixel(targetSpace);
+  /**
+   * \brief Resize this image using the given colour space.
+   * 
+   * \param rows New number of rows.
+   * \param cols New number of columns.
+   * \param space New colour space.
+   */
+  void resize(const std::size_t rows, const std::size_t cols, const ColourSpace space = ColourSpace::NONE);
 
-    data_cv_mat_extern_.release();
-    data_storage_.resize(rows * cols * bytesPerPixel);
-    data_ = data_storage_.data();
-    use_external_data_ = false;
-    rows_ = rows;
-    cols_ = cols;
-    colour_space_ = targetSpace;
-  }
-
-  void applyMask(const Image& image)
-  {
-    if (image.colourSpace() != ColourSpace::BIT_MASK || rows_ != image.rows_ || cols_ != image.cols_)
-      return;
-
-    for (std::size_t row = 0; row < rows_; ++row)
-      for (std::size_t col = 0; col < cols_; ++col)
-        for (std::size_t byte = 0; byte < this->solveBytesPerPixel(colour_space_); ++byte)
-          data_[row * stride_ + col * byte] = 0;
-  }
+  /**
+   * \brief Mask this image using a bit mask. If the mask bit is zero the correspond pixel will be set to zero. The mask must be of the same size.
+   * 
+   * \param mask Bit mask that is used to mask this image. mask must be of the same size.
+   */
+  void applyMask(const Image& mask);
 
   bool transformTo(const ColourSpace space)
   {
@@ -236,6 +227,8 @@ public:
 
       break;
       
+    // TODO: add implementation for HSV and GRAY, too 
+
     default:
       return false;
     }
@@ -259,10 +252,10 @@ private:
 
   // members
   ColourSpace colour_space_ = ColourSpace::NONE;
-  std::vector<std::uint8_t> data_storage_;
+
+  cv::Mat data_source_; // uses cv::Mat to allocate and handle the image data
   std::uint8_t* data_ = nullptr;
-  cv::Mat data_cv_mat_extern_; // uses cv::Mat to handle the shared memory reference counter of the opencv mat memory handling
-  bool use_external_data_ = false;
+
   std::size_t stride_ = 0;
   std::size_t rows_ = 0;
   std::size_t cols_ = 0;

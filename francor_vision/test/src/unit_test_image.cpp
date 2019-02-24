@@ -203,15 +203,31 @@ TEST(ImageTest, AssignMoveOperator)
   EXPECT_EQ(origin.colourSpace(), francor::vision::ColourSpace::NONE);
 }
 
-// TEST(ImageTest, Clear)
-// {
+TEST(ImageTest, Clear)
+{
+  constexpr std::size_t rows = 1;
+  constexpr std::size_t cols = 2;
+  francor::vision::Image origin(rows, cols, francor::vision::ColourSpace::GRAY);
 
-// }
+  origin.clear();
 
-// TEST(ImageTest, Resize)
-// {
+  EXPECT_EQ(origin.rows(), 0);
+  EXPECT_EQ(origin.cols(), 0);
+  EXPECT_EQ(origin.colourSpace(), francor::vision::ColourSpace::NONE);
+}
 
-// }
+TEST(ImageTest, Resize)
+{
+  constexpr std::size_t rows = 1;
+  constexpr std::size_t cols = 2;
+  francor::vision::Image origin(rows, cols, francor::vision::ColourSpace::GRAY);
+
+  origin.resize(2, 2, francor::vision::ColourSpace::RGB);
+
+  EXPECT_EQ(origin.rows(), 2);
+  EXPECT_EQ(origin.cols(), 2);
+  EXPECT_EQ(origin.colourSpace(), francor::vision::ColourSpace::RGB);
+}
 
 // TEST(ImageTest, TransfromTo)
 // {
