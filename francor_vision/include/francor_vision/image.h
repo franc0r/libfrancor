@@ -56,10 +56,8 @@ public:
 
   Image(const Image& image, const ColourSpace space)
   {
-    cv::Mat transformed;
-    
-    image.cvMat().convertTo(transformed, this->solveType(space));
-    this->fromCvMat(transformed, space);
+    *this = image;
+    this->transformTo(space);
   }
 
   /**
@@ -172,6 +170,69 @@ public:
           data_[row * stride_ + col * byte] = 0;
   }
 
+  bool transformTo(const ColourSpace space)
+  {
+    cv::Mat mat(this->cvMat());
+    cv::Mat result;
+
+    switch (colour_space_)
+    {
+    case ColourSpace::BGR:
+      {
+        switch (space)
+        {
+        case ColourSpace::GRAY:
+          cv::cvtColor(mat, mat, CV_BGR2GRAY);
+          break;
+
+        case ColourSpace::HSV:
+          cv::cvtColor(mat, mat, CV_BGR2HSV);
+          break;
+
+        case ColourSpace::RGB:
+          cv::cvtColor(mat, mat, CV_BGR2RGB);
+          break;
+
+        default:
+          return true;
+        }
+      }
+
+      break;
+
+    case ColourSpace::RGB:
+      {
+        switch (space)
+        {
+        case ColourSpace::GRAY:
+          cv::cvtColor(mat, mat, CV_RGB2GRAY);
+          break;
+
+        case ColourSpace::HSV:
+          cv::cvtColor(mat, mat, CV_RGB2HSV);
+          break;
+
+        case ColourSpace::BGR:
+          cv::cvtColor(mat, mat, CV_RGB2BGR);
+          break;
+
+        default:
+          return true;
+        }
+      }
+
+      break;
+      
+    default:
+      return false;
+    }
+
+    // read back the image attributes
+    this->fromCvMat(mat, space);
+
+    return true;
+  }
+
 private:
 
   /**
@@ -187,7 +248,7 @@ private:
   ColourSpace colour_space_ = ColourSpace::NONE;
   std::vector<std::uint8_t> data_storage_;
   std::uint8_t* data_ = nullptr;
-  cv::Mat data_cv_mat_extern_; // uses cv::Mat to handle the shared memory reference counter of the opencv memory handling
+  cv::Mat data_cv_mat_extern_; // uses cv::Mat to handle the shared memory reference counter of the opencv mat memory handling
   bool use_external_data_ = false;
   std::size_t stride_ = 0;
   std::size_t rows_ = 0;

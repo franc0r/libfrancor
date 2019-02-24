@@ -25,7 +25,7 @@ protected:
 public:
   virtual ~ImageFilter(void) = default;
 
-  bool process(const Image& image) const
+  bool process(Image& image) const
   {
     if (image.colourSpace() == ColourSpace::NONE)
       return false;
@@ -45,7 +45,7 @@ public:
   virtual bool isValid(void) const = 0;
 
 protected:
-  virtual bool processImpl(const Image& image) const = 0;
+  virtual bool processImpl(Image& image) const = 0;
   virtual bool processImpl(const Image& image, Image& mask) const = 0;
 
 private:
@@ -59,8 +59,6 @@ private:
   }
 };
 
-class ImageFilterPipeline;
-using ImageFilterPipelineStrategy = std::function<Image (const Image&, const ImageFilterPipeline&)>;
 
 class ImageFilterPipeline
 {
@@ -83,6 +81,8 @@ public:
       else      
         filter.second->process(*required_images_[filter.second->requiredColourSpace()]);
     }
+
+    return true;
   }
   
   bool process(const Image& image, Image& mask)
@@ -96,21 +96,23 @@ public:
       else      
         filter.second->process(*required_images_[filter.second->requiredColourSpace()], mask);
     }
+
+    return true;
   }
 
-  void addFilter(const std::string& name, std::unique_ptr<const ImageFilter> filter)
+  bool addFilter(const std::string& name, std::unique_ptr<const ImageFilter> filter)
   {
     // check if pointer and filter is valid
     if (!filter || !filter->isValid())
     {
       // TODO: throw exception or print error
-      return;
+      return false;
     }
     // check if filter name is already used.
     if (filter_.find(name) != filter_.end())
     {
       // TODO: throw exception or print error
-      return;
+      return false;
     }
 
     // check if new required colour space must be added
@@ -121,9 +123,9 @@ public:
 
     // add filter
     filter_[name] = std::move(filter);
-  }
 
-  void setStrategy(ImageFilterPipelineStrategy strategy) { strategy_ = strategy; }
+    return true;
+  }
 
   bool isValid(void) const
   {
@@ -131,8 +133,6 @@ public:
 
     for (auto& filter : filter_)
       valid &= filter.second->isValid();
-
-    valid &= strategy_.operator bool();
 
     return valid;
   }
@@ -148,7 +148,6 @@ private:
 
   std::map<ColourSpace, std::shared_ptr<Image>> required_images_;
   std::map<std::string, std::unique_ptr<const ImageFilter>> filter_;
-  ImageFilterPipelineStrategy strategy_;
 };
 
 

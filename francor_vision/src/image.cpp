@@ -148,16 +148,27 @@ bool Image::fromCvMat(const cv::Mat& mat, const ColourSpace space)
   }
 
   // get attributes from mat
-  this->clear();
   rows_ = mat.rows;
   cols_ = mat.cols;
   stride_ = mat.step;
   colour_space_ = space;
 
-  // register data usage
-  data_cv_mat_extern_ = mat;
-  data_ = data_cv_mat_extern_.data;
-  use_external_data_ = true;
+  // TODO: not sure if the check below is valid at all
+  if (mat.data == data_storage_.data())
+  // mat was exported before
+  {
+    data_ = data_storage_.data();
+    use_external_data_ = false;
+    data_cv_mat_extern_.release();
+  }
+  else
+  {
+    // register data usage
+    data_cv_mat_extern_ = mat;
+    data_ = data_cv_mat_extern_.data;
+    data_storage_.clear();
+    use_external_data_ = true;
+  }
 
   return true;
 }

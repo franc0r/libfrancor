@@ -8,20 +8,13 @@
 #include <cstdint>
 #include <stdexcept>
 
+#include "francor_vision/colour_space.h"
+
 namespace francor
 {
 
 namespace vision
 {
-
-enum class ColourSpace {
-  NONE,
-  GRAY,
-  BGR,
-  RGB,
-  HSV,
-  BIT_MASK,
-};
 
 /**
  * \brief Class Pixel that refers to the pixel data of an image.
