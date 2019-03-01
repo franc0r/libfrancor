@@ -58,22 +58,24 @@ public:
 class DummyMaskFilterRgb : public DummyMaskFilter
 {
 public:
-  DummyMaskFilterRgb(const bool valid = true) : DummyMaskFilter(ColourSpace::RGB), is_valid_(valid) { }
+  DummyMaskFilterRgb(const bool valid = true, const std::size_t row = 0, const std::size_t col = 0) : DummyMaskFilter(ColourSpace::RGB), is_valid_(valid), row_(row), col_(col) { }
 
   virtual bool isValid(void) const override { return is_valid_; }
 
 private:
   virtual bool processImpl(const Image& image, Image& mask) const override
   {
-    if (image.rows() == 0 || image.cols() == 0 || mask.cols() == 0 || mask.rows() == 0)
+    if (image.rows() <= row_ || image.cols() <= col_ || mask.cols() <= col_ || mask.rows() <= row_)
       return false;
 
-    mask(0, 0).bit() = image(0, 0).r() >= 50 && image(0, 0).g() >= 50 && image(0, 0).b() >= 50;
+    mask(row_, col_).bit() = image(row_, col_).r() >= 50 && image(row_, col_).g() >= 50 && image(row_, col_).b() >= 50;
 
     return true;
   }
 
   const bool is_valid_;
+  const std::size_t row_;
+  const std::size_t col_;
 };
 
 TEST(ImageFilterPipelineTest, instantiateEmptyPipeline)
@@ -167,10 +169,34 @@ TEST(ImageMaskFilterPipeLineTest, Process)
   EXPECT_FALSE(pipeline(image, mask));
 }
 
-// TEST(ImageMaskFilterPipeLineTest, CombinedMaskFromTwoFilters)
-// {
+TEST(ImageMaskFilterPipeLineTest, CombinedMaskFromTwoFilters)
+{
+  francor::vision::ImageMaskFilterPipeline pipeline;
+  Image image(Image::zeros(10, 10, ColourSpace::RGB));
+  Image mask;
 
-// }
+  // add two valid filter
+  ASSERT_TRUE(pipeline.addFilter("rgb_0", std::make_unique<DummyMaskFilterRgb>(true, 0, 0))); // checks pixel 0,0
+  ASSERT_TRUE(pipeline.addFilter("rgb_1", std::make_unique<DummyMaskFilterRgb>(true, 0, 1))); // checks pixel 0,1
+  ASSERT_EQ(pipeline.numOfFilters(), 2);
+
+  // modify data so the mask will be modified
+  image(0, 0).r() = 100;
+  image(0, 0).g() = 100;
+  image(0, 0).b() = 100;
+  image(0, 1).r() = 100;
+  image(0, 1).g() = 100;
+  image(0, 1).b() = 100;
+
+  // normal operation without expected error
+  EXPECT_TRUE(pipeline(image, mask));
+
+  // checks only if the mask was modified, not that the filter works properly
+  EXPECT_GE(mask.rows(), 1);
+  EXPECT_GE(mask.cols(), 2);
+  EXPECT_TRUE(mask(0, 0).bit());
+  EXPECT_TRUE(mask(0, 1).bit());
+}
 
 TEST(ImageMaskFilterPipeLineTest, CreateRequiredImageTypes)
 {
