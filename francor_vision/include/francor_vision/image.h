@@ -239,6 +239,16 @@ public:
     return true;
   }
 
+  /**
+   * \brief Creates a image with the given size and colour space and initialize it with zeros.
+   * 
+   * \param rows The number of rows of the image.
+   * \param cols The number of cols of the image.
+   * \param space The colour space of the image.
+   * \return New allocated image if no error was occurred otherwise an empty image.
+   */
+  static Image zeros(const std::size_t rows, const std::size_t cols, const ColourSpace space);
+
 private:
 
   /**

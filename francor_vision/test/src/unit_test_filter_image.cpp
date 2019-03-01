@@ -34,7 +34,7 @@ private:
   virtual bool processImpl(Image& image) const override
   {
     if (image.rows() == 0 || image.cols() == 0)
-      return true;
+      return false;
 
     image(0, 0).r() = 10;
     image(0, 0).g() = 20;
@@ -55,7 +55,26 @@ public:
   virtual bool isValid(void) const override { return true; }
 };
 
+class DummyMaskFilterRgb : public DummyMaskFilter
+{
+public:
+  DummyMaskFilterRgb(const bool valid = true) : DummyMaskFilter(ColourSpace::RGB), is_valid_(valid) { }
 
+  virtual bool isValid(void) const override { return is_valid_; }
+
+private:
+  virtual bool processImpl(const Image& image, Image& mask) const override
+  {
+    if (image.rows() == 0 || image.cols() == 0 || mask.cols() == 0 || mask.rows() == 0)
+      return false;
+
+    mask(0, 0).bit() = image(0, 0).r() >= 50 && image(0, 0).g() >= 50 && image(0, 0).b() >= 50;
+
+    return true;
+  }
+
+  const bool is_valid_;
+};
 
 TEST(ImageFilterPipelineTest, instantiateEmptyPipeline)
 {
@@ -83,15 +102,70 @@ TEST(ImageFilterPipelineTest, AddFilter)
   EXPECT_TRUE(pipeline.isValid());
 }
 
-// TEST(ImageFilterPipelineTest, Process)
-// {
+TEST(ImageFilterPipelineTest, Process)
+{
+  francor::vision::ImageFilterPipeline pipeline;
+  Image image(Image::zeros(10, 10, ColourSpace::RGB));
 
-// }
+  // pipeline with no filters shouldn't fail
+  EXPECT_TRUE(pipeline(image));
 
-// TEST(ImageMaskFilterPipeLineTest, Process)
-// {
+  // add a valid filter
+  ASSERT_TRUE(pipeline.addFilter("rgb", std::make_unique<DummyFilterRgb>(true)));
+  ASSERT_EQ(pipeline.numOfFilters(), 1);
 
-// }
+  // normal operation without expected error
+  EXPECT_TRUE(pipeline(image));
+
+  // checks only if the image was modified, not that the filter works properly
+  EXPECT_EQ(image(0, 0).r(), 10);
+  EXPECT_EQ(image(0, 0).g(), 20);
+  EXPECT_EQ(image(0, 0).b(), 30);
+
+  // clear image and expect failing pipeline
+  image.clear();
+  
+  EXPECT_FALSE(pipeline(image));
+}
+
+TEST(ImageMaskFilterPipeLineTest, Process)
+{
+  francor::vision::ImageMaskFilterPipeline pipeline;
+  Image image(Image::zeros(10, 10, ColourSpace::RGB));
+  Image mask;
+
+  // the pipeline must not fail without any filter
+  EXPECT_TRUE(pipeline(image, mask));
+  // the pipeline must create a bit mask according the size of image
+  EXPECT_EQ(mask.rows(), image.rows());
+  EXPECT_EQ(mask.cols(), image.cols());
+  EXPECT_EQ(mask.colourSpace(), ColourSpace::BIT_MASK);
+
+  // mask must be set to zero during initialization
+  for (std::size_t row = 0; row < mask.rows(); ++row)
+    for (std::size_t col = 0; col < mask.cols(); ++col)
+      EXPECT_FALSE(mask(row, col).bit());
+
+  // add a valid filter
+  ASSERT_TRUE(pipeline.addFilter("rgb", std::make_unique<DummyMaskFilterRgb>(true)));
+  ASSERT_EQ(pipeline.numOfFilters(), 1);
+
+  // modify data so the mask will be modified
+  image(0, 0).r() = 100;
+  image(0, 0).g() = 100;
+  image(0, 0).b() = 100;
+
+  // normal operation without expected error
+  EXPECT_TRUE(pipeline(image, mask));
+
+  // checks only if the mask was modified, not that the filter works properly
+  EXPECT_TRUE(mask(0, 0).bit());
+
+  // clear image and expect failing pipeline, because filter can't work with that image type
+  image.clear();
+  
+  EXPECT_FALSE(pipeline(image, mask));
+}
 
 // TEST(ImageMaskFilterPipeLineTest, CombinedMaskFromTwoFilters)
 // {
@@ -139,7 +213,7 @@ TEST(ImageMaskFilterPipeLineTest, CreateRequiredImageTypes)
   Image mask;
 
   // check if correct colour space was supplied.
-  ASSERT_TRUE(pipeline.process(image, mask));
+  ASSERT_TRUE(pipeline(image, mask));
 
   EXPECT_EQ(rgb , ColourSpace::RGB );
   EXPECT_EQ(bgr , ColourSpace::BGR );

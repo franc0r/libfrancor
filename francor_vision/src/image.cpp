@@ -143,6 +143,7 @@ void Image::resize(const std::size_t rows, const std::size_t cols, const ColourS
   const ColourSpace newSpace = (space == ColourSpace::NONE ? colour_space_ : space);
   
   data_source_.create(rows, cols, this->solveType(newSpace));
+  data_ = data_source_.data;
   rows_ = data_source_.rows;
   cols_ = data_source_.cols;
   stride_ = data_source_.step;
@@ -197,6 +198,28 @@ std::size_t Image::solveBytesPerPixel(const ColourSpace space)
   default:
     return 0;
   }
+}
+
+Image Image::zeros(const std::size_t rows, const std::size_t cols, const ColourSpace space)
+{
+  if (space == ColourSpace::NONE)
+  {
+    // print error
+    return { };
+  }
+
+  Image image;
+
+  // uses open cv static function to initialize the image
+  cv::Mat mat = image.cvMat();
+  mat = cv::Mat::zeros(rows, cols, Image::solveType(space));
+  image.fromCvMat(mat, space);
+
+  assert(image.rows() == rows);
+  assert(image.cols() == cols);
+  assert(image.colourSpace() == space);
+
+  return std::move(image);
 }
 
 } // end namespace vision

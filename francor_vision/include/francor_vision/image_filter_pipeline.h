@@ -67,16 +67,20 @@ public:
   std::size_t numOfFilters(void) const noexcept { return filter_.size(); }
 
 protected:
-  void createRequiredImages(const Image& image)
+  std::map<ColourSpace, std::shared_ptr<Image>> createRequiredImages(const Image& image) const
   {
-    for (auto& it : required_images_)
+    std::map<ColourSpace, std::shared_ptr<Image>> images(required_images_);
+
+    for (auto& it : images)
     {
       // skip if image is from same type
-      if (it.second->colourSpace() == image.colourSpace())
+      if (it.first == image.colourSpace())
         continue;
 
-      *it.second = std::move(Image(image, it.first));
+      it.second = std::make_shared<Image>(image, it.first);
     }
+
+    return std::move(images);
   }
 
   std::map<ColourSpace, std::shared_ptr<Image>> required_images_;
@@ -89,7 +93,7 @@ public:
   ImageFilterPipeline(void) = default;
   virtual ~ImageFilterPipeline(void) = default;
 
-  bool process(Image& image)
+  bool operator()(Image& image) const
   {
     for (auto& filter : filter_)
     {
@@ -108,6 +112,7 @@ public:
 
     return true;
   }
+
 };
 
 class ImageMaskFilterPipeline : public ImageFilterPipeline_<ImageMaskFilter>
@@ -116,13 +121,20 @@ public:
   ImageMaskFilterPipeline(void) = default;
   virtual ~ImageMaskFilterPipeline(void) = default;
 
-  bool process(const Image& image, Image& mask)
+  bool operator()(const Image& image, Image& mask) const
   {
-    this->createRequiredImages(image);
+    // prepare mask for filter operations even there is no filter added
     mask.resize(image.rows(), image.cols(), ColourSpace::BIT_MASK);
+
+    // return if there is no filter added otherwise the required images access is not initialized properly
+    if (filter_.size() == 0)
+      return true;
+
+    auto requiredImages(this->createRequiredImages(image));
 
     for (auto& filter : filter_)
     {
+      // use image as input if the colour matches
       if (image.colourSpace() == filter.second->requiredColourSpace())
       {
         if (!filter.second->process(image, mask))
@@ -131,9 +143,10 @@ public:
           return false;
         }
       }
+      // use image with correct colour space if origin image's space doesn't match
       else
-      {      
-        if (!filter.second->process(*required_images_[filter.second->requiredColourSpace()], mask))
+      {
+        if (!filter.second->process(*requiredImages[filter.second->requiredColourSpace()], mask))
         {
           // TODO: print error
           return false;

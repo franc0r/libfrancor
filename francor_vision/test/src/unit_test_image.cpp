@@ -239,6 +239,21 @@ TEST(ImageTest, Resize)
 
 // }
 
+TEST(ImageTest, Zeros)
+{
+  constexpr std::size_t rows = 1;
+  constexpr std::size_t cols = 2;
+
+  francor::vision::Image origin(francor::vision::Image::zeros(rows, cols, francor::vision::ColourSpace::GRAY));
+
+  ASSERT_EQ(origin.rows(), 1);
+  ASSERT_EQ(origin.cols(), 2);
+  ASSERT_EQ(origin.colourSpace(), francor::vision::ColourSpace::GRAY);
+
+  EXPECT_EQ(origin(0, 0).gray(), 0);
+  EXPECT_EQ(origin(0, 1).gray(), 0);
+}
+
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
