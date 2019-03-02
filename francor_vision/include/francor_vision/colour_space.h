@@ -4,6 +4,8 @@
  * \author Christian Merkl (knueppl@gmx.de)
  * \date 24. February 2019
  */
+#pragma once
+
 namespace francor
 {
 

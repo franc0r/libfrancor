@@ -4,6 +4,8 @@
  * \author Christian Merkl (knueppl@gmx.de)
  * \date 22. February 2019
  */
+#pragma once
+
 #include <cassert>
 #include <cstdint>
 #include <stdexcept>

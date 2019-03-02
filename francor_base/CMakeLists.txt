@@ -11,7 +11,7 @@ add_library(${PROJECT_NAME} INTERFACE
 
 target_link_libraries(${PROJECT_NAME}
   INTERFACE Eigen3::Eigen
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/francor_base/include/>
   $<INSTALL_INTERFACE:include/>
 )
 

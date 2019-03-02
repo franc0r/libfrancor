@@ -4,6 +4,8 @@
  * \author Christian Merkl (knueppl@gmx.de)
  * \date 16. February 2019
  */
+#pragma once
+
 #include "francor_base/vector.h"
 
 #include <iostream>
