@@ -85,9 +85,11 @@ private:
   {
     return image.colourSpace() != ColourSpace::NONE
            &&
+           mask.colourSpace() == ColourSpace::BIT_MASK
+           &&
            image.cols() == mask.cols()
            &&
-           image.rows() == mask.cols();
+           image.rows() == mask.rows();
   }
 };
 

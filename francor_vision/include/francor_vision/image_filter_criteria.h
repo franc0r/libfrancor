@@ -8,18 +8,19 @@
 
 namespace francor {
 
-namespace base {
+namespace vision {
 
-class ImageFilterColour : public ImageMaskFilter
+class ImageMaskFilterColourRange : public ImageMaskFilter
 {
 public:
-  ImageFilterColour(void) = delete;
-  ImageFilterColour(const std::uint8_t minH,
-                    const std::uint8_t maxH,
-                    const std::uint8_t minS,
-                    const std::uint8_t maxS,
-                    const std::uint8_t minV,
-                    const std::uint8_t maxV)
+  ImageMaskFilterColourRange(void) = delete;
+  ImageMaskFilterColourRange(const std::uint8_t minH,
+                             const std::uint8_t maxH,
+                             const std::uint8_t minS,
+                             const std::uint8_t maxS,
+                             const std::uint8_t minV,
+                             const std::uint8_t maxV)
+  
     : ImageMaskFilter(ColourSpace::HSV),
       min_h_(minH),
       max_h_(maxH),
@@ -36,14 +37,19 @@ public:
     // HSV colour space is required
     if (image.colourSpace() != ColourSpace::HSV)
     {
+      // TODO: print error
       return false;
     }
 
+    // work on opencv mat
     cv::Mat tempMask(mask.cvMat());
     cv::Mat resultMask;
 
     cv::inRange(image.cvMat(), cv::Scalar(min_h_, min_s_, min_v_), cv::Scalar(max_h_, max_s_, max_v_), resultMask);
     cv::bitwise_or(tempMask, resultMask, tempMask);
+
+    // actually if tempMask wasn't reallocated there is no reason to use fromCvMat(), but we don't really know it
+    mask.fromCvMat(tempMask, mask.colourSpace());
 
     return true;
   }
@@ -59,6 +65,6 @@ private:
   const std::uint8_t max_v_;
 };
 
-} // end namespace perception
+} // end namespace vision
 
 } // end namespace francor

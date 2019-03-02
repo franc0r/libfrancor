@@ -131,7 +131,7 @@ public:
     switch (colour_space_)
     {
     case ColourSpace::HSV:
-      return data_[0];
+      return data_[2];
     default:
       throw std::out_of_range("Pixel::v(): value isn't available.");
     }
