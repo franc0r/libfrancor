@@ -11,16 +11,14 @@ add_library(${PROJECT_NAME}
 )
 message(STATUS "${CMAKE_SOURCE_DIR}/francor_algorithm/include")
 target_include_directories(${PROJECT_NAME}
-  INTERFACE Eigen3::Eigen
   PUBLIC ${CMAKE_SOURCE_DIR}/francor_algorithm/include/
   PUBLIC include
   PUBLIC ${CMAKE_SOURCE_DIR}/francor_base/include/
-
 )
 
 target_link_libraries(${PROJECT_NAME}
-  INTERFACE Eigen3::Eigen
-  INTERFACE francor-base
-  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/francor_algorithm/include/>
-  $<INSTALL_INTERFACE:include/>
+  PUBLIC Eigen3::Eigen
+  PUBLIC francor-base
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/francor_algorithm/include/>
+  PUBLIC $<INSTALL_INTERFACE:include/>
 )

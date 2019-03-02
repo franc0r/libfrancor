@@ -4,14 +4,14 @@ namespace francor {
 
 namespace algorithm {
 
-Line fittingLineFromPoints(const VectorVector2d& points)
+base::Line fittingLineFromPoints(const base::VectorVector2d& points)
 {
     // a line needs minium two points
   if (points.size() < 2)
     return { };
 
   // calculate the average point
-  Vector2d avg(0.0, 0.0);
+  base::Vector2d avg(0.0, 0.0);
 
   for (const auto point : points)
     avg += point;

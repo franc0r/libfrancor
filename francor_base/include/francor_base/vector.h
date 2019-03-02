@@ -8,6 +8,8 @@
 
 #include <Eigen/Dense>
 
+#include <vector>
+
 namespace francor
 {
 

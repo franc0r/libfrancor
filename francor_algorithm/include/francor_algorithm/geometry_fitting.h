@@ -8,13 +8,11 @@
 
 #include "francor_base/line.h"
 
-#include <iostream>
-
 namespace francor {
 
 namespace algorithm {
 
-Line fittingLineFromPoints(const VectorVector2d& points);
+base::Line fittingLineFromPoints(const base::VectorVector2d& points);
 
 } // end namespace algorithm
 
