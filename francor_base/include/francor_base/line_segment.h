@@ -8,7 +8,7 @@
 
 namespace francor {
 
-namespace perception {
+namespace base {
 
 class LineSegment
 {
@@ -24,7 +24,7 @@ public:
    * \param p0 The begin of the segment.
    * \param p1 The end of the segment.
    */
-  LineSegment(const Eigen::Vector2d p0, const Eigen::Vector2d p1)
+  LineSegment(const Vector2d p0, const Vector2d p1)
     : valid_(true),
       line_((p1 - p0).normalized(), p0),
       p0_(p0),
@@ -33,18 +33,18 @@ public:
 
   }
 
-  inline const Eigen::Vector2d& p0(void) const noexcept { return p0_; }
-  inline const Eigen::Vector2d& p1(void) const noexcept { return p1_; }
+  inline const Vector2d& p0(void) const noexcept { return p0_; }
+  inline const Vector2d& p1(void) const noexcept { return p1_; }
   inline const Line& line(void) const noexcept { return line_; }
   inline bool valid(void) const noexcept { return valid_; }
 
 private:
   bool valid_ = false;
   Line line_;
-  Eigen::Vector2d p0_;
-  Eigen::Vector2d p1_;
+  Vector2d p0_;
+  Vector2d p1_;
 };
 
-} // end namespace perception
+} // end namespace base
 
 } // end namespace francor

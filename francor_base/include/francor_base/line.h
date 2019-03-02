@@ -4,7 +4,7 @@
  * \author Christian Merkl (knueppl@gmx.de)
  * \date 16. February 2019
  */
-#include <Eigen/Dense>
+#include "francor_base/vector.h"
 
 #include <iostream>
 
@@ -38,7 +38,7 @@ public:
    * \param v Direction vector of the line. Must have a length of 1.0.
    * \param p One point of the line.
    */
-  Line(const Eigen::Vector2d v, const Eigen::Vector2d p)
+  Line(const Vector2d v, const Vector2d p)
     : v_(v),
       p_(p),
       m_(v.y() / v.x()),
@@ -53,7 +53,7 @@ public:
    * \param p The normal points in direction of p.
    * \return The normal of this line.
    */
-  Eigen::Vector2d n(const Eigen::Vector2d p) const
+  Vector2d n(const Vector2d p) const
   {
     if (p.y() >= this->y(p.x()))
       return this->n();
@@ -65,7 +65,7 @@ public:
    * 
    * \return The normal of this line.
    */
-  Eigen::Vector2d n(void) const
+  Vector2d n(void) const
   {
     return { -v_.y(), v_.x() };
   }
@@ -75,14 +75,14 @@ public:
    * 
    * \return The direction vector v.
    */
-  inline const Eigen::Vector2d& v(void) const noexcept { return v_; }
+  inline const Vector2d& v(void) const noexcept { return v_; }
 
   /**
    * Returns the reference point p. Actually it is more a offset point.
    * 
    * \return The reference point p.
    */
-  inline const Eigen::Vector2d& p(void) const noexcept { return p_; }
+  inline const Vector2d& p(void) const noexcept { return p_; }
 
   /**
    * Returns the gradient m of the line.
@@ -115,7 +115,7 @@ public:
    * \param p The distance will be calculated to that point.
    * \return Distance to the point p.
    */
-  double distanceTo(const Eigen::Vector2d p) const
+  double distanceTo(const Vector2d p) const
   {
     return (this->intersectionPoint(Line(this->n(p) * -1.0, p)) - p).norm();
   }
@@ -126,7 +126,7 @@ public:
    * \param line Other line.
    * \return Intersection point of that two lines.
    */
-  Eigen::Vector2d intersectionPoint(const Line& line) const
+  Vector2d intersectionPoint(const Line& line) const
   {
     // m_1 * x + t_1 = m_2 * x + t_2
     //     t_1 - t_2 = m_2 * x - m_1 * x = (m_2 - m_1) * x
@@ -144,12 +144,12 @@ public:
   }
 
 private:
-  Eigen::Vector2d v_;
-  Eigen::Vector2d p_;
+  Vector2d v_;
+  Vector2d p_;
   double m_;
   double t_;
 };
 
-} // end namespace perception
+} // end namespace base
 
 } // end namespace francor
