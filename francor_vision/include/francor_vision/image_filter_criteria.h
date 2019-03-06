@@ -1,5 +1,5 @@
 /**
- * Represent a line and includes helper functions.
+ * Defines and implement different image mask filters.
  *
  * \author Christian Merkl (knueppl@gmx.de)
  * \date 16. February 2019
@@ -56,7 +56,14 @@ public:
     return true;
   }
 
-  virtual bool isValid(void) const override final { return min_h_ <= max_h_ && min_s_ <= max_s_ && min_v_ <= max_v_; }
+  virtual bool isValid(void) const override final
+  {
+    return min_h_ <= max_h_
+           &&
+           min_s_ <= max_s_
+           &&
+           min_v_ <= max_v_;
+  }
 
 private:
   const std::uint8_t min_h_;

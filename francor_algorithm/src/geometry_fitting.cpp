@@ -28,9 +28,9 @@ base::Line fittingLineFromPoints(const base::VectorVector2d& points)
     sumX  += (point.x() - avg.x()) * (point.x() - avg.x());
   }
 
-  // m is infinity --> segment too
+  // m is infinity
   if (sumX == 0.0)
-    return { };
+    return { }; // TODO: print error
 
   // construct line segment and return it
   const double m = sumXY / sumX;
