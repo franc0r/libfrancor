@@ -38,7 +38,9 @@ public:
       return false;
     }
     // check if filter name is already used.
-    if (filter_.find(name) != filter_.end())
+    auto compare = [=] (const std::pair<const std::string, std::unique_ptr<const T>>& element) { return element.first == name; };
+
+    if (std::find_if(filter_.begin(), filter_.end(), compare) != filter_.end())
     {
       // TODO: throw exception or print error
       return false;
@@ -51,7 +53,7 @@ public:
     }
 
     // add filter
-    filter_[name] = std::move(filter);
+    filter_.push_back(std::make_pair(name, std::move(filter)));
 
     return true;
   }
@@ -86,7 +88,7 @@ protected:
   }
 
   std::map<ColourSpace, std::shared_ptr<Image>> required_images_;
-  std::map<std::string, std::unique_ptr<const T>> filter_;
+  std::vector<std::pair<const std::string, std::unique_ptr<const T>>> filter_;
 };
 
 class ImageFilterPipeline : public ImageFilterPipeline_<ImageFilter>
@@ -95,21 +97,25 @@ public:
   ImageFilterPipeline(void) = default;
   virtual ~ImageFilterPipeline(void) = default;
 
-  bool operator()(Image& image) const
+  bool operator()(const Image& input, Image& output) const
   {
+    const Image* image = &input;
+
     for (auto& filter : filter_)
     {
-      if (image.colourSpace() != filter.second->requiredColourSpace())
+      if (image->colourSpace() != filter.second->requiredColourSpace())
       {
         // TODO: print error
         return false;
       }
       
-      if (!filter.second->process(image))
+      if (!filter.second->process(*image, output))
       {
         // TODO: print error
         return false;
       }
+
+      image = &output;
     }
 
     return true;
@@ -126,7 +132,7 @@ public:
   bool operator()(const Image& image, Image& mask) const
   {
     // prepare mask for filter operations even there is no filter added
-    mask.resize(image.rows(), image.cols(), ColourSpace::BIT_MASK);
+    mask = std::move(Image::zeros(image.rows(), image.cols(), ColourSpace::BIT_MASK));
 
     // return if there is no filter added otherwise the required images access is not initialized properly
     if (filter_.size() == 0)
@@ -136,7 +142,7 @@ public:
 
     for (auto& filter : filter_)
     {
-      // use image as input if the colour matches
+      // use image as input if the colour spaces matche
       if (image.colourSpace() == filter.second->requiredColourSpace())
       {
         if (!filter.second->process(image, mask))

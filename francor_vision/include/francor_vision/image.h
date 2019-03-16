@@ -177,6 +177,7 @@ public:
    */
   void applyMask(const Image& mask);
 
+  // TODO: complete the implementation 
   bool transformTo(const ColourSpace space)
   {
     cv::Mat mat(this->cvMat());

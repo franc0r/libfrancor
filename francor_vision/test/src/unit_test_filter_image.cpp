@@ -31,14 +31,16 @@ public:
   virtual bool isValid(void) const override { return is_valid_; }
 
 private:
-  virtual bool processImpl(Image& image) const override
+  virtual bool processImpl(const Image& input, Image& output) const override
   {
-    if (image.rows() == 0 || image.cols() == 0)
+    if (input.rows() == 0 || input.cols() == 0)
       return false;
 
-    image(0, 0).r() = 10;
-    image(0, 0).g() = 20;
-    image(0, 0).b() = 30;
+    output = input;
+
+    output(0, 0).r() = 10;
+    output(0, 0).g() = 20;
+    output(0, 0).b() = 30;
 
     return true;
   }
@@ -110,14 +112,14 @@ TEST(ImageFilterPipelineTest, Process)
   Image image(Image::zeros(10, 10, ColourSpace::RGB));
 
   // pipeline with no filters shouldn't fail
-  EXPECT_TRUE(pipeline(image));
+  EXPECT_TRUE(pipeline(image, image));
 
   // add a valid filter
   ASSERT_TRUE(pipeline.addFilter("rgb", std::make_unique<DummyFilterRgb>(true)));
   ASSERT_EQ(pipeline.numOfFilters(), 1);
 
   // normal operation without expected error
-  EXPECT_TRUE(pipeline(image));
+  EXPECT_TRUE(pipeline(image, image));
 
   // checks only if the image was modified, not that the filter works properly
   EXPECT_EQ(image(0, 0).r(), 10);
@@ -127,7 +129,7 @@ TEST(ImageFilterPipelineTest, Process)
   // clear image and expect failing pipeline
   image.clear();
   
-  EXPECT_FALSE(pipeline(image));
+  EXPECT_FALSE(pipeline(image, image));
 }
 
 TEST(ImageMaskFilterPipeLineTest, Process)

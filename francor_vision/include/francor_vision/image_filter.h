@@ -32,9 +32,7 @@ private:
   ColourSpace required_colour_space_;
 };
 
-/**
- * Interface for image filter that creates a bitmask. The bitmask is also an input for each filter stage.
- */
+
 class ImageFilter : public ImageFilterBase
 {
 protected:
@@ -44,16 +42,16 @@ public:
   ImageFilter(void) = delete;
   virtual ~ImageFilter(void) = default;
 
-  bool process(Image& image) const
+  bool process(const Image& input, Image& output) const
   {
-    if (!this->safetyCheck(image))
+    if (!this->safetyCheck(input))
       return false;
 
-    return this->processImpl(image);    
+    return this->processImpl(input, output);    
   }
 
 protected:
-  virtual bool processImpl(Image& image) const = 0;
+  virtual bool processImpl(const Image& input, Image& output) const = 0;
 
 private:
   bool safetyCheck(const Image& image) const
@@ -62,6 +60,9 @@ private:
   }
 };
 
+/**
+ * Interface for image mask filter that creates a bitmask. The bitmask is also an input for each filter stage.
+ */
 class ImageMaskFilter : public ImageFilterBase
 {
 protected:
