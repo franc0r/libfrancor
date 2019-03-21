@@ -1,5 +1,5 @@
 /**
- * Represent a line and includes helper functions.
+ * Contains geometry math functions.
  *
  * \author Christian Merkl (knueppl@gmx.de)
  * \date 2. March 2019
