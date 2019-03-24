@@ -19,7 +19,7 @@ namespace algorithm {
 /**
  * Interface class for the underlaying model of the ransac.
  */
-template <typename InputData>
+template <typename InputData, typename ModelType>
 class RansacTargetModel
 {
 public:
@@ -28,12 +28,16 @@ public:
 
   virtual double error(const InputData& data) const = 0;
   virtual bool estimate(const std::vector<InputData, Eigen::aligned_allocator<InputData>>& modelData) = 0;
+  const ModelType& model(void) const { return _model; }
+
+protected:
+  ModelType _model;
 };
 
 /**
  * Ransac model for lines.
  */
-class RansacLineModel : public RansacTargetModel<base::Vector2d>
+class RansacLineModel : public RansacTargetModel<base::Vector2d, base::Line>
 {
 public:
   RansacLineModel(void) = default;
@@ -56,9 +60,6 @@ public:
 
     return true;
   }
-
-private:
-  base::Line _model;
 };
 
 /**

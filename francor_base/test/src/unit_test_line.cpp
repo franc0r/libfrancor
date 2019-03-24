@@ -40,6 +40,16 @@ TEST(LineTest, ConstructFromVectorPoint)
   EXPECT_NEAR(line.p().y(), 3.0, 0.001);
 }
 
+// check if the line is successfully constructed in case of an horizontal line
+TEST(LineTest, ConstructFromVerticalVectorPoint)
+{
+  // construct a line with m = inf and t = -inf
+  const francor::base::Line line(Eigen::Vector2d(0.0, 1.0).normalized(), Eigen::Vector2d(1.0, 1.0));
+
+  EXPECT_NEAR(line.m(), std::numeric_limits<double>::max(), 0.001);
+  EXPECT_NEAR(line.t(), -std::numeric_limits<double>::max(), 0.001);
+}
+
 TEST(LineTest, Normal)
 {
   // construct a line with m = 3.0 and t = 1.0
@@ -88,6 +98,19 @@ TEST(LineTest, DistanceTo)
   const francor::base::Line line(Eigen::Vector2d(1.0, 3.0).normalized(), Eigen::Vector2d(0.0, 1.0));
   const Eigen::Vector2d point(-2.0, 5.0);
   const double distance = Eigen::Vector2d(1.0, 3.0).norm();
+
+  EXPECT_NEAR(line.distanceTo(point), distance, 0.001);
+}
+
+TEST(LineTest, DistanceToHorizontalLine)
+{
+  // construct a line with m = 0.0 and t = 1.0
+  const francor::base::Line line(Eigen::Vector2d(1.0, 0.0).normalized(), Eigen::Vector2d(0.0, 1.0));
+  const Eigen::Vector2d point(0.5, 2.0);
+  const double distance = 1.0;
+
+  EXPECT_NEAR(line.m(), 0.0, 1e-3);
+  EXPECT_NEAR(line.t(), 1.0, 1e-3);
 
   EXPECT_NEAR(line.distanceTo(point), distance, 0.001);
 }

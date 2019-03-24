@@ -8,12 +8,38 @@
 
 #include "francor_algorithm/ransac.h"
 
+using francor::base::Vector2d;
 using francor::base::VectorVector2d;
+using francor::base::Line;
 using francor::algorithm::LineRansac;
+using francor::algorithm::RansacLineModel;
 
 TEST(LineRansac, Instantiate)
 {
   LineRansac ransac;
+}
+
+TEST(RansacLineModel, EstimateModelFromTwoPoints)
+{
+  RansacLineModel model;
+  VectorVector2d inputData = { Vector2d(0.0, 1.0), Vector2d(1.0, 1.0) };
+
+  ASSERT_TRUE(model.estimate(inputData));
+
+  EXPECT_NEAR(model.model().m(), 0.0, 1e-3);
+  EXPECT_NEAR(model.model().t(), 1.0, 1e-3);
+}
+
+TEST(RansacLineModel, CalculateErrorToModel)
+{
+  RansacLineModel model;
+  VectorVector2d inputData = { Vector2d(0.0, 1.0), Vector2d(1.0, 1.0) };
+
+  ASSERT_TRUE(model.estimate(inputData));
+
+  const Vector2d point(0.5, 2.0);
+
+  EXPECT_NEAR(model.error(point), 1.0, 1e-3);
 }
 
 int main(int argc, char **argv)

@@ -43,7 +43,7 @@ public:
   Line(const Vector2d v, const Vector2d p)
     : v_(v),
       p_(p),
-      m_(v.y() / v.x()),
+      m_(v.x() == 0.0 ? std::numeric_limits<double>::max() : v.y() / v.x()),
       t_(p.y() - m_ * p.x())
   {
     assert(v_.norm() <= 1.0);
