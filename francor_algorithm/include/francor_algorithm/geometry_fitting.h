@@ -12,7 +12,8 @@ namespace francor {
 
 namespace algorithm {
 
-base::Line fittingLineFromPoints(const base::VectorVector2d& points);
+base::Line fittingLineFromPoints(const base::VectorVector2d& points,
+                                 const std::vector<std::size_t>& indices = std::vector<std::size_t>());
 
 } // end namespace algorithm
 

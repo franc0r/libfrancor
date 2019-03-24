@@ -14,15 +14,21 @@ using francor::base::Line;
 using francor::algorithm::LineRansac;
 using francor::algorithm::RansacLineModel;
 
+/**
+ * Instantiate a line ransac object.
+ */
 TEST(LineRansac, Instantiate)
 {
   LineRansac ransac;
 }
 
+/**
+ * Tests if a line model is estimated by the ransac line model.
+ */
 TEST(RansacLineModel, EstimateModelFromTwoPoints)
 {
   RansacLineModel model;
-  VectorVector2d inputData = { Vector2d(0.0, 1.0), Vector2d(1.0, 1.0) };
+  std::array<RansacLineModel::InputType, RansacLineModel::NumRequiredData> inputData = { Vector2d(0.0, 1.0), Vector2d(1.0, 1.0) };
 
   ASSERT_TRUE(model.estimate(inputData));
 
@@ -30,10 +36,13 @@ TEST(RansacLineModel, EstimateModelFromTwoPoints)
   EXPECT_NEAR(model.model().t(), 1.0, 1e-3);
 }
 
+/**
+ * Tests if the error between a point and the line model is calculated well.
+ */
 TEST(RansacLineModel, CalculateErrorToModel)
 {
   RansacLineModel model;
-  VectorVector2d inputData = { Vector2d(0.0, 1.0), Vector2d(1.0, 1.0) };
+  std::array<RansacLineModel::InputType, RansacLineModel::NumRequiredData> inputData = { Vector2d(0.0, 1.0), Vector2d(1.0, 1.0) };
 
   ASSERT_TRUE(model.estimate(inputData));
 
