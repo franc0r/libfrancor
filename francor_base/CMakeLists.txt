@@ -9,13 +9,13 @@ add_library(${PROJECT_NAME} INTERFACE
   
 )
 
-target_link_libraries(${PROJECT_NAME}
-  INTERFACE Eigen3::Eigen
-  INTERFACE $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/francor_base/include>
-            $<INSTALL_INTERFACE:include>
+target_include_directories(${PROJECT_NAME}
+  INTERFACE $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/francor_base/include/>
+            $<INSTALL_INTERFACE:include/>
 )
 
-#export(TARGET ${PROJECT_NAME} NAMESPACE Francor:: FILE FrancorBase.cmake)
+target_link_libraries(${PROJECT_NAME}
+  INTERFACE Eigen3::Eigen
+)
 
-#enable_testing()
 add_subdirectory(test)

@@ -6,16 +6,10 @@ add_executable(unit-test-line
   src/unit_test_line.cpp
 )
 
-target_include_directories(unit-test-line
-  PRIVATE ${CMAKE_SOURCE_DIR}/francor_base/include
-  PRIVATE ${GTEST_INCLUDE_DIRS}
-)
-
 target_link_libraries(unit-test-line PRIVATE
   PRIVATE GTest::GTest
   PRIVATE GTest::Main
-  INTERFACE francor-base
-  PRIVATE Eigen3::Eigen
+  PRIVATE francor-base
 )
 
 enable_testing()
