@@ -23,22 +23,28 @@ template <typename InputDataType, typename ModelDataType, const std::size_t Numb
 class RansacTargetModel
 {
 public:
-
-  using InputType = InputDataType;
-  using ReturnType = ModelDataType;
-  static constexpr std::size_t NumRequiredData = NumberOfRequiredData;
+  struct Input
+  {
+    using type = InputDataType;
+    static constexpr std::size_t count = NumberOfRequiredData;
+  };
+  struct Output
+  {
+    using type = ModelDataType;
+  };
+  
   
   RansacTargetModel(void) = default;
   virtual ~RansacTargetModel(void) = default;
 
-  virtual double error(const InputType& data) const = 0;
-  virtual bool estimate(const std::array<InputType, NumRequiredData>& modelData) = 0;
-  virtual ReturnType fitData(const std::vector<InputType, Eigen::aligned_allocator<InputType>>& inputData,
+  virtual double error(const typename Input::type& data) const = 0;
+  virtual bool estimate(const std::array<typename Input::type, Input::count>& modelData) = 0;
+  virtual typename Output::type fitData(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData,
                              const std::vector<std::size_t> indices) const = 0;
-  inline constexpr const ReturnType& model(void) const { return _model; }
+  inline constexpr const typename Output::type& model(void) const noexcept { return _model; }
 
 protected:
-  ModelDataType _model;
+  typename Output::type _model;
 };
 
 /**
@@ -50,12 +56,12 @@ public:
   RansacLineModel(void) = default;
   virtual ~RansacLineModel(void) = default;
 
-  virtual double error(const InputType& data) const override final
+  virtual double error(const Input::type& data) const override final
   {
     return _model.distanceTo(data);
   }
 
-  virtual bool estimate(const std::array<InputType, NumRequiredData>& modelData) override final
+  virtual bool estimate(const std::array<Input::type, Input::count>& modelData) override final
   {
     if (modelData.size() < 2)
     {
@@ -68,8 +74,8 @@ public:
     return true;
   }
 
-  virtual ReturnType fitData(const std::vector<InputType, Eigen::aligned_allocator<InputType>>& inputData,
-                             const std::vector<std::size_t> indices) const override final
+  virtual typename Output::type fitData(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData,
+                                        const std::vector<std::size_t> indices) const override final
   {
     return { fittingLineFromPoints(inputData, indices) };
   }                             
@@ -98,10 +104,16 @@ public:
   Ransac& operator=(Ransac&&) = delete;
 
   // defines input and output type
-  using InputType = typename ModelType::InputType;
-  using ReturnType = typename ModelType::ReturnType;
+  struct Input
+  {
+    using type = typename ModelType::Input::type;
+  };
+  struct Output
+  {
+    using type = typename ModelType::Output::type;
+  };
 
-  ReturnType operator()(const std::vector<InputType, Eigen::aligned_allocator<InputType>>& inputData)
+  typename Output::type operator()(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData)
   {
     this->prepareProcessing(inputData);
 
@@ -112,7 +124,7 @@ public:
   inline double epsilon(void) const noexcept { return _epsilon; }
 
 protected:
-  virtual ReturnType process(const std::vector<InputType, Eigen::aligned_allocator<InputType>>& inputData) = 0;
+  virtual typename Output::type process(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData) = 0;
 
   void saveDataIndex(const std::size_t index) { _index_data_to_model.push_back(index); }
   void confirmFoundModel(void)
@@ -125,9 +137,9 @@ protected:
   /**
    * Gets randomly unused indices for the next iteration. The number of indices depends on how many the model requires.
    */
-  std::array<std::size_t, ModelType::NumRequiredData> getNextRandomIndices(void)
+  std::array<std::size_t, ModelType::Input::count> getNextRandomIndices(void)
   {
-    std::array<std::size_t, ModelType::NumRequiredData> indices;
+    std::array<std::size_t, ModelType::Input::count> indices;
 
     for (std::size_t index = 0; index < indices.size(); ++index)
     {
@@ -151,7 +163,7 @@ protected:
   ModelType _target_model;
 
 private:
-  void prepareProcessing(const std::vector<InputType, Eigen::aligned_allocator<InputType>>& inputData)
+  void prepareProcessing(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData)
   {
     // clear data and reserve memory for possible count of indicies
     _mask_used_data.clear();
@@ -188,18 +200,20 @@ public:
   LineRansac& operator=(const LineRansac&) = default;
   LineRansac& operator=(LineRansac&&) = default;
 
-  virtual ReturnType process(const std::vector<InputType, Eigen::aligned_allocator<InputType>>& inputData) override final
+  virtual typename Output::type process(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData) override final
   {
     for (int iteration = 0; iteration < this->maxIterations(); ++iteration)
     {
       const auto modelIndices = this->getNextRandomIndices();
-      std::array<InputType, RansacLineModel::NumRequiredData> data;
+      std::array<typename Input::type, RansacLineModel::Input::count> data;
       assert(modelIndices.size() != data.size());
 
       for (std::size_t i = 0; i < data.size(); ++i)
         data[i] = inputData[modelIndices[i]];
 
       _target_model.estimate(data);
+
+      // TODO: finish implementation
     }
   }
 };

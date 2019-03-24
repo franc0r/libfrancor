@@ -28,7 +28,7 @@ TEST(LineRansac, Instantiate)
 TEST(RansacLineModel, EstimateModelFromTwoPoints)
 {
   RansacLineModel model;
-  std::array<RansacLineModel::InputType, RansacLineModel::NumRequiredData> inputData = { Vector2d(0.0, 1.0), Vector2d(1.0, 1.0) };
+  std::array<RansacLineModel::Input::type, RansacLineModel::Input::count> inputData = { Vector2d(0.0, 1.0), Vector2d(1.0, 1.0) };
 
   ASSERT_TRUE(model.estimate(inputData));
 
@@ -42,7 +42,7 @@ TEST(RansacLineModel, EstimateModelFromTwoPoints)
 TEST(RansacLineModel, CalculateErrorToModel)
 {
   RansacLineModel model;
-  std::array<RansacLineModel::InputType, RansacLineModel::NumRequiredData> inputData = { Vector2d(0.0, 1.0), Vector2d(1.0, 1.0) };
+  std::array<RansacLineModel::Input::type, RansacLineModel::Input::count> inputData = { Vector2d(0.0, 1.0), Vector2d(1.0, 1.0) };
 
   ASSERT_TRUE(model.estimate(inputData));
 
