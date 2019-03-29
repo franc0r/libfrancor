@@ -18,8 +18,32 @@ TEST(Port, OutputConnectInput)
   PortOut<int> output("output");
   PortIn<int> input("input");
 
-  output.connect(input);
+  ASSERT_TRUE(output.connect(input));
 }
+
+TEST(Port, InputConnectOutput)
+{
+  PortOut<int> output("output");
+  PortIn<int> input("input");
+
+  ASSERT_TRUE(input.connect(output));
+}
+
+// TEST(Port, InputConnectInput)
+// {
+//   PortIn<int> inputA("input a");  
+//   PortIn<int> inputB("input b");
+
+//   ASSERT_FALSE(inputA.connect(inputB));  
+// }
+
+// TEST(Port, OutputConnectOutput)
+// {
+//   PortOut<int> outputA("output a");  
+//   PortOut<int> outputB("output b");
+
+//   ASSERT_FALSE(outputA.connect(outputB));  
+// }
 
 int main(int argc, char **argv)
 {

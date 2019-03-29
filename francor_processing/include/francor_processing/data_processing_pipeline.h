@@ -125,11 +125,13 @@ public:
 
   bool connect(Port<DataType, pipeline::Direction::Out>& portOut)
   {
-    static_assert(DataFlow == pipeline::Direction::In);
+    static_assert(DataFlow == pipeline::Direction::Out);
     PortConnectionHandler<DataType>::connect(*this, portOut);
 
     return true;
   }
+
+
 };
 
 } // end namespace processing
