@@ -40,7 +40,7 @@ public:
   virtual double error(const typename Input::type& data) const = 0;
   virtual bool estimate(const std::array<typename Input::type, Input::count>& modelData) = 0;
   virtual typename Output::type fitData(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData,
-                             const std::vector<std::size_t> indices) const = 0;
+                                        const std::vector<std::size_t> indices) const = 0;
   inline constexpr const typename Output::type& model(void) const noexcept { return _model; }
 
 protected:
