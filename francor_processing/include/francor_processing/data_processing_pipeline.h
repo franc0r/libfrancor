@@ -27,15 +27,6 @@ namespace pipeline
   };
 } // end namespace pipeline
 
-template <typename DataType, pipeline::Direction DataFlow>
-class Port;
-
-template <typename DataType>
-using PortOut = Port<DataType, pipeline::Direction::Out>;
-
-template <typename DataType>
-using PortIn = Port<DataType, pipeline::Direction::In>;
-
 class PortId
 {
 protected:
@@ -55,56 +46,13 @@ private:
   static std::size_t _id_counter;
 };
 
-template <typename DataType>
-class PortConnection
-{
-public:
-  PortConnection(void) = delete;
-  PortConnection(const PortConnection&) = delete;
-  PortConnection(PortConnection&&) = default;
-  PortConnection(PortIn<DataType>& input, PortOut<DataType>& output) : _input(input), _output(output) { }
-  ~PortConnection(void) = default;
-
-  PortConnection& operator=(const PortConnection&) = delete;
-  PortConnection& operator=(PortConnection&&) = default;
-
-  inline const PortIn<DataType>& getOutput(void) const { return _output; }
-  inline const PortOut<DataType>& getInput(void) const { return _input; }
-
-private:
-  PortIn<DataType>& _input;
-  PortOut<DataType>& _output;
-};
 
 template <typename DataType>
-class PortConnectionHandler
+class Port : public PortId
 {
 protected:
-  PortConnectionHandler(void) = default;
-  PortConnectionHandler(const PortConnectionHandler&) = delete;
-  PortConnectionHandler(PortConnectionHandler&&) = delete;
-  ~PortConnectionHandler(void) = default;
-
-  PortConnectionHandler& operator=(const PortConnectionHandler&) = delete;
-  PortConnectionHandler& operator=(PortConnectionHandler&&) = delete;
-
-  bool connect(Port<DataType, pipeline::Direction::In>& portIn, Port<DataType, pipeline::Direction::Out>& portOut)
-  {
-    portOut._connections.push_back(PortConnection<DataType>(portIn, portOut));
-    portIn._connections.push_back(PortConnection<DataType>(portIn, portOut));
-    return true;
-  }
-
-  // members
-  std::list<PortConnection<DataType>> _connections;
-};
-
-template <typename DataType, pipeline::Direction DataFlow>
-class Port : public PortId, public PortConnectionHandler<DataType>
-{
-public:
   Port(void) = delete;
-  Port(const std::string& name) : PortId(name) { }
+  Port(const std::string& name, const pipeline::Direction dataFlow, DataType* data = nullptr) : PortId(name), _data_flow(dataFlow), _data(data) { }
   Port(const Port&) = delete;
   Port(Port&&) = delete;
   ~Port(void)
@@ -115,24 +63,110 @@ public:
   Port& operator=(const Port&) = delete;
   Port& operator=(Port&&) = delete;
 
-  bool connect(Port<DataType, pipeline::Direction::In>& portIn)
-  {
-    static_assert(DataFlow == pipeline::Direction::Out);
-    PortConnectionHandler<DataType>::connect(portIn, *this);
+  const pipeline::Direction _data_flow;
+  using type = DataType;
 
-    return true;
-  }
+  DataType* _data = nullptr;
 
-  bool connect(Port<DataType, pipeline::Direction::Out>& portOut)
-  {
-    static_assert(DataFlow == pipeline::Direction::Out);
-    PortConnectionHandler<DataType>::connect(*this, portOut);
-
-    return true;
-  }
-
-
+public:
+  DataType& data(void) { if (_data == nullptr) throw "data pointer is null"; return *_data; }
 };
+
+template <typename DataType>
+class OutputPort;
+
+template <typename DataType>
+class InputPort : public Port<DataType>
+{
+public:
+  InputPort(void) = delete;
+  InputPort(const std::string& name) : Port<DataType>(name, pipeline::Direction::In) { }
+
+  bool isConnected(const OutputPort<DataType>& output)
+  {
+    return _connected_output == &output;
+  }
+
+  bool connect(OutputPort<DataType>& output)
+  {
+    if (_connected_output != nullptr)
+    {
+      // TODO: print error
+      return false;
+    }
+
+    _connected_output = &output;
+    Port<DataType>::_data = &_connected_output->data();
+
+    if (!output.isConnected(*this))
+      return output.connect(*this);
+
+    return true;
+  }
+
+  bool disconnect(OutputPort<DataType>& output)
+  {
+    if (!this->isConnected(output))
+      return true;
+
+    _connected_output = nullptr;
+    Port<DataType>::_data = nullptr;
+
+    if (output.isConnected(*this))
+      return output.disconnect(*this);
+
+    return true;
+  }
+
+private:
+  OutputPort<DataType>* _connected_output = nullptr;
+};
+
+template <typename DataType>
+class OutputPort : public Port<DataType>
+{
+public:
+  OutputPort(void) = delete;
+  OutputPort(const std::string& name, DataType& data) : Port<DataType>(name, pipeline::Direction::Out, &data) { }
+
+  bool isConnected(const InputPort<DataType>& input)
+  {
+    return std::find(_connected_inputs.begin(), _connected_inputs.end(), &input) != _connected_inputs.end();
+  }
+
+  bool connect(InputPort<DataType>& input)
+  {
+    if (this->isConnected(input))
+    {
+      // TODO: print error
+      return false;
+    }
+
+    _connected_inputs.push_back(&input);
+
+    if (!input.isConnected(*this))
+      return input.connect(*this);
+
+    return true;
+  }
+
+  bool disconnect(InputPort<DataType>& input)
+  {
+    if (!this->isConnected(input))
+      return true;
+
+    _connected_inputs.erase(std::find(_connected_inputs.begin(), _connected_inputs.end(), &input));
+
+    if (input.isConnected(*this))
+      return input.disconnect(*this);
+
+    return true;
+  }
+
+private:
+  std::list<InputPort<DataType>*> _connected_inputs;
+};
+
 
 } // end namespace processing
 

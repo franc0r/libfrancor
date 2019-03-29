@@ -10,40 +10,74 @@
 
 #include "francor_processing/data_processing_pipeline.h"
 
-using francor::processing::PortIn;
-using francor::processing::PortOut;
+using francor::processing::InputPort;
+using francor::processing::OutputPort;
 
 TEST(Port, OutputConnectInput)
 {
-  PortOut<int> output("output");
-  PortIn<int> input("input");
+  constexpr int value = 5;
+  int number = value;
+  OutputPort<int> output("output", number);
+  InputPort<int> input("input");
 
   ASSERT_TRUE(output.connect(input));
+  EXPECT_TRUE(input.isConnected(output));
+  EXPECT_TRUE(output.isConnected(input));
+  EXPECT_EQ(&output.data(), &number);
+  EXPECT_EQ(&input.data(), &number);
+  EXPECT_EQ(input.data(), value);
+
+  // second time must fail
+  EXPECT_FALSE(output.connect(input));
 }
 
 TEST(Port, InputConnectOutput)
 {
-  PortOut<int> output("output");
-  PortIn<int> input("input");
+  constexpr int value = 5;
+  int number = value;
+  OutputPort<int> output("output", number);
+  InputPort<int> input("input");
 
   ASSERT_TRUE(input.connect(output));
+  EXPECT_TRUE(input.isConnected(output));
+  EXPECT_TRUE(output.isConnected(input));
+  EXPECT_EQ(&output.data(), &number);
+  EXPECT_EQ(&input.data(), &number);
+  EXPECT_EQ(input.data(), value);
+
+  // second time must fail
+  EXPECT_FALSE(input.connect(output));
 }
 
-// TEST(Port, InputConnectInput)
-// {
-//   PortIn<int> inputA("input a");  
-//   PortIn<int> inputB("input b");
+TEST(Port, DisconnectInput)
+{
+  constexpr int value = 5;
+  int number = value;
+  OutputPort<int> output("output", number);
+  InputPort<int> input("input");
 
-//   ASSERT_FALSE(inputA.connect(inputB));  
-// }
+  ASSERT_TRUE(output.connect(input));
+  EXPECT_EQ(input.data(), value);
+  EXPECT_TRUE(output.disconnect(input));
+  EXPECT_FALSE(input.isConnected(output));
+  EXPECT_FALSE(output.isConnected(input));
+  ASSERT_ANY_THROW(input.data());
+}
 
-// TEST(Port, OutputConnectOutput)
-// {
-//   PortOut<int> outputA("output a");  
-//   PortOut<int> outputB("output b");
+TEST(Port, DisconnectOutput)
+{
+  constexpr int value = 5;
+  int number = value;
+  OutputPort<int> output("output", number);
+  InputPort<int> input("input");
 
-//   ASSERT_FALSE(outputA.connect(outputB));  
-// }
+  ASSERT_TRUE(output.connect(input));
+  EXPECT_EQ(input.data(), value);
+  EXPECT_TRUE(input.disconnect(output));
+  EXPECT_FALSE(input.isConnected(output));
+  EXPECT_FALSE(output.isConnected(input));
+  ASSERT_ANY_THROW(input.data());
+}
 
 int main(int argc, char **argv)
 {
