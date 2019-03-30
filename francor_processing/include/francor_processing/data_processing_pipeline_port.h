@@ -50,12 +50,12 @@ private:
 
 std::size_t PortId::_id_counter = 1;
 
-template <typename DataType>
+template <typename DataType, pipeline::Direction Direction>
 class Port : public PortId
 {
 protected:
   Port(void) = delete;
-  Port(const std::string& name, const pipeline::Direction dataFlow, DataType* data = nullptr) : PortId(name), data_flow(dataFlow), _data(data) { }
+  Port(const std::string& name, const DataType* data = nullptr) : PortId(name), _data(data) { }
   Port(const Port&) = delete;
   Port(Port&&) = delete;
   ~Port(void)
@@ -66,13 +66,13 @@ protected:
   Port& operator=(const Port&) = delete;
   Port& operator=(Port&&) = delete;
 
-  DataType* _data = nullptr;
+  const DataType* _data = nullptr;
 
 public:
-  const pipeline::Direction data_flow;
+  static constexpr pipeline::Direction data_flow = Direction;
   using type = DataType;
 
-  DataType& data(void) { if (_data == nullptr) throw "data pointer is null"; return *_data; }
+  const DataType& data(void) const { if (_data == nullptr) throw "data pointer is null"; return *_data; }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -81,12 +81,12 @@ template <typename DataType>
 class OutputPort;
 
 template <typename DataType>
-class InputPort : public Port<DataType>
+class InputPort : public Port<DataType, pipeline::Direction::In>
 {
 public:
   InputPort(void) = delete;
-  InputPort(const std::string& name) : Port<DataType>(name, pipeline::Direction::In) { }
-  InputPort(const std::string& name, DataType*) : InputPort<DataType>(name) { }
+  InputPort(const std::string& name) : Port<DataType, pipeline::Direction::In>(name) { }
+  InputPort(const std::string& name, const DataType*) : InputPort<DataType>(name) { }
 
   bool isConnected(const OutputPort<DataType>& output)
   {
@@ -102,7 +102,7 @@ public:
     }
 
     _connected_output = &output;
-    Port<DataType>::_data = &_connected_output->data();
+    Port<DataType, pipeline::Direction::In>::_data = &_connected_output->data();
 
     if (!output.isConnected(*this))
       return output.connect(*this);
@@ -116,7 +116,7 @@ public:
       return true;
 
     _connected_output = nullptr;
-    Port<DataType>::_data = nullptr;
+    Port<DataType, pipeline::Direction::In>::_data = nullptr;
 
     if (output.isConnected(*this))
       return output.disconnect(*this);
@@ -131,11 +131,11 @@ private:
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Output Port
 template <typename DataType>
-class OutputPort : public Port<DataType>
+class OutputPort : public Port<DataType, pipeline::Direction::Out>
 {
 public:
   OutputPort(void) = delete;
-  OutputPort(const std::string& name, DataType* data) : Port<DataType>(name, pipeline::Direction::Out, data) { }
+  OutputPort(const std::string& name, const DataType* data) : Port<DataType, pipeline::Direction::Out>(name, data) { }
 
   bool isConnected(const InputPort<DataType>& input)
   {
@@ -180,10 +180,10 @@ private:
 struct PortConfig
 {
   PortConfig(void) = delete;
-  constexpr PortConfig(const char* name_, void* data_ = nullptr) : name(name_), data(data_) { }
+  constexpr PortConfig(const char* name_, const void* data_ = nullptr) : name(name_), data(data_) { }
   
   const char* name = "none";
-  void* data = nullptr;
+  const void* data = nullptr;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -192,7 +192,7 @@ template <std::size_t i, typename DataType, template<typename> class PortType>
 struct BlockPort
 {
 public:
-  BlockPort(const char* name, DataType* data = nullptr) : port(name, data) { }
+  BlockPort(const char* name, const DataType* data = nullptr) : port(name, data) { }
 
   PortType<DataType> port;
 };
@@ -215,10 +215,12 @@ struct BlockPortImpl<i, PortType, HeadDataType, DataTypes...> : public BlockPort
 public:
   BlockPortImpl(const std::array<PortConfig, BlockPortImpl<i, PortType, HeadDataType, DataTypes...>::numInputs()>& config)
     : BlockPortImpl<i + 1, PortType, DataTypes...>(config),
-      BlockPort<i, HeadDataType, PortType>(std::get<i>(config).name, reinterpret_cast<HeadDataType*>(std::get<i>(config).data))
+      BlockPort<i, HeadDataType, PortType>(std::get<i>(config).name, reinterpret_cast<const HeadDataType*>(std::get<i>(config).data))
   {
 
   }
+
+  static constexpr pipeline::Direction data_flow = PortType<HeadDataType>::data_flow;
 };
 
 template <std::size_t i, template<typename> class PortType, typename HeadDataType, typename... DataTypes>

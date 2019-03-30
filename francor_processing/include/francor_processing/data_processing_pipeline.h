@@ -40,18 +40,51 @@ private:
   const std::string _name;
 };
 
-class DetectLines : public DataProcessingStage, public InputBlock<base::VectorVector2d>, public OutputBlock<base::LineVector>
+template <template<typename...> class PortBlock, typename... DataTypes>
+class DataProcessingStagePort
+{
+protected:
+  DataProcessingStagePort(void) = delete;
+  DataProcessingStagePort(const std::array<PortConfig, PortBlock<DataTypes...>::numInputs()>& config) : _ports(config) { }
+
+protected:
+  PortBlock<DataTypes...> _ports;
+};
+
+template <typename... DataTypes>
+class DataProcessingStageOutput : public DataProcessingStagePort<OutputBlock, DataTypes...>
+{
+public:
+  DataProcessingStageOutput(const std::array<PortConfig, OutputBlock<DataTypes...>::numInputs()>& config) : DataProcessingStagePort<OutputBlock, DataTypes...>(config) { }
+
+  template <std::size_t Index>
+  auto& getOutput(void) { return get<Index>(DataProcessingStagePort<OutputBlock, DataTypes...>::_ports); }
+};
+
+template <typename... DataTypes>
+class DataProcessingStageInput : public DataProcessingStagePort<InputBlock, DataTypes...>
+{
+public:
+  DataProcessingStageInput(const std::array<PortConfig, InputBlock<DataTypes...>::numInputs()>& config) : DataProcessingStagePort<InputBlock, DataTypes...>(config) { }
+
+  template <std::size_t Index>
+  auto& getInput(void) { return get<Index>(DataProcessingStagePort<InputBlock, DataTypes...>::_ports); }
+};
+
+class DetectLines : public DataProcessingStage,
+                    public DataProcessingStageInput<base::VectorVector2d>,
+                    public DataProcessingStageOutput<base::LineVector>
 {
 public:
   DetectLines(void) : DataProcessingStage("detect lines"),
-                      InputBlock<base::VectorVector2d>({ PortConfig("input points") }),
-                      OutputBlock<base::LineVector>({ PortConfig("output lines", &_lines) })
+                      DataProcessingStageInput<base::VectorVector2d>({ PortConfig("input points") }),
+                      DataProcessingStageOutput<base::LineVector>({ PortConfig("output lines", &_lines) })
   { }
   virtual ~DetectLines(void) = default;
 
   virtual bool process(void)
   {
-
+    return true;
   }
 
 private:
