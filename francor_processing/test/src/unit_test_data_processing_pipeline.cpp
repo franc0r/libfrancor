@@ -17,7 +17,7 @@ TEST(Port, OutputConnectInput)
 {
   constexpr int value = 5;
   int number = value;
-  OutputPort<int> output("output", number);
+  OutputPort<int> output("output", &number);
   InputPort<int> input("input");
 
   ASSERT_TRUE(output.connect(input));
@@ -35,7 +35,7 @@ TEST(Port, InputConnectOutput)
 {
   constexpr int value = 5;
   int number = value;
-  OutputPort<int> output("output", number);
+  OutputPort<int> output("output", &number);
   InputPort<int> input("input");
 
   ASSERT_TRUE(input.connect(output));
@@ -53,7 +53,7 @@ TEST(Port, DisconnectInput)
 {
   constexpr int value = 5;
   int number = value;
-  OutputPort<int> output("output", number);
+  OutputPort<int> output("output", &number);
   InputPort<int> input("input");
 
   ASSERT_TRUE(output.connect(input));
@@ -68,7 +68,7 @@ TEST(Port, DisconnectOutput)
 {
   constexpr int value = 5;
   int number = value;
-  OutputPort<int> output("output", number);
+  OutputPort<int> output("output", &number);
   InputPort<int> input("input");
 
   ASSERT_TRUE(output.connect(input));
@@ -79,27 +79,43 @@ TEST(Port, DisconnectOutput)
   ASSERT_ANY_THROW(input.data());
 }
 
-static constexpr char name_input_0[] = "input 0";
-static constexpr char name_input_1[] = "input 1";
-static constexpr char name_input_2[] = "input 2";
-
 using francor::processing::PortConfig;
 using francor::processing::InputBlock;
 
 TEST(InputBlock, Construct)
 {
-  francor::processing::InputBlock<PortConfig<int, name_input_0>,
-                                  PortConfig<int, name_input_1>,
-                                  PortConfig<int, name_input_2>> block;
+  constexpr std::array<PortConfig, 3> config = { PortConfig("input_0"), PortConfig("input_1"), PortConfig("input_2") };
+  francor::processing::InputBlock<int, int, int> block(config);
 
-  EXPECT_EQ(block.numInputs(), 3);
+  EXPECT_EQ(block.numInputs(), config.size());
 
-  // EXPECT_EQ(block.get<0>().name(), name_input_0);
-  // EXPECT_EQ(block.get<1>().name(), name_input_1);
-  // EXPECT_EQ(block.get<2>().name(), name_input_2);
-  EXPECT_EQ(francor::processing::get<0>(block).name(), name_input_0);
-  EXPECT_EQ(francor::processing::get<1>(block).name(), name_input_1);
-  EXPECT_EQ(francor::processing::get<2>(block).name(), name_input_2);
+  EXPECT_EQ(francor::processing::get<0>(block).name(), "input_0");
+  EXPECT_EQ(francor::processing::get<1>(block).name(), "input_1");
+  EXPECT_EQ(francor::processing::get<2>(block).name(), "input_2");
+}
+
+TEST(OutputBlock, Construct)
+{
+  constexpr int value = 5;
+  int number0 = value + 0;
+  int number1 = value + 1;
+  int number2 = value + 2;
+  
+  const std::array<PortConfig, 3> config = { PortConfig("output_0", &number0),
+                                             PortConfig("output_1", &number1),
+                                             PortConfig("output_2", &number2) };
+
+  francor::processing::OutputBlock<int, int, int> block(config);
+
+  EXPECT_EQ(block.numInputs(), config.size());
+
+  EXPECT_EQ(francor::processing::get<0>(block).name(), "output_0");
+  EXPECT_EQ(francor::processing::get<1>(block).name(), "output_1");
+  EXPECT_EQ(francor::processing::get<2>(block).name(), "output_2");
+
+  EXPECT_EQ(francor::processing::get<0>(block).data(), number0);
+  EXPECT_EQ(francor::processing::get<1>(block).data(), number1);
+  EXPECT_EQ(francor::processing::get<2>(block).data(), number2);
 }
 
 int main(int argc, char **argv)
