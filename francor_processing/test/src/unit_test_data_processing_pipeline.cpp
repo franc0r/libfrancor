@@ -79,6 +79,29 @@ TEST(Port, DisconnectOutput)
   ASSERT_ANY_THROW(input.data());
 }
 
+static constexpr char name_input_0[] = "input 0";
+static constexpr char name_input_1[] = "input 1";
+static constexpr char name_input_2[] = "input 2";
+
+using francor::processing::PortConfig;
+using francor::processing::InputBlock;
+
+TEST(InputBlock, Construct)
+{
+  francor::processing::InputBlock<PortConfig<int, name_input_0>,
+                                  PortConfig<int, name_input_1>,
+                                  PortConfig<int, name_input_2>> block;
+
+  EXPECT_EQ(block.numInputs(), 3);
+
+  // EXPECT_EQ(block.get<0>().name(), name_input_0);
+  // EXPECT_EQ(block.get<1>().name(), name_input_1);
+  // EXPECT_EQ(block.get<2>().name(), name_input_2);
+  EXPECT_EQ(francor::processing::get<0>(block).name(), name_input_0);
+  EXPECT_EQ(francor::processing::get<1>(block).name(), name_input_1);
+  EXPECT_EQ(francor::processing::get<2>(block).name(), name_input_2);
+}
+
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);

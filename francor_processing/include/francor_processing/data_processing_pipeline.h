@@ -52,7 +52,7 @@ class Port : public PortId
 {
 protected:
   Port(void) = delete;
-  Port(const std::string& name, const pipeline::Direction dataFlow, DataType* data = nullptr) : PortId(name), _data_flow(dataFlow), _data(data) { }
+  Port(const std::string& name, const pipeline::Direction dataFlow, DataType* data = nullptr) : PortId(name), data_flow(dataFlow), _data(data) { }
   Port(const Port&) = delete;
   Port(Port&&) = delete;
   ~Port(void)
@@ -63,12 +63,12 @@ protected:
   Port& operator=(const Port&) = delete;
   Port& operator=(Port&&) = delete;
 
-  const pipeline::Direction _data_flow;
-  using type = DataType;
-
   DataType* _data = nullptr;
 
 public:
+  const pipeline::Direction data_flow;
+  using type = DataType;
+
   DataType& data(void) { if (_data == nullptr) throw "data pointer is null"; return *_data; }
 };
 
@@ -127,7 +127,8 @@ class OutputPort : public Port<DataType>
 {
 public:
   OutputPort(void) = delete;
-  OutputPort(const std::string& name, DataType& data) : Port<DataType>(name, pipeline::Direction::Out, &data) { }
+  OutputPort(const std::string& name
+  , DataType& data) : Port<DataType>(name, pipeline::Direction::Out, &data) { }
 
   bool isConnected(const InputPort<DataType>& input)
   {
@@ -166,6 +167,47 @@ public:
 private:
   std::list<InputPort<DataType>*> _connected_inputs;
 };
+
+template <typename T, const char PortName[]>
+struct PortConfig { static constexpr const char* name = PortName; using type = T; };
+
+// Input Block
+template <std::size_t i, typename Config>
+struct BlockInputPort
+{
+public:
+  BlockInputPort(void) : port(Config::name) { }
+
+  InputPort<typename Config::type> port;
+};
+
+template <std::size_t i, typename... Configs>
+struct InputBlockImpl;
+
+template <std::size_t i>
+struct InputBlockImpl<i>
+{
+public:
+  InputBlockImpl(void) = default;
+};
+
+template <std::size_t i, typename Config, typename... Configs>
+struct InputBlockImpl<i, Config, Configs...> : public InputBlockImpl<i + 1, Configs...>, public BlockInputPort<i, Config>
+{
+public:
+  InputBlockImpl(void) : InputBlockImpl<i + 1, Configs...>(), BlockInputPort<i, Config>() { }
+
+  static constexpr std::size_t numInputs(void) { return sizeof...(Configs) + 1; }
+};
+
+template <std::size_t i, typename Config, typename... Configs>
+auto& get(InputBlockImpl<i, Config, Configs...>& block) { return block.BlockInputPort<i, Config>::port; }
+
+template <typename... Configs>
+using InputBlock = InputBlockImpl<0, Configs...>;
+
+
+// Output Block
 
 
 } // end namespace processing
