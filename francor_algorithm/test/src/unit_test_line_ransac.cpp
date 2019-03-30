@@ -11,6 +11,7 @@
 using francor::base::Vector2d;
 using francor::base::VectorVector2d;
 using francor::base::Line;
+using francor::base::LineVector;
 using francor::algorithm::LineRansac;
 using francor::algorithm::RansacLineModel;
 
@@ -49,6 +50,27 @@ TEST(RansacLineModel, CalculateErrorToModel)
   const Vector2d point(0.5, 2.0);
 
   EXPECT_NEAR(model.error(point), 1.0, 1e-3);
+}
+
+TEST(LineRansac, FindThreeLines)
+{
+  LineRansac ransac;
+  VectorVector2d inputPoints = { Vector2d(0.0, 1.0), Vector2d(1.0, 1.0), Vector2d(2.0, 1.0), Vector2d(3.0, 1.0), Vector2d(4.0, 1.0),
+                                 Vector2d(0.0, 3.0), Vector2d(1.0, 3.0), Vector2d(2.0, 3.0), Vector2d(3.0, 3.0), Vector2d(4.0, 3.0),
+                                 Vector2d(9.0, 9.0), Vector2d(5.0, 0.0) }; // the last two are outliers
+
+  ransac.setEpsilon(0.1);
+  ransac.setMaxIterations(200);
+  ransac.setMinNumPoints(4);
+
+  LineVector result = ransac(inputPoints);
+
+  ASSERT_EQ(result.size(), 2);
+
+  EXPECT_NEAR(result[0].m(), 0.0, 1e-3);
+  EXPECT_NEAR(result[1].m(), 0.0, 1e-3);
+  EXPECT_NEAR(std::max(result[0].t(), result[1].t()), 3.0, 1e-3);
+  EXPECT_NEAR(std::min(result[0].t(), result[1].t()), 1.0, 1e-3);
 }
 
 int main(int argc, char **argv)

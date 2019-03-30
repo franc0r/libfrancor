@@ -40,7 +40,7 @@ public:
   virtual double error(const typename Input::type& data) const = 0;
   virtual bool estimate(const std::array<typename Input::type, Input::count>& modelData) = 0;
   virtual typename Output::type fitData(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData,
-                                        const std::vector<std::size_t> indices) const = 0;
+                                        const std::vector<std::size_t>& indices) const = 0;
   inline constexpr const typename Output::type& model(void) const noexcept { return _model; }
 
 protected:
@@ -75,7 +75,7 @@ public:
   }
 
   virtual typename Output::type fitData(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData,
-                                        const std::vector<std::size_t> indices) const override final
+                                        const std::vector<std::size_t>& indices) const override final
   {
     return { fittingLineFromPoints(inputData, indices) };
   }                             
@@ -112,20 +112,33 @@ public:
     using type = typename ModelType::Output::type;
   };
 
-  typename Output::type operator()(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData)
+  std::vector<typename Output::type, Eigen::aligned_allocator<typename Output::type>>
+  operator()(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData)
   {
     this->prepareProcessing(inputData);
-    // TODO: call process correctly
-    return { this->process(inputData) };
+    typename Output::type model;
+    std::vector<typename Output::type, Eigen::aligned_allocator<typename Output::type>> models;
+
+    while (this->process(inputData, model))
+    {
+      models.push_back(model);
+    }
+    
+    return std::move(models);
   }
 
   inline unsigned int maxIterations(void) const noexcept { return _max_iterations; }
   inline double epsilon(void) const noexcept { return _epsilon; }
+  inline std::size_t minNumPoints(void) const noexcept { return _min_number_points; }
 
-protected:
+  inline void setMaxIterations(const unsigned int value) { _max_iterations = value; }
+  inline void setEpsilon(const double value) { _epsilon = value; }
+  inline void setMinNumPoints(const std::size_t value) { _min_number_points = value; }
+
+private:
   bool process(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData, typename Output::type& foundModel)
   {
-    if (inputData.size() - _count_data_used <ModelType::Input::count)
+    if (inputData.size() - _count_data_used < _min_number_points)
       return false;
 
     std::size_t foundModelPoints = 0;
@@ -138,15 +151,16 @@ protected:
       const auto modelIndices = this->getNextRandomIndices();
       std::array<typename Input::type, ModelType::Input::count> data;
       modelDataIndices.reserve(inputData.size());
-      assert(modelIndices.size() != data.size());
+      assert(modelIndices.size() == data.size());
 
       for (std::size_t i = 0; i < data.size(); ++i)
       {
         data[i] = inputData[modelIndices[i]];
-        modelDataIndices.push_back(i);
+        // std::cout << "take point " << modelIndices[i] << " (" << data[i].x() << ", " << data[i].y() << ")" << std::endl;
       }
 
       _target_model.estimate(data);
+
 
       // find model points
       for (std::size_t i = 0; i < inputData.size(); ++i)
@@ -156,17 +170,21 @@ protected:
           continue;
 
         // calculate the error between point and model
+        // if error < epsilon then save index
         if (_target_model.error(inputData[i]) <= this->epsilon())
+        {
           modelDataIndices.push_back(i);
+          // std::cout << "point " << i << " (" << inputData[i].x() << ", " << inputData[i].y() << ") fits to model" << std::endl;
+        }
       }
 
       // if it is the best try take the result
-      if (modelDataIndices.size() > foundModelPoints)
+      if (modelDataIndices.size() >= _min_number_points && modelDataIndices.size() > foundModelPoints)
       {
         foundModelPoints = modelDataIndices.size();
-        _count_data_used += modelDataIndices.size();
         model = _target_model.fitData(inputData, modelDataIndices);
         _index_data_to_model = std::move(modelDataIndices);
+        modelDataIndices.clear();
       }
     }
 
@@ -184,6 +202,7 @@ protected:
     for (auto index : _index_data_to_model)
       _mask_used_data[index] = true;
 
+    _count_data_used += _index_data_to_model.size();
     _index_data_to_model.clear();
   }
   /**
@@ -192,6 +211,7 @@ protected:
   std::array<std::size_t, ModelType::Input::count> getNextRandomIndices(void)
   {
     std::array<std::size_t, ModelType::Input::count> indices;
+    std::fill(indices.begin(), indices.end(), std::numeric_limits<std::size_t>::max());
 
     for (std::size_t index = 0; index < indices.size(); ++index)
     {
@@ -200,11 +220,9 @@ protected:
 
       do
       {
-        candidate = static_cast<std::size_t>(_dis(_gen));
+        while (_mask_used_data[(candidate = static_cast<std::size_t>(_dis(_gen)))]);
       }
-      while (std::find(indices.begin(), indices.begin() + index + 1, candidate) != indices.begin() + index + 1
-             &&
-             _mask_used_data[candidate] == true);
+      while (std::find(indices.begin(), indices.begin() + index + 1, candidate) != indices.begin() + index + 1);
 
       indices[index] = candidate;
     }
@@ -212,9 +230,6 @@ protected:
     return indices;
   }
 
-  ModelType _target_model;
-
-private:
   void prepareProcessing(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData)
   {
     // clear data and reserve memory for possible count of indicies
@@ -224,7 +239,7 @@ private:
     _index_data_to_model.clear();
     _index_data_to_model.reserve(inputData.size());
 
-    _dis = std::uniform_int_distribution<>(0, inputData.size());
+    _dis = std::uniform_int_distribution<>(0, inputData.size() - 1);
     _count_data_used = 0;
   }
 
@@ -242,6 +257,7 @@ private:
   double _epsilon = 0.05;
   unsigned int _max_iterations = 200;
   std::size_t _min_number_points = 10;
+  ModelType _target_model;
 };
 
 using LineRansac = Ransac<RansacLineModel>;
