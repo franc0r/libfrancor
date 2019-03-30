@@ -87,18 +87,17 @@ public:
 template <class ModelType>
 class Ransac
 {
-protected:
-  Ransac(void) = default;
-
 public:
-  // prevent copying and moving of the base class.
-  Ransac(const Ransac&)
+  Ransac(void)
     : _gen(_rd())
   {
 
   }
-  Ransac(Ransac&&) = delete;
   virtual ~Ransac(void) = default;
+
+  // prevent copying and moving of the base class.
+  Ransac(const Ransac&) = delete;
+  Ransac(Ransac&&) = delete;
 
   Ransac& operator=(const Ransac&) = delete;
   Ransac& operator=(Ransac&&) = delete;
@@ -116,7 +115,7 @@ public:
   typename Output::type operator()(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData)
   {
     this->prepareProcessing(inputData);
-
+    // TODO: call process correctly
     return { this->process(inputData) };
   }
 
@@ -124,9 +123,62 @@ public:
   inline double epsilon(void) const noexcept { return _epsilon; }
 
 protected:
-  virtual typename Output::type process(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData) = 0;
+  bool process(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData, typename Output::type& foundModel)
+  {
+    if (inputData.size() - _count_data_used <ModelType::Input::count)
+      return false;
 
-  void saveDataIndex(const std::size_t index) { _index_data_to_model.push_back(index); }
+    std::size_t foundModelPoints = 0;
+    std::vector<std::size_t> modelDataIndices;
+    typename Output::type model;
+
+    for (int iteration = 0; iteration < this->maxIterations(); ++iteration)
+    {
+      // get random indices and estimate model parameter
+      const auto modelIndices = this->getNextRandomIndices();
+      std::array<typename Input::type, ModelType::Input::count> data;
+      modelDataIndices.reserve(inputData.size());
+      assert(modelIndices.size() != data.size());
+
+      for (std::size_t i = 0; i < data.size(); ++i)
+      {
+        data[i] = inputData[modelIndices[i]];
+        modelDataIndices.push_back(i);
+      }
+
+      _target_model.estimate(data);
+
+      // find model points
+      for (std::size_t i = 0; i < inputData.size(); ++i)
+      {
+        // skip if data is already used. The indices used for model estimation aren't skipped
+        if (_mask_used_data[i])
+          continue;
+
+        // calculate the error between point and model
+        if (_target_model.error(inputData[i]) <= this->epsilon())
+          modelDataIndices.push_back(i);
+      }
+
+      // if it is the best try take the result
+      if (modelDataIndices.size() > foundModelPoints)
+      {
+        foundModelPoints = modelDataIndices.size();
+        _count_data_used += modelDataIndices.size();
+        model = _target_model.fitData(inputData, modelDataIndices);
+        _index_data_to_model = std::move(modelDataIndices);
+      }
+    }
+
+    // only confirm and return model if the min number of points is reached
+    if (foundModelPoints < _min_number_points)
+      return false;
+
+    this->confirmFoundModel();
+    foundModel = model;
+    return true;
+  }
+
   void confirmFoundModel(void)
   {
     for (auto index : _index_data_to_model)
@@ -173,6 +225,7 @@ private:
     _index_data_to_model.reserve(inputData.size());
 
     _dis = std::uniform_int_distribution<>(0, inputData.size());
+    _count_data_used = 0;
   }
 
   // random number machine
@@ -183,40 +236,15 @@ private:
   // used data handling
   std::vector<std::size_t> _index_data_to_model; // TODO: maybe move it to local function scope
   std::vector<bool> _mask_used_data;
+  std::size_t _count_data_used;
 
   // ransac parameters
   double _epsilon = 0.05;
   unsigned int _max_iterations = 200;
+  std::size_t _min_number_points = 10;
 };
 
-class LineRansac : public Ransac<RansacLineModel>
-{
-public:
-  LineRansac(void) = default;
-  LineRansac(const LineRansac&) = default;
-  LineRansac(LineRansac&&) = default;
-  virtual ~LineRansac(void) = default;
-
-  LineRansac& operator=(const LineRansac&) = default;
-  LineRansac& operator=(LineRansac&&) = default;
-
-  virtual typename Output::type process(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData) override final
-  {
-    for (int iteration = 0; iteration < this->maxIterations(); ++iteration)
-    {
-      const auto modelIndices = this->getNextRandomIndices();
-      std::array<typename Input::type, RansacLineModel::Input::count> data;
-      assert(modelIndices.size() != data.size());
-
-      for (std::size_t i = 0; i < data.size(); ++i)
-        data[i] = inputData[modelIndices[i]];
-
-      _target_model.estimate(data);
-
-      // TODO: finish implementation
-    }
-  }
-};
+using LineRansac = Ransac<RansacLineModel>;
 
 } // end namespace algorithm
 
