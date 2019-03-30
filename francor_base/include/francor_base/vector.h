@@ -20,7 +20,7 @@ using Vector2d = Eigen::Vector2d;
 using Vector3d = Eigen::Vector3d;
 
 using VectorVector2d = std::vector<Vector2d, Eigen::aligned_allocator<Vector2d>>;
-using VectorVector3d = std::vector<Vector2d, Eigen::aligned_allocator<Vector3d>>;
+using VectorVector3d = std::vector<Vector3d, Eigen::aligned_allocator<Vector3d>>;
 
 } // end namespace base
 

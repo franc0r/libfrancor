@@ -152,6 +152,8 @@ private:
   double t_;
 };
 
+using LineVector = std::vector<Line, Eigen::aligned_allocator<Line>>;
+
 } // end namespace base
 
 } // end namespace francor
