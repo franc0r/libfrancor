@@ -72,7 +72,7 @@ public:
   static constexpr pipeline::Direction data_flow = Direction;
   using type = DataType;
 
-  const DataType& data(void) const { if (_data == nullptr) throw "data pointer is null"; return *_data; }
+  const DataType& data(void) const { if (_data == nullptr) throw "Port::data(): data pointer is null"; return *_data; }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -223,6 +223,7 @@ public:
   static constexpr pipeline::Direction data_flow = PortType<HeadDataType>::data_flow;
 };
 
+//TODO: move this function into class BlockPortImpl
 template <std::size_t i, template<typename> class PortType, typename HeadDataType, typename... DataTypes>
 auto& get(BlockPortImpl<i, PortType, HeadDataType, DataTypes...>& block) { return block.BlockPort<i, HeadDataType, PortType>::port; }
 

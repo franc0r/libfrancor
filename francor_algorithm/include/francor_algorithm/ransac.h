@@ -17,7 +17,7 @@ namespace francor {
 namespace algorithm {
 
 /**
- * Interface class for the underlaying model of the ransac.
+ * Abstract class for the underlaying model of the ransac.
  */
 template <typename InputDataType, typename ModelDataType, const std::size_t NumberOfRequiredData>
 class RansacTargetModel
@@ -164,6 +164,7 @@ private:
 
     for (int iteration = 0; iteration < this->maxIterations(); ++iteration)
     {
+      // estimate model from input data
       this->estimateModel(inputData);
 
       // find model points
