@@ -52,15 +52,15 @@ TEST(RansacLineModel, CalculateErrorToModel)
   EXPECT_NEAR(model.error(point), 1.0, 1e-3);
 }
 
-TEST(LineRansac, FindThreeLines)
+TEST(LineRansac, FindTwoLines)
 {
   LineRansac ransac;
-  VectorVector2d inputPoints = { Vector2d(0.0, 1.0), Vector2d(1.0, 1.0), Vector2d(2.0, 1.0), Vector2d(3.0, 1.0), Vector2d(4.0, 1.0),
-                                 Vector2d(0.0, 3.0), Vector2d(1.0, 3.0), Vector2d(2.0, 3.0), Vector2d(3.0, 3.0), Vector2d(4.0, 3.0),
-                                 Vector2d(9.0, 9.0), Vector2d(5.0, 0.0) }; // the last two are outliers
+  const VectorVector2d inputPoints = { Vector2d(0.0, 1.0), Vector2d(1.0, 1.0), Vector2d(2.0, 1.0), Vector2d(3.0, 1.0), Vector2d(4.0, 1.0),
+                                       Vector2d(0.0, 3.0), Vector2d(1.0, 3.0), Vector2d(2.0, 3.0), Vector2d(3.0, 3.0), Vector2d(4.0, 3.0),
+                                       Vector2d(9.0, 9.0), Vector2d(5.0, 0.0) }; // the last two are outliers
 
   ransac.setEpsilon(0.1);
-  ransac.setMaxIterations(200);
+  ransac.setMaxIterations(100);
   ransac.setMinNumPoints(4);
 
   LineVector result = ransac(inputPoints);

@@ -68,9 +68,8 @@ public:
       // TODO: print error
       return false;
     }
-
+  
     _model = base::Line((modelData[1] - modelData[0]).normalized(), modelData[0]);
-
     return true;
   }
 
@@ -132,8 +131,26 @@ public:
   inline std::size_t minNumPoints(void) const noexcept { return _min_number_points; }
 
   inline void setMaxIterations(const unsigned int value) { _max_iterations = value; }
-  inline void setEpsilon(const double value) { _epsilon = value; }
-  inline void setMinNumPoints(const std::size_t value) { _min_number_points = (value >= ModelType::Input::count ? value : ModelType::Input::count); }
+  inline void setEpsilon(const double value)
+  {
+    if (value < 0.0)
+    {
+      //TODO: print error
+      return;
+    }
+
+    _epsilon = value;
+  }
+  inline void setMinNumPoints(const std::size_t value)
+  {
+    if (value < ModelType::Input::count)
+    {
+      //TODO: print error
+      return;
+    }
+
+    _min_number_points = value;
+  }
 
 private:
   bool process(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData, typename Output::type& foundModel)

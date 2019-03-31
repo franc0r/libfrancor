@@ -119,6 +119,10 @@ public:
    */
   double distanceTo(const Vector2d p) const
   {
+    // special case m = 0.0
+    if (m_ == 0.0)
+      return std::abs(p.y() - t_);
+
     return (this->intersectionPoint(Line(this->n(p) * -1.0, p)) - p).norm();
   }
 
