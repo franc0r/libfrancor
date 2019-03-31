@@ -17,12 +17,13 @@ namespace francor {
 namespace algorithm {
 
 /**
- * Abstract class for the underlaying model of the ransac.
+ * Abstract class for the underlaying model of the ransac. This class provides the interface that class ransac can use it.
  */
 template <typename InputDataType, typename ModelDataType, const std::size_t NumberOfRequiredData>
 class RansacTargetModel
 {
 public:
+  // defines input and output type
   struct Input
   {
     using type = InputDataType;
@@ -33,7 +34,7 @@ public:
     using type = ModelDataType;
   };
   
-  
+  // defaulted constructor and destructor
   RansacTargetModel(void) = default;
   virtual ~RansacTargetModel(void) = default;
 
@@ -81,18 +82,17 @@ public:
 };
 
 /**
- * Base ransac class.
+ * Base ransac class. This class requires a target model type. Input and output are std::vectors with deducted types by the target
+ * model.
  */
 template <class ModelType>
 class Ransac
 {
 public:
-  Ransac(void)
-    : _gen(_rd())
-  {
-
-  }
-  virtual ~Ransac(void) = default;
+  // default constructor
+  Ransac(void) : _gen(_rd()) { }
+  // defaulted destructor
+  ~Ransac(void) = default;
 
   // prevent copying and moving of the base class.
   Ransac(const Ransac&) = delete;
@@ -111,6 +111,13 @@ public:
     using type = typename ModelType::Output::type;
   };
 
+  /**
+   * \brief Performs a model search on the given input data. The operator will search until the max iterations are reached or
+   *        there aren't enough data elements left.
+   * 
+   * \param inputData the ransac will seach on this container. If the number of elements are too less nothing will happen.
+   * \return the found model stored in a vector. The vector size can be zero if nothing was found.
+   */
   std::vector<typename Output::type, Eigen::aligned_allocator<typename Output::type>>
   operator()(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData)
   {
@@ -126,11 +133,39 @@ public:
     return std::move(models);
   }
 
+  /**
+   * \brief Gets the maximum number of iterations. One iteration means one try to find a model. After a model was found its
+   *        starts again from zero.
+   * 
+   * \return Maximum number of iterations.
+   */
   inline unsigned int maxIterations(void) const noexcept { return _max_iterations; }
+  /**
+   * \brief Gets the maximum allowed error between data and model.
+   * 
+   * \return Allowed maximum error that a data element is part of the model.
+   */
   inline double epsilon(void) const noexcept { return _epsilon; }
+  /**
+   * \brief Gets the minimum number of data elements a model must match. This number is equal or greater than the minimum
+   *        required data elements of the target model.
+   * 
+   * \return Minimum number of data elements.
+   */
   inline std::size_t minNumPoints(void) const noexcept { return _min_number_points; }
 
+  /**
+   * \brief Sets the maximum number of iterations. One iteration means one try to find a model. After a model was found its
+   *        starts again from zero.
+   * 
+   * \param value Maximum number of iterations.
+   */
   inline void setMaxIterations(const unsigned int value) { _max_iterations = value; }
+  /**
+   * \brief Sets the maximum allowed error between data and model.
+   * 
+   * \param value Allowed maximum error that a data element is part of the model.
+   */
   inline void setEpsilon(const double value)
   {
     if (value < 0.0)
@@ -141,6 +176,13 @@ public:
 
     _epsilon = value;
   }
+  /**
+   * \brief Sets the minimum number of data elements a model must match. This number must be equal or greater than the minimum
+   *        required data elements of the target model.
+   * 
+   * \param value Minimum number of data elements. If value < minimum required data elements of target model then value will be
+   *              rejected.
+   */
   inline void setMinNumPoints(const std::size_t value)
   {
     if (value < ModelType::Input::count)

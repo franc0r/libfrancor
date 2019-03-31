@@ -210,7 +210,8 @@ public:
 };
 
 template <std::size_t i, template<typename> class PortType, typename HeadDataType, typename... DataTypes>
-struct BlockPortImpl<i, PortType, HeadDataType, DataTypes...> : public BlockPortImpl<i + 1, PortType, DataTypes...>, public BlockPort<i, HeadDataType, PortType>
+struct BlockPortImpl<i, PortType, HeadDataType, DataTypes...> : public BlockPortImpl<i + 1, PortType, DataTypes...>,
+                                                                public BlockPort<i, HeadDataType, PortType>
 {
 public:
   BlockPortImpl(const std::array<PortConfig, BlockPortImpl<i, PortType, HeadDataType, DataTypes...>::numInputs()>& config)
