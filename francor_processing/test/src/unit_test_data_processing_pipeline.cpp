@@ -9,10 +9,16 @@
 #include "francor_processing/data_processing_pipeline_stage.h"
 
 using francor::processing::DetectLines;
+using francor::processing::ExportClusteredPointsFromBitMask;
 
 TEST(DetectLines, Instantiate)
 {
   DetectLines detector;
+}
+
+TEST(ExportClusteredPointsFromBitMask, Instantiate)
+{
+  ExportClusteredPointsFromBitMask stage;
 }
 
 int main(int argc, char **argv)

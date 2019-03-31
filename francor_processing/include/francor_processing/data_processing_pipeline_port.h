@@ -57,14 +57,14 @@ protected:
   Port(void) = delete;
   Port(const std::string& name, const DataType* data = nullptr) : PortId(name), _data(data) { }
   Port(const Port&) = delete;
-  Port(Port&&) = delete;
+  Port(Port&&) = default;
   ~Port(void)
   {
 
   }
 
   Port& operator=(const Port&) = delete;
-  Port& operator=(Port&&) = delete;
+  Port& operator=(Port&&) = default;
 
   const DataType* _data = nullptr;
 
@@ -87,6 +87,11 @@ public:
   InputPort(void) = delete;
   InputPort(const std::string& name) : Port<DataType, pipeline::Direction::In>(name) { }
   InputPort(const std::string& name, const DataType*) : InputPort<DataType>(name) { }
+  ~InputPort(void)
+  {
+    if (_connected_output != nullptr)
+      this->disconnect(*_connected_output);
+  }
 
   bool isConnected(const OutputPort<DataType>& output) const
   {
@@ -141,6 +146,11 @@ class OutputPort : public Port<DataType, pipeline::Direction::Out>
 public:
   OutputPort(void) = delete;
   OutputPort(const std::string& name, const DataType* data) : Port<DataType, pipeline::Direction::Out>(name, data) { }
+  ~OutputPort(void)
+  {
+    while (_connected_inputs.size())
+      this->disconnect(*_connected_inputs.front());
+  }
 
   bool isConnected(const InputPort<DataType>& input)
   {
@@ -178,6 +188,14 @@ public:
 
 private:
   std::list<InputPort<DataType>*> _connected_inputs;
+};
+
+template <typename DataType>
+class DataSourcePort : public OutputPort<DataType>
+{
+public:
+  DataSourcePort(const std::string& name) : OutputPort<DataType>(name, nullptr) { }
+  DataSourcePort(const std::string& name, const DataType& dataSource) : OutputPort<DataType>(name, &dataSource) { }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

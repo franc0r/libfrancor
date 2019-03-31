@@ -64,12 +64,7 @@ public:
 
   virtual bool estimate(const std::array<Input::type, Input::count>& modelData) override final
   {
-    if (modelData.size() < 2)
-    {
-      // TODO: print error
-      return false;
-    }
-  
+    static_assert(Input::count == 2);
     _model = base::Line((modelData[1] - modelData[0]).normalized(), modelData[0]);
     return true;
   }

@@ -8,6 +8,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "francor_processing/data_processing_pipeline_port.h"
 
@@ -41,35 +42,50 @@ private:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Data Processing Stage Port including specialization
-template <template<typename...> class PortBlock, typename... DataTypes>
-class DataProcessingStagePort
+template <typename... DataTypes>
+class DataProcessingStageOutput : public OutputBlock<DataTypes...>
 {
-protected:
-  DataProcessingStagePort(void) = delete;
-  DataProcessingStagePort(const std::array<PortConfig, PortBlock<DataTypes...>::numInputs()>& config) : _ports(config) { }
+public:
+  DataProcessingStageOutput(const std::array<PortConfig, OutputBlock<DataTypes...>::numInputs()>& config) : OutputBlock<DataTypes...>(config) { }
 
-protected:
-  PortBlock<DataTypes...> _ports;
+  template <std::size_t Index>
+  auto getOutput(void) -> decltype(get<Index>(*this)) { return get<Index>(*this); }
 };
 
 template <typename... DataTypes>
-class DataProcessingStageOutput : public DataProcessingStagePort<OutputBlock, DataTypes...>
+class DataProcessingStageInput : public InputBlock<DataTypes...>
 {
 public:
-  DataProcessingStageOutput(const std::array<PortConfig, OutputBlock<DataTypes...>::numInputs()>& config) : DataProcessingStagePort<OutputBlock, DataTypes...>(config) { }
+  DataProcessingStageInput(const std::array<PortConfig, InputBlock<DataTypes...>::numInputs()>& config) : InputBlock<DataTypes...>(config) { }
 
   template <std::size_t Index>
-  auto& getOutput(void) { return get<Index>(DataProcessingStagePort<OutputBlock, DataTypes...>::_ports); }
+  auto getInput(void) -> decltype(get<Index>(*this)) { return get<Index>(*this); }
 };
 
-template <typename... DataTypes>
-class DataProcessingStageInput : public DataProcessingStagePort<InputBlock, DataTypes...>
+
+
+class DataProcssingPipeline
 {
 public:
-  DataProcessingStageInput(const std::array<PortConfig, InputBlock<DataTypes...>::numInputs()>& config) : DataProcessingStagePort<InputBlock, DataTypes...>(config) { }
+  DataProcssingPipeline(void) = default;
+  ~DataProcssingPipeline(void) = default;
 
-  template <std::size_t Index>
-  auto& getInput(void) { return get<Index>(DataProcessingStagePort<InputBlock, DataTypes...>::_ports); }
+  template <typename DataType>
+  DataSourcePort<DataType>&& createDataSourcePort(const DataType& dataSource)
+  {
+    if (_stages.size() == 0)
+      return std::move(DataSourcePort<DataType>());
+
+    
+  }  
+
+  void addStage(std::unique_ptr<DataProcessingStage>& stage)
+  {
+
+  }
+
+private:
+  std::vector<std::unique_ptr<DataProcessingStage>> _stages;
 };
 
 } // end namespace processing
