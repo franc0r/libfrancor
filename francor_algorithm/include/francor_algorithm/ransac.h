@@ -133,7 +133,7 @@ public:
 
   inline void setMaxIterations(const unsigned int value) { _max_iterations = value; }
   inline void setEpsilon(const double value) { _epsilon = value; }
-  inline void setMinNumPoints(const std::size_t value) { _min_number_points = value; }
+  inline void setMinNumPoints(const std::size_t value) { _min_number_points = (value >= ModelType::Input::count ? value : ModelType::Input::count); }
 
 private:
   bool process(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData, typename Output::type& foundModel)
@@ -147,22 +147,12 @@ private:
 
     for (int iteration = 0; iteration < this->maxIterations(); ++iteration)
     {
-      // get random indices and estimate model parameter
-      const auto modelIndices = this->getNextRandomIndices();
-      std::array<typename Input::type, ModelType::Input::count> data;
-      modelDataIndices.reserve(inputData.size());
-      assert(modelIndices.size() == data.size());
-
-      for (std::size_t i = 0; i < data.size(); ++i)
-      {
-        data[i] = inputData[modelIndices[i]];
-        // std::cout << "take point " << modelIndices[i] << " (" << data[i].x() << ", " << data[i].y() << ")" << std::endl;
-      }
-
-      _target_model.estimate(data);
-
+      this->estimateModel(inputData);
 
       // find model points
+      modelDataIndices.clear();
+      modelDataIndices.reserve(inputData.size());
+
       for (std::size_t i = 0; i < inputData.size(); ++i)
       {
         // skip if data is already used. The indices used for model estimation aren't skipped
@@ -172,10 +162,7 @@ private:
         // calculate the error between point and model
         // if error < epsilon then save index
         if (_target_model.error(inputData[i]) <= this->epsilon())
-        {
           modelDataIndices.push_back(i);
-          // std::cout << "point " << i << " (" << inputData[i].x() << ", " << inputData[i].y() << ") fits to model" << std::endl;
-        }
       }
 
       // if it is the best try take the result
@@ -184,7 +171,6 @@ private:
         foundModelPoints = modelDataIndices.size();
         model = _target_model.fitData(inputData, modelDataIndices);
         _index_data_to_model = std::move(modelDataIndices);
-        modelDataIndices.clear();
       }
     }
 
@@ -197,6 +183,19 @@ private:
     return true;
   }
 
+  void estimateModel(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData)
+  {
+      // get random indices and estimate model parameter
+      const auto modelIndices = this->getNextRandomIndices();
+      std::array<typename Input::type, ModelType::Input::count> data;
+      assert(modelIndices.size() == data.size());
+
+      for (std::size_t i = 0; i < data.size(); ++i)
+        data[i] = inputData[modelIndices[i]];
+
+      _target_model.estimate(data);
+  }
+
   void confirmFoundModel(void)
   {
     for (auto index : _index_data_to_model)
@@ -205,6 +204,7 @@ private:
     _count_data_used += _index_data_to_model.size();
     _index_data_to_model.clear();
   }
+
   /**
    * Gets randomly unused indices for the next iteration. The number of indices depends on how many the model requires.
    */
@@ -220,9 +220,11 @@ private:
 
       do
       {
-        while (_mask_used_data[(candidate = static_cast<std::size_t>(_dis(_gen)))]);
+        candidate = static_cast<std::size_t>(_dis(_gen));
       }
-      while (std::find(indices.begin(), indices.begin() + index + 1, candidate) != indices.begin() + index + 1);
+      while (std::find(indices.begin(), indices.end(), candidate) != indices.end()
+             ||
+             _mask_used_data[candidate]);
 
       indices[index] = candidate;
     }
