@@ -88,9 +88,14 @@ public:
   InputPort(const std::string& name) : Port<DataType, pipeline::Direction::In>(name) { }
   InputPort(const std::string& name, const DataType*) : InputPort<DataType>(name) { }
 
-  bool isConnected(const OutputPort<DataType>& output)
+  bool isConnected(const OutputPort<DataType>& output) const
   {
     return _connected_output == &output;
+  }
+
+  bool isConnected(void) const
+  {
+    return _connected_output != nullptr;
   }
 
   bool connect(OutputPort<DataType>& output)

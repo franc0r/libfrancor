@@ -16,9 +16,11 @@ namespace francor
 namespace base
 {
 
+using Vector2i = Eigen::Vector2i;
 using Vector2d = Eigen::Vector2d;
 using Vector3d = Eigen::Vector3d;
 
+using VectorVector2i = std::vector<Vector2i, Eigen::aligned_allocator<Vector2i>>;
 using VectorVector2d = std::vector<Vector2d, Eigen::aligned_allocator<Vector2d>>;
 using VectorVector3d = std::vector<Vector3d, Eigen::aligned_allocator<Vector3d>>;
 

@@ -258,9 +258,11 @@ private:
 
   void confirmFoundModel(void)
   {
+    // mark data as is used
     for (auto index : _index_data_to_model)
       _mask_used_data[index] = true;
 
+    // add the number of used data elements to the counter and clear the index container
     _count_data_used += _index_data_to_model.size();
     _index_data_to_model.clear();
   }
