@@ -19,18 +19,18 @@ add_test(test-data-processing-pipeline-port
 )
 
 
-add_executable(unit-test-data-processing-pipeline
-  src/unit_test_data_processing_pipeline.cpp
-)
+# add_executable(unit-test-data-processing-pipeline
+#   src/unit_test_data_processing_pipeline.cpp
+# )
 
-target_link_libraries(unit-test-data-processing-pipeline
-  PRIVATE GTest::GTest
-  PRIVATE GTest::Main
-  PRIVATE francor-processing
-)
+# target_link_libraries(unit-test-data-processing-pipeline
+#   PRIVATE GTest::GTest
+#   PRIVATE GTest::Main
+#   PRIVATE francor-processing
+# )
 
-enable_testing()
+# enable_testing()
 
-add_test(test-data-processing-pipeline
-  COMMAND unit-test-data-processing-pipeline
-)
+# add_test(test-data-processing-pipeline
+#   COMMAND unit-test-data-processing-pipeline
+# )
