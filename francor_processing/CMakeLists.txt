@@ -5,6 +5,7 @@ project(francor-processing VERSION 0.1
 
 add_library(${PROJECT_NAME}
   src/data_processing_pipeline.cpp
+  src/data_processing_port.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
