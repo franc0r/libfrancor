@@ -30,14 +30,8 @@ std::size_t PortId::_id_counter = 1;
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Port
 Port::Port(Port&& origin)
-  : PortId(std::move(origin)),
-    _data_flow(origin._data_flow), 
-    _data(origin._data), 
-    _data_type_info(origin._data_type_info)
 {
-  origin._data_flow = Direction::NONE;
-  origin._data = nullptr;
-  origin._data_type_info = typeid(void);
+  *this = std::move(origin);
 }
 
 Port::~Port(void)
@@ -51,12 +45,134 @@ Port& Port::operator=(Port&& origin)
   _data_flow = origin._data_flow;
   _data = origin._data;
   _data_type_info = origin._data_type_info;
+  this->initializeConnections();
 
+  // take all connections from origin
+  for (auto& connection : origin._connections)
+  {
+    if (connection != nullptr)
+    {
+      origin.disconnect(*connection);
+      this->connect(*connection);
+    }
+  }
+  
   origin._data_flow = Direction::NONE;
   origin._data = nullptr;
   origin._data_type_info = typeid(void);
 
   return *this;
+}
+
+void Port::initializeConnections(void)
+{
+  for (auto& connection : _connections)
+    connection = nullptr;
+}
+
+bool Port::connect(Port& port)
+{
+  // the data flow must be different
+  if (port._data_flow == _data_flow)
+  {
+    //TODO: print error
+    return false;
+  }
+  // the data type must be equal and not of type void
+  if (port._data_type_info.get() != _data_type_info.get()
+      ||
+      _data_type_info.get() == typeid(void))
+  {
+    //TODO: print error
+    return false;
+  }
+
+  switch (_data_flow)
+  {
+  case Direction::IN:
+    // only one connection is allowed
+    if (_connections[0] != nullptr)
+    {
+      //TODO: print error
+      return false;
+    }
+
+    _connections[0] = &port;
+    _data = port._data;
+    break;
+
+  case Direction::OUT:
+    {
+      const std::size_t indexConnection = this->nextConnectionIndex();
+
+      if (indexConnection >= _connections.size())
+      // maximum number of connections is reached
+      {
+        //TODO: print error
+        return false;
+      }
+
+      _connections[indexConnection] = &port;
+    }
+    break;
+
+  default:
+    //TODO: print error
+    return false;
+  }
+
+
+  if (!port.isConnectedWith(*this))
+    port.connect(*this);
+
+  return true;
+}
+
+bool Port::disconnect(Port& port)
+{
+  if (!this->isConnectedWith(port))
+  {
+    //TODO: print error
+    return false;
+  }
+
+  _data = nullptr;
+
+  for (auto& connection : _connections)
+    if (connection == &port)
+      connection = nullptr;
+
+  if (port.isConnectedWith(*this))
+    port.disconnect(*this);
+
+  return true;
+}
+
+bool Port::isConnectedWith(const Port& port)
+{
+  for (const auto connection : _connections)
+    if (connection == &port)
+      return true;
+}
+
+std::size_t Port::numOfConnections(void) const
+{
+  std::size_t counter = 0;
+
+  for (const auto connection : _connections)
+    if (connection != nullptr)
+      ++counter;
+
+  return counter;
+}
+
+std::size_t Port::nextConnectionIndex(void) const
+{
+  for (std::size_t i = 0; i < _connections.size(); ++i)
+    if (_connections[i] == nullptr)
+      return i;
+
+  return _connections.size();
 }
 
 } // end namespace processing

@@ -51,14 +51,19 @@ public:
     NONE
   };
 
-  Port(void) = default;
+  Port(void)
+  {
+    this->initializeConnections();
+  }
   template <typename DataType>
   Port(const std::string& name, const Direction dataFlow, DataType const* const data = nullptr)
     : PortId(name),
       _data_flow(dataFlow),
       _data(data),
       _data_type_info(typeid(DataType))
-  { }
+  {
+    this->initializeConnections();
+  }
   Port(const Port&) = delete;
   Port(Port&& origin);
   virtual ~Port(void);
@@ -79,10 +84,23 @@ public:
   inline Direction dataFlow(void) const noexcept { return _data_flow; }
   inline const std::type_info& type(void) const { return _data_type_info.get(); }
 
+  bool connect(Port& port);
+  bool disconnect(Port& port);
+  bool isConnectedWith(const Port& port);
+
+  std::size_t numOfConnections(void) const;
+  static constexpr std::size_t maxNumOfConnections(void) { return MAX_CONNECTIONS; }
+
 private:
+  void initializeConnections(void);
+  std::size_t nextConnectionIndex(void) const;
+
+  static constexpr std::size_t MAX_CONNECTIONS = 10;
+
   Direction _data_flow = Direction::NONE;
   void const* _data = nullptr;
   std::reference_wrapper<const std::type_info> _data_type_info = typeid(void);
+  std::array<Port*, MAX_CONNECTIONS> _connections;
 };
 
 } // end namespace processing
