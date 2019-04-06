@@ -7,10 +7,10 @@
  */
 #pragma once
 
-#include <string>
-#include <vector>
+#include "francor_processing/data_processing_pipeline_stage.h"
 
-// #include "francor_processing/data_processing_pipeline_port.h"
+#include <vector>
+#include <memory>
 
 namespace francor
 {
@@ -19,54 +19,167 @@ namespace processing
 {
 
 
+class DataProcssingPipeline
+{
+public:
+  DataProcssingPipeline(void) = default;
+  ~DataProcssingPipeline(void) = default;
 
-// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// // Data Processing Stage Port including specialization
-// template <typename... DataTypes>
-// class DataProcessingStageOutput : public OutputBlock<DataTypes...>
-// {
-// public:
-//   DataProcessingStageOutput(const std::array<PortConfig, OutputBlock<DataTypes...>::numInputs()>& config) : OutputBlock<DataTypes...>(config) { }
+  bool addStage(std::unique_ptr<DataProcessingStage> stage)
+  {
+    if (this->containStageByName(stage->name()))
+    {
+      //TODO: print error
+      return false;
+    }
 
-//   template <std::size_t Index>
-//   auto getOutput(void) -> decltype(get<Index>(*this)) { return get<Index>(*this); }
-// };
+    _stages.push_back(std::move(stage));
+    return true;
+  }
 
-// template <typename... DataTypes>
-// class DataProcessingStageInput : public InputBlock<DataTypes...>
-// {
-// public:
-//   DataProcessingStageInput(const std::array<PortConfig, InputBlock<DataTypes...>::numInputs()>& config) : InputBlock<DataTypes...>(config) { }
+  bool connectInputWithOutput(const std::string& stageNameA, const std::string& inputName, const std::string& stageNameB, const std::string& outputName)
+  {
+    // get required stages
+    const std::size_t stageIndexA = this->getStageIndexByName(stageNameA);
+    const std::size_t stageIndexB = this->getStageIndexByName(stageNameB);
 
-//   template <std::size_t Index>
-//   auto getInput(void) -> decltype(get<Index>(*this)) { return get<Index>(*this); }
-// };
+    if (stageIndexA >= _stages.size())
+    {
+      //TODO: print error
+      return false;
+    }
+    if (stageIndexB >= _stages.size())
+    {
+      //TODO: print error
+      return false;
+    }
 
+    // get input index
+    std::size_t inputIndex;
 
+    for (inputIndex = 0; inputIndex < _stages[stageIndexA]->numInputs(); ++inputIndex)
+      if (_stages[stageIndexA]->input(inputIndex).name() == outputName)
+        break;
 
-// class DataProcssingPipeline
-// {
-// public:
-//   DataProcssingPipeline(void) = default;
-//   ~DataProcssingPipeline(void) = default;
+    if (inputIndex >= _stages[stageIndexA]->numInputs())
+    {
+      //TODO: print error
+      return false;
+    }
 
-//   template <typename DataType>
-//   DataSourcePort<DataType>&& createDataSourcePort(const DataType& dataSource)
-//   {
-//     if (_stages.size() == 0)
-//       return std::move(DataSourcePort<DataType>());
-
+    // get target output index
+    std::size_t outputIndex;
     
-//   }  
+    for (outputIndex = 0; outputIndex < _stages[stageIndexB]->numOutputs(); ++outputIndex)
+      if (_stages[stageIndexB]->output(outputIndex).name() == outputName)
+        break;
+        
+    if (outputIndex >= _stages[stageIndexB]->numOutputs())
+    {
+      //TODO: print error
+      return false;
+    }
 
-//   void addStage(std::unique_ptr<DataProcessingStage>& stage)
-//   {
+    return _stages[stageIndexA]->input(inputIndex).connect(_stages[stageIndexB]->output(outputIndex));
+  }
 
-//   }
+  bool connectDataSourcePort(data::SourcePort& port, const std::string& stageName, const std::string& inputName)
+  {
+    // get required stage
+    const std::size_t stageIndex = this->getStageIndexByName(stageName);
 
-// private:
-//   std::vector<std::unique_ptr<DataProcessingStage>> _stages;
-// };
+    if (stageIndex >= _stages.size())
+    {
+      //TODO: print error
+      std::cout << "stage " << stageName << "not found" << std::endl;
+      return false;
+    }
+
+    // get input port index
+    std::size_t inputIndex;
+
+    for (inputIndex = 0; inputIndex < _stages[stageIndex]->numInputs(); ++inputIndex)
+      if (_stages[stageIndex]->input(inputIndex).name() == inputName)
+        break;
+
+    if (inputIndex >= _stages[stageIndex]->numInputs())
+    {
+      //TODO: print error
+      std::cout << "port " << inputName << " of stage " << stageName << " not found" << std::endl;
+      return false;
+    }
+
+    return _stages[stageIndex]->input(inputIndex).connect(port);
+  }
+
+  bool connectDataDestinationPort(data::DestinationPort& port, const std::string& stageName, const std::string& outputName)
+  {
+    // get required stage
+    const std::size_t stageIndex = this->getStageIndexByName(stageName);
+
+    if (stageIndex >= _stages.size())
+    {
+      //TODO: print error
+      return false;
+    }
+
+    // get input port index
+    std::size_t outputIndex;
+
+    for (outputIndex = 0; outputIndex < _stages[stageIndex]->numOutputs(); ++outputIndex)
+      if (_stages[stageIndex]->output(outputIndex).name() == outputName)
+        break;
+
+    if (outputIndex >= _stages[stageIndex]->numOutputs())
+    {
+      //TODO: print error
+      return false;
+    }
+
+    return _stages[stageIndex]->output(outputIndex).connect(port);
+  }
+
+  bool initialize(void)
+  {
+    bool ret = true;
+
+    for (auto& stage : _stages)
+      ret &= stage->initialize();
+
+    return ret;
+  }
+
+  bool process(void)
+  {
+    bool ret = true;
+
+    for (auto& stage : _stages)
+      ret &= stage->process();
+
+    return ret;
+  }
+
+
+private:
+  bool containStageByName(const std::string& stageName) const
+  {
+    return std::find_if(_stages.begin(),
+                        _stages.end(),
+                        [&] (const std::unique_ptr<DataProcessingStage>& stage) { return stage->name() == stageName; } )
+           !=
+           _stages.end();
+  }
+  std::size_t getStageIndexByName(const std::string& stageName) const
+  {
+    for (std::size_t stageIndex = 0; stageIndex < _stages.size(); ++stageIndex)
+      if (_stages[stageIndex]->name() == stageName)
+        return stageIndex;
+
+    return _stages.size();
+  }
+
+  std::vector<std::unique_ptr<DataProcessingStage>> _stages;
+};
 
 } // end namespace processing
 

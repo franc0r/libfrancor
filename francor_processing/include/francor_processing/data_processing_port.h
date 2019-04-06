@@ -11,7 +11,6 @@
 #include <typeinfo>
 #include <functional>
 #include <memory>
-#include <string>
 #include <array>
 
 namespace francor
@@ -39,7 +38,7 @@ protected:
    * 
    * \param name The name of this entity.
    */
-  PortId(const std::string& name) : _name(name), _id(_id_counter++) { }
+  PortId(const std::string& name_) : _name(name_), _id(_id_counter++) { }
   // deleted copy constructor. Only allow move to secure an unique entity.
   PortId(const PortId&) = delete;
   /**
@@ -117,8 +116,8 @@ public:
    *        from the type of the pointer. In case of an input please use "static_cast<DataType*>(nulltpr)."
    */
   template <typename DataType>
-  Port(const std::string& name, const Direction dataFlow, DataType const* const data = nullptr)
-    : PortId(name),
+  Port(const std::string& name_, const Direction dataFlow, DataType const* const data = nullptr)
+    : PortId(name_),
       _data_flow(dataFlow),
       _data(data),
       _data_type_info(typeid(DataType))
@@ -275,6 +274,7 @@ private:
 };
 
 using SourcePort = OutputPort;
+using DestinationPort = InputPort;
 
 } // end namespace data
 

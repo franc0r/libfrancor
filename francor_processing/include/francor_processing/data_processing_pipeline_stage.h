@@ -28,17 +28,22 @@ class DataProcessingStage
 {
 protected:
   DataProcessingStage(void) = delete;
-  DataProcessingStage(const std::string& name) : _name(name) { }
+  DataProcessingStage(const std::string& stageName) : _name(stageName) { }
   DataProcessingStage(const DataProcessingStage&) = delete;
   DataProcessingStage(DataProcessingStage&&) = delete;
-  virtual ~DataProcessingStage(void) = default;
 
   DataProcessingStage& operator=(const DataProcessingStage&) = delete;
   DataProcessingStage& operator=(DataProcessingStage&&) = delete;
 
 public:
+  virtual ~DataProcessingStage(void) = default;
+
   virtual bool process(void) = 0;
   virtual bool initialize(void) = 0;
+  virtual data::InputPort& input(const std::size_t index) = 0;
+  virtual data::OutputPort& output(const std::size_t index) = 0;
+  virtual std::size_t numInputs(void) const = 0;
+  virtual std::size_t numOutputs(void) const = 0;
 
   inline const std::string& name(void) const noexcept { return _name; }
 
@@ -51,11 +56,16 @@ template <std::size_t NumInputs, std::size_t NumOutputs>
 class DataProcessingStageIO : public DataProcessingStage
 {
 public:
-  DataProcessingStageIO(const std::string& name) : DataProcessingStage(name) { }
+  DataProcessingStageIO(const std::string& stageName) : DataProcessingStage(stageName) { }
 
   virtual bool initialize(void) override final
   {
     if (!this->configurePorts(_inputs, _outputs))
+    {
+      //TODO: print error
+      return false;
+    }
+    if (!this->configureProcessing())
     {
       //TODO: print error
       return false;
@@ -65,11 +75,26 @@ public:
   }
   virtual ~DataProcessingStageIO(void) = default;
 
-  InputPortBlock<NumInputs>& inputs(void) { return _inputs; }
-  OutputPortBlock<NumOutputs>& outputs(void) { return _outputs; }
+  virtual data::InputPort& input(const std::size_t index) override final
+  {
+    return _inputs.port(index);
+  }
+  virtual data::OutputPort& output(const std::size_t index) override final
+  {
+    return _outputs.port(index);
+  }
+  virtual std::size_t numInputs(void) const override final { return num_inputs; }
+  virtual std::size_t numOutputs(void) const override final { return num_outputs; }
 
 protected:
+  InputPortBlock<NumInputs>& inputs(void) { return _inputs; }
+  OutputPortBlock<NumOutputs>& outputs(void) { return _outputs; }
+  
   virtual bool configurePorts(InputPortBlock<NumInputs>& inputs, OutputPortBlock<NumOutputs>& outputs) = 0;
+  virtual bool configureProcessing(void) = 0;
+
+  static constexpr std::size_t num_inputs = NumInputs;
+  static constexpr std::size_t num_outputs = NumOutputs;
 
 private:
   InputPortBlock<NumInputs> _inputs;
@@ -78,6 +103,8 @@ private:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Data Processing Stage Detect Lines
+using francor::base::VectorVector2d;
+using francor::base::LineVector;
 
 /**
  * \brief This class searches lines in a 2d point set using a line ransac.
@@ -100,11 +127,11 @@ public:
 
     if (this->inputs().port(0).numOfConnections() > 0)
     {
-      _lines = _detector(this->inputs().port(0).data<base::VectorVector2d>());
+      _lines = _detector(this->inputs().port(0).data<VectorVector2d>());
     }
     if (this->inputs().port(1).numOfConnections() > 0)
     {
-      for (const auto& cluster : this->inputs().port(1).data<std::vector<base::VectorVector2d>>())
+      for (const auto& cluster : this->inputs().port(1).data<std::vector<VectorVector2d>>())
       {
         base::LineVector lines(_detector(cluster));
         _lines.insert(_lines.end(), lines.begin(), lines.end());
@@ -115,15 +142,28 @@ public:
   }
 
 private:
-  virtual bool configurePorts(InputPortBlock<2>& inputs, OutputPortBlock<1>& outputs) override final
+  virtual bool configurePorts(InputPortBlock<num_inputs>& inputs, OutputPortBlock<num_outputs>& outputs) override final
+  {
+    bool ret = true;
+
+    ret &= inputs.configurePort<VectorVector2d>(0, "2d points");
+    ret &= inputs.configurePort<std::vector<VectorVector2d>>(1, "clustered 2d points");
+
+    ret &= outputs.configurePort<LineVector>(0, "2d lines", &_lines);
+
+    return ret;
+  }
+  virtual bool configureProcessing(void) override final
   {
     return true;
   }
 
-  base::LineVector _lines;
+  LineVector _lines;
   algorithm::LineRansac _detector;
 };
 
+using francor::vision::Image;
+  
 class ExportClusteredPointsFromBitMask : public DataProcessingStageIO<1, 1>
 {
 public:
@@ -134,7 +174,7 @@ public:
   virtual bool process(void) override final
   {
     // input data type safety check
-    if (this->inputs().port(0).data<vision::Image>().colourSpace() != vision::ColourSpace::BIT_MASK)
+    if (this->inputs().port(0).data<Image>().colourSpace() != vision::ColourSpace::BIT_MASK)
     {
       //TODO: print error
       return false;
@@ -143,7 +183,7 @@ public:
     // find contours using opencv function
     std::vector<std::vector<cv::Point2i>> foundClusters;
 
-    cv::findContours(this->inputs().port(0).data<vision::Image>().cvMat(), foundClusters, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
+    cv::findContours(this->inputs().port(0).data<Image>().cvMat(), foundClusters, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
 
     // copy data to francor data types
     _clustered_points.resize(foundClusters.size());
@@ -163,12 +203,23 @@ public:
   }
 
 private:
-  virtual bool configurePorts(InputPortBlock<1>& inputs, OutputPortBlock<1>& outputs) override final
+  virtual bool configurePorts(InputPortBlock<num_inputs>& inputs, OutputPortBlock<num_outputs>& outputs) override final
+  {
+    bool ret = true;
+
+    ret &= inputs.configurePort<Image>(0, "bit mask");
+    ret &= outputs.configurePort<std::vector<VectorVector2d>>(0, "clustered 2d points", &_clustered_points);
+
+    return ret;
+  }
+
+  virtual bool configureProcessing(void) override final
   {
     return true;
   }
 
-  std::vector<base::VectorVector2i> _clustered_points;
+
+  std::vector<VectorVector2d> _clustered_points;
 };                                        
 
 } // end namespace processing

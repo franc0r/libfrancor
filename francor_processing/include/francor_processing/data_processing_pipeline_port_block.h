@@ -89,9 +89,8 @@ public:
     return true;
   }
 
-  const PortType& port(const std::size_t index) const noexcept { return _ports[index]; }
+  PortType& port(const std::size_t index) noexcept { return _ports[index]; }
 
-private:
   std::size_t getPortIndex(const std::string& name) const
   {
     for (std::size_t i = 0; i < _ports.size(); ++i)
@@ -101,6 +100,9 @@ private:
     return _ports.size();
   }
 
+  inline static constexpr std::size_t numPorts(void) { return NumPorts; }
+
+private:
   std::array<PortType, NumPorts> _ports;
 };
 
