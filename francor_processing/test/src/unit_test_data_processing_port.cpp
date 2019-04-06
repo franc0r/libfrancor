@@ -9,7 +9,8 @@
 #include "francor_processing/data_processing_port.h"
 
 // Port
-using francor::processing::Port;
+using francor::processing::data::Port;
+// using francor::processing::data::Port::Direction;
 
 TEST(Port, DefaultConstructed)
 {
@@ -17,7 +18,7 @@ TEST(Port, DefaultConstructed)
 
   EXPECT_EQ(port.name(), "none");
   EXPECT_EQ(port.id(), 0);
-  EXPECT_EQ(port.dataFlow(), francor::processing::Port::Direction::NONE);
+  EXPECT_EQ(port.dataFlow(), Port::Direction::NONE);
   EXPECT_EQ(port.type(), typeid(void));
   EXPECT_EQ(port.numOfConnections(), 0);
   ASSERT_ANY_THROW(port.data<int>());
@@ -26,11 +27,11 @@ TEST(Port, DefaultConstructed)
 TEST(Port, InitializedWithDataType)
 {
   int data;
-  Port port("port int", francor::processing::Port::Direction::OUT, &data);
+  Port port("port int", Port::Direction::OUT, &data);
 
   // valid access
   EXPECT_EQ(port.name(), "port int");
-  EXPECT_EQ(port.dataFlow(), francor::processing::Port::Direction::OUT);
+  EXPECT_EQ(port.dataFlow(), Port::Direction::OUT);
   EXPECT_EQ(port.type(), typeid(data));
   EXPECT_EQ(&port.data<int>(), &data);
   EXPECT_EQ(port.numOfConnections(), 0);
@@ -45,7 +46,7 @@ TEST(Port, MoveConstructed)
 {
   // instantiate initialized output port
   int data;
-  Port origin("port int", francor::processing::Port::Direction::OUT, &data);
+  Port origin("port int", Port::Direction::OUT, &data);
   const std::size_t idOrigin = origin.id();
 
   // move to new port and check if the attributes were moved properly
@@ -53,7 +54,7 @@ TEST(Port, MoveConstructed)
 
   EXPECT_EQ(moved.name(), "port int");
   EXPECT_EQ(moved.id(), idOrigin);
-  EXPECT_EQ(moved.dataFlow(), francor::processing::Port::Direction::OUT);
+  EXPECT_EQ(moved.dataFlow(), Port::Direction::OUT);
   EXPECT_EQ(moved.type(), typeid(data));
   EXPECT_EQ(moved.numOfConnections(), 0);
   EXPECT_EQ(&moved.data<int>(), &data);
@@ -61,7 +62,7 @@ TEST(Port, MoveConstructed)
   // the origin port must be unconfigured after move
   EXPECT_EQ(origin.name(), "none");
   EXPECT_EQ(origin.id(), 0);
-  EXPECT_EQ(origin.dataFlow(), francor::processing::Port::Direction::NONE);
+  EXPECT_EQ(origin.dataFlow(), Port::Direction::NONE);
   EXPECT_EQ(origin.type(), typeid(void));
   EXPECT_EQ(origin.numOfConnections(), 0);
   ASSERT_ANY_THROW(origin.data<int>());
@@ -71,7 +72,7 @@ TEST(Port, MovedAssigned)
 {
   // instantiate initialized output port
   int data;
-  Port origin("port int", francor::processing::Port::Direction::OUT, &data);
+  Port origin("port int", Port::Direction::OUT, &data);
   const std::size_t idOrigin = origin.id();
 
   // move to new port and check if the attributes were moved properly
@@ -80,7 +81,7 @@ TEST(Port, MovedAssigned)
 
   EXPECT_EQ(moved.name(), "port int");
   EXPECT_EQ(moved.id(), idOrigin);
-  EXPECT_EQ(moved.dataFlow(), francor::processing::Port::Direction::OUT);
+  EXPECT_EQ(moved.dataFlow(), Port::Direction::OUT);
   EXPECT_EQ(moved.type(), typeid(data));
   EXPECT_EQ(moved.numOfConnections(), 0);
   EXPECT_EQ(&moved.data<int>(), &data);
@@ -88,7 +89,7 @@ TEST(Port, MovedAssigned)
   // the origin port must be unconfigured after move
   EXPECT_EQ(origin.name(), "none");
   EXPECT_EQ(origin.id(), 0);
-  EXPECT_EQ(origin.dataFlow(), francor::processing::Port::Direction::NONE);
+  EXPECT_EQ(origin.dataFlow(), Port::Direction::NONE);
   EXPECT_EQ(origin.type(), typeid(void));
   EXPECT_EQ(origin.numOfConnections(), 0);
   ASSERT_ANY_THROW(origin.data<int>());  
@@ -96,8 +97,8 @@ TEST(Port, MovedAssigned)
 
 TEST(Port, ConnectInputTo)
 {
-  Port deviceUnderTest("source", francor::processing::Port::Direction::IN, static_cast<int*>(nullptr));
-  Port input("input", francor::processing::Port::Direction::IN, static_cast<int*>(nullptr));
+  Port deviceUnderTest("source", Port::Direction::IN, static_cast<int*>(nullptr));
+  Port input("input", Port::Direction::IN, static_cast<int*>(nullptr));
 
   // input to input is not permitted
   EXPECT_FALSE(deviceUnderTest.connect(input));
@@ -106,14 +107,14 @@ TEST(Port, ConnectInputTo)
 
   // try to connect output with wrong data type
   const double wrongType = 1.0;
-  Port output0("output 0", francor::processing::Port::Direction::OUT, &wrongType);
+  Port output0("output 0", Port::Direction::OUT, &wrongType);
 
   EXPECT_FALSE(deviceUnderTest.connect(output0));  
   EXPECT_EQ(deviceUnderTest.numOfConnections(), 0);
   EXPECT_EQ(output0.numOfConnections(), 0);
 
   const int value = 5;
-  Port output1("output 1", francor::processing::Port::Direction::OUT, &value);
+  Port output1("output 1", Port::Direction::OUT, &value);
 
   // input to output is valid
   EXPECT_TRUE(deviceUnderTest.connect(output1));
@@ -122,7 +123,7 @@ TEST(Port, ConnectInputTo)
   EXPECT_EQ(deviceUnderTest.data<int>(), value);
   EXPECT_EQ(&deviceUnderTest.data<int>(), &value);
 
-  Port output2("output 2", francor::processing::Port::Direction::OUT, &value);
+  Port output2("output 2", Port::Direction::OUT, &value);
 
   // one connection is the maximum number of connection for inputs
   EXPECT_FALSE(deviceUnderTest.connect(output2));
@@ -136,11 +137,11 @@ TEST(Port, ConnectOutputTo)
   std::array<Port, Port::maxNumOfConnections()> inputs;
 
   for (std::size_t i = 0; i < inputs.size(); ++i)
-    inputs[i] = std::move(Port(std::string("input ") + std::to_string(i), francor::processing::Port::Direction::IN, static_cast<int*>(nullptr)));
+    inputs[i] = std::move(Port(std::string("input ") + std::to_string(i), Port::Direction::IN, static_cast<int*>(nullptr)));
 
   const int value = 6;
-  Port deviceUnderTest("target", francor::processing::Port::Direction::OUT, &value);
-  Port output("output", francor::processing::Port::Direction::OUT, &value);
+  Port deviceUnderTest("target", Port::Direction::OUT, &value);
+  Port output("output", Port::Direction::OUT, &value);
 
   // output to output is not permitted
   EXPECT_FALSE(deviceUnderTest.connect(output));
@@ -148,7 +149,7 @@ TEST(Port, ConnectOutputTo)
   EXPECT_EQ(output.numOfConnections(), 0);
 
   // not permitted, because data types do not match
-  Port input42("input 42", francor::processing::Port::Direction::IN, static_cast<double*>(nullptr));
+  Port input42("input 42", Port::Direction::IN, static_cast<double*>(nullptr));
 
   EXPECT_FALSE(deviceUnderTest.connect(input42));
   EXPECT_EQ(deviceUnderTest.numOfConnections(), 0);
@@ -173,7 +174,7 @@ TEST(Port, ConnectOutputTo)
   }
 
   // not permitted, because maximum number of connections is reached
-  Port input88("input 88", francor::processing::Port::Direction::IN, static_cast<int*>(nullptr));
+  Port input88("input 88", Port::Direction::IN, static_cast<int*>(nullptr));
 
   EXPECT_FALSE(deviceUnderTest.connect(input88));
   EXPECT_EQ(deviceUnderTest.numOfConnections(), inputs.size());
@@ -183,9 +184,9 @@ TEST(Port, ConnectOutputTo)
 TEST(Port, DisconnectFromInput)
 {
   const int value = 5;
-  Port input("input", francor::processing::Port::Direction::IN, static_cast<int*>(nullptr));
-  Port output0("output 0", francor::processing::Port::Direction::OUT, &value);
-  Port output1("output 1", francor::processing::Port::Direction::OUT, &value);
+  Port input("input", Port::Direction::IN, static_cast<int*>(nullptr));
+  Port output0("output 0", Port::Direction::OUT, &value);
+  Port output1("output 1", Port::Direction::OUT, &value);
 
   ASSERT_TRUE(input.connect(output0));
 
@@ -203,10 +204,10 @@ TEST(Port, DisconnectFromOutput)
   std::array<Port, Port::maxNumOfConnections()> inputs;
 
   for (std::size_t i = 0; i < inputs.size(); ++i)
-    inputs[i] = std::move(Port(std::string("input ") + std::to_string(i), francor::processing::Port::Direction::IN, static_cast<int*>(nullptr)));
+    inputs[i] = std::move(Port(std::string("input ") + std::to_string(i), Port::Direction::IN, static_cast<int*>(nullptr)));
 
   const int value = 6;
-  Port output("output", francor::processing::Port::Direction::OUT, &value);
+  Port output("output", Port::Direction::OUT, &value);
 
   // establish connections
   for (auto& input : inputs)
@@ -244,10 +245,10 @@ TEST(Port, MoveConnetions)
   std::array<Port, Port::maxNumOfConnections()> inputs;
 
   for (std::size_t i = 0; i < inputs.size(); ++i)
-    inputs[i] = std::move(Port(std::string("input ") + std::to_string(i), francor::processing::Port::Direction::IN, static_cast<int*>(nullptr)));
+    inputs[i] = std::move(Port(std::string("input ") + std::to_string(i), Port::Direction::IN, static_cast<int*>(nullptr)));
 
   const int value = 6;
-  Port origin("origin", francor::processing::Port::Direction::OUT, &value);
+  Port origin("origin", Port::Direction::OUT, &value);
 
   // establish connections
   for (auto& input : inputs)
@@ -257,8 +258,8 @@ TEST(Port, MoveConnetions)
 
   // move origin including all connections
   const int newValue = 7;
-  Port input88("input 88", francor::processing::Port::Direction::IN, static_cast<int*>(nullptr));
-  Port moved("moved", francor::processing::Port::Direction::OUT, &newValue);
+  Port input88("input 88", Port::Direction::IN, static_cast<int*>(nullptr));
+  Port moved("moved", Port::Direction::OUT, &newValue);
 
   // before established connections must be disconnected
   ASSERT_TRUE(moved.connect(input88));

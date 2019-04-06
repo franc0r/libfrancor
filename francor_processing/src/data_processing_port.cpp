@@ -7,6 +7,9 @@ namespace francor
 
 namespace processing
 {
+
+namespace data
+{
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // PortId
 PortId::PortId(PortId&& origin)
@@ -222,6 +225,8 @@ std::size_t Port::nextConnectionIndex(void) const
 
   return _connections.size();
 }
+
+} // end namespace data
 
 } // end namespace processing
 

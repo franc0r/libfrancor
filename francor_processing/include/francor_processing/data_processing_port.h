@@ -10,11 +10,15 @@
 #include <string>
 #include <typeinfo>
 #include <functional>
+#include <memory>
 
 namespace francor
 {
 
 namespace processing
+{
+
+namespace data
 {
 
 /**
@@ -225,6 +229,51 @@ private:
   std::reference_wrapper<const std::type_info> _data_type_info = typeid(void);
   std::array<Port*, MAX_CONNECTIONS> _connections;
 };
+
+
+class InputPort : public Port
+{
+public:
+  template <typename DataType>
+  static InputPort create(const std::string& name)
+  {
+    return { name, static_cast<DataType*>(nullptr) };
+  }
+
+  InputPort(InputPort&&) = default;
+  virtual ~InputPort(void) = default;
+
+  InputPort& operator=(InputPort&&) = default;
+
+private:
+  InputPort(void) = delete;
+  template <typename DataType>
+  InputPort(const std::string& name, DataType const* const data) : Port(name, Direction::IN, data) { }
+};
+
+class OutputPort : public Port
+{
+public:
+  template <typename DataType>
+  static OutputPort create(const std::string& name, DataType const* const data)
+  {
+    return { name, data };
+  }
+
+  OutputPort(OutputPort&&) = default;
+  virtual ~OutputPort(void) = default;
+
+  OutputPort& operator=(OutputPort&&) = default;
+
+private:
+  OutputPort(void) = delete;
+  template <typename DataType>
+  OutputPort(const std::string& name, DataType const* const data) : Port(name, Direction::OUT, data) { }
+};
+
+using SourcePort = OutputPort;
+
+} // end namespace data
 
 } // end namespace processing
 
