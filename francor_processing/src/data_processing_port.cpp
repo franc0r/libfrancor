@@ -1,5 +1,7 @@
 #include "francor_processing/data_processing_port.h"
 
+#include <iostream>
+
 namespace francor
 {
 
@@ -36,7 +38,11 @@ Port::Port(Port&& origin)
 
 Port::~Port(void)
 {
-
+  // clean up, disconnect from all established connections
+  for (auto& connection : _connections)
+    if (connection != nullptr)
+      if (!this->disconnect(*connection))
+        ;//TODO: print error
 }
 
 Port& Port::operator=(Port&& origin)
@@ -82,6 +88,12 @@ bool Port::connect(Port& port)
   if (port._data_type_info.get() != _data_type_info.get()
       ||
       _data_type_info.get() == typeid(void))
+  {
+    //TODO: print error
+    return false;
+  }
+  // if a connetions is already established then cancel
+  if (this->isConnectedWith(port))
   {
     //TODO: print error
     return false;
@@ -136,23 +148,43 @@ bool Port::disconnect(Port& port)
     return false;
   }
 
-  _data = nullptr;
+  // disconnect port from this
+  switch (_data_flow)
+  {
+  case Direction::IN:
+    // clean up data pointer, only as input!
+    _data = nullptr;
+    _connections[0] = nullptr;
 
-  for (auto& connection : _connections)
-    if (connection == &port)
-      connection = nullptr;
+    break;
 
+  case Direction::OUT:
+
+    for (auto& connection : _connections)
+      if (connection == &port)
+        connection = nullptr;
+    
+    break;
+
+  default:
+    //TODO: print error
+    return false;
+  }
+
+  // disconnect this from port
   if (port.isConnectedWith(*this))
     port.disconnect(*this);
 
   return true;
 }
 
-bool Port::isConnectedWith(const Port& port)
+bool Port::isConnectedWith(const Port& port) const
 {
   for (const auto connection : _connections)
     if (connection == &port)
       return true;
+
+  return false;
 }
 
 std::size_t Port::numOfConnections(void) const

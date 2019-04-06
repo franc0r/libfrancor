@@ -197,9 +197,9 @@ private:
 
     std::size_t foundModelPoints = 0;
     std::vector<std::size_t> modelDataIndices;
-    typename Output::type model;
+    typename Output::type model = typename Output::type();
 
-    for (int iteration = 0; iteration < this->maxIterations(); ++iteration)
+    for (unsigned int iteration = 0; iteration < this->maxIterations(); ++iteration)
     {
       // estimate model from input data
       this->estimateModel(inputData);

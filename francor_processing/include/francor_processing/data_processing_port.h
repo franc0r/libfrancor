@@ -86,7 +86,7 @@ public:
 
   bool connect(Port& port);
   bool disconnect(Port& port);
-  bool isConnectedWith(const Port& port);
+  bool isConnectedWith(const Port& port) const;
 
   std::size_t numOfConnections(void) const;
   static constexpr std::size_t maxNumOfConnections(void) { return MAX_CONNECTIONS; }
