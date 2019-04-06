@@ -12,6 +12,8 @@
 #include "francor_algorithm/ransac.h"
 
 #include "francor_vision/image.h"
+#include "francor_vision/image_filter_pipeline.h"
+#include "francor_vision/image_filter_criteria.h"
 
 #include "francor_processing/data_processing_pipeline_port_block.h"
 
@@ -221,6 +223,57 @@ private:
 
   std::vector<VectorVector2d> _clustered_points;
 };                                        
+
+
+
+using francor::vision::ColourSpace;
+using francor::vision::ImageMaskFilterPipeline;
+using francor::vision::ImageMaskFilterColourRange;
+
+class ColouredImageToBitMask : public DataProcessingStageIO<1, 1>
+{
+public:
+  ColouredImageToBitMask(void)
+    : DataProcessingStageIO<1, 1>("coloured image to bit mask") {  }
+  virtual ~ColouredImageToBitMask(void) = default;
+
+  virtual bool process(void) override final
+  {
+    // check colour space of input image
+    if (this->inputs().port(0).data<Image>().colourSpace() != ColourSpace::BGR
+        &&
+        this->inputs().port(0).data<Image>().colourSpace() != ColourSpace::RGB
+        &&
+        this->inputs().port(0).data<Image>().colourSpace() != ColourSpace::HSV)
+    {
+      //TODO: print error
+      return false;
+    }
+
+    return _image_pipeline(this->inputs().port(0).data<Image>(), _bit_mask);
+  }
+
+private:
+  virtual bool configurePorts(InputPortBlock<num_inputs>& inputs, OutputPortBlock<num_outputs>& outputs) override final
+  {
+    bool ret = true;
+
+    ret &= inputs.configurePort<Image>(0, "coloured image");
+    ret &= outputs.configurePort<Image>(0, "bit mask", &_bit_mask);
+
+    return ret;
+  }
+
+  virtual bool configureProcessing(void) override final
+  {
+    auto rangeFilter = std::make_unique<ImageMaskFilterColourRange>(100, 120, 70, 255, 30, 255);
+    
+    return _image_pipeline.addFilter("colour range", std::move(rangeFilter));
+  }
+
+  Image _bit_mask;
+  ImageMaskFilterPipeline _image_pipeline;
+};
 
 } // end namespace processing
 

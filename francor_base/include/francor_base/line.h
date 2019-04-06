@@ -46,7 +46,7 @@ public:
       m_(v.x() == 0.0 ? std::numeric_limits<double>::max() : v.y() / v.x()),
       t_(p.y() - m_ * p.x())
   {
-    assert(v_.norm() <= 1.0);
+    assert(v_.norm() <= 1.01);
   }
 
   /**
