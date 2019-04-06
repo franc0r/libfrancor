@@ -11,6 +11,8 @@
 #include <typeinfo>
 #include <functional>
 #include <memory>
+#include <string>
+#include <array>
 
 namespace francor
 {
@@ -231,6 +233,7 @@ private:
 };
 
 
+// special port classes
 class InputPort : public Port
 {
 public:
@@ -240,13 +243,13 @@ public:
     return { name, static_cast<DataType*>(nullptr) };
   }
 
+  InputPort(void) = default;
   InputPort(InputPort&&) = default;
   virtual ~InputPort(void) = default;
 
   InputPort& operator=(InputPort&&) = default;
 
 private:
-  InputPort(void) = delete;
   template <typename DataType>
   InputPort(const std::string& name, DataType const* const data) : Port(name, Direction::IN, data) { }
 };
@@ -260,13 +263,13 @@ public:
     return { name, data };
   }
 
+  OutputPort(void) = default;
   OutputPort(OutputPort&&) = default;
   virtual ~OutputPort(void) = default;
 
   OutputPort& operator=(OutputPort&&) = default;
 
 private:
-  OutputPort(void) = delete;
   template <typename DataType>
   OutputPort(const std::string& name, DataType const* const data) : Port(name, Direction::OUT, data) { }
 };
