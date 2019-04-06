@@ -49,3 +49,18 @@ target_link_libraries(unit-test-filter-image-criteria
 add_test(test-filter-image-criteria
   COMMAND unit-test-filter-image-criteria
 )
+
+# vision input output operations
+add_executable(unit-test-io
+  src/unit_test_io.cpp
+)
+
+target_link_libraries(unit-test-io
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-vision
+)
+
+add_test(test-vision-io
+  COMMAND unit-test-io
+)

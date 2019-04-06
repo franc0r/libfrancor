@@ -3,7 +3,7 @@ cmake_minimum_required (VERSION 3.7.2)
 project(francor-vision VERSION 0.1
                        LANGUAGES CXX)
 
-find_package(OpenCV REQUIRED core imgproc)
+find_package(OpenCV REQUIRED core imgproc imgcodecs)
                        
 add_library(${PROJECT_NAME}
   src/image.cpp  
