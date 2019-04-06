@@ -38,31 +38,33 @@ Port::Port(Port&& origin)
 
 Port::~Port(void)
 {
-  // clean up, disconnect from all established connections
-  for (auto& connection : _connections)
-    if (connection != nullptr)
-      if (!this->disconnect(*connection))
-        ;//TODO: print error
+  this->reset();
 }
 
 Port& Port::operator=(Port&& origin)
 {
+  // first reset current state, so no active connection is left
+  this->reset();
+
+  // take attributes from origin
   PortId::operator=(std::move(origin));
   _data_flow = origin._data_flow;
   _data = origin._data;
   _data_type_info = origin._data_type_info;
-  this->initializeConnections();
 
   // take all connections from origin
   for (auto& connection : origin._connections)
   {
     if (connection != nullptr)
     {
-      origin.disconnect(*connection);
-      this->connect(*connection);
+      Port& targetPort = *connection; // get target port address, because after disconnect the iterator of connections is
+                                      // pointing to a nullptr
+      origin.disconnect(targetPort);
+      this->connect(targetPort);
     }
   }
-  
+
+  // reset origin
   origin._data_flow = Direction::NONE;
   origin._data = nullptr;
   origin._data_type_info = typeid(void);
@@ -185,6 +187,20 @@ bool Port::isConnectedWith(const Port& port) const
       return true;
 
   return false;
+}
+
+void Port::reset(void)
+{
+  // clean up, disconnect from all established connections
+  for (auto& connection : _connections)
+    if (connection != nullptr)
+      if (!this->disconnect(*connection))
+        ;//TODO: print error
+
+  if (_data_flow == Direction::IN)
+    _data = nullptr;
+
+  this->initializeConnections();
 }
 
 std::size_t Port::numOfConnections(void) const

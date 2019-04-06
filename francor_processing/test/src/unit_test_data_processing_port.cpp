@@ -210,9 +210,7 @@ TEST(Port, DisconnectFromOutput)
 
   // establish connections
   for (auto& input : inputs)
-  {
     ASSERT_TRUE(output.connect(input));
-  }
 
   ASSERT_EQ(output.numOfConnections(), inputs.size());
 
@@ -237,6 +235,47 @@ TEST(Port, DisconnectFromOutput)
   {
     EXPECT_EQ(input.numOfConnections(), 0);
     EXPECT_ANY_THROW(input.data<int>());
+  }
+}
+
+TEST(Port, MoveConnetions)
+{
+  // connect maximum number of connections
+  std::array<Port, Port::maxNumOfConnections()> inputs;
+
+  for (std::size_t i = 0; i < inputs.size(); ++i)
+    inputs[i] = std::move(Port(std::string("input ") + std::to_string(i), francor::processing::Port::Direction::IN, static_cast<int*>(nullptr)));
+
+  const int value = 6;
+  Port origin("origin", francor::processing::Port::Direction::OUT, &value);
+
+  // establish connections
+  for (auto& input : inputs)
+    ASSERT_TRUE(origin.connect(input));
+
+  ASSERT_EQ(origin.numOfConnections(), inputs.size());
+
+  // move origin including all connections
+  const int newValue = 7;
+  Port input88("input 88", francor::processing::Port::Direction::IN, static_cast<int*>(nullptr));
+  Port moved("moved", francor::processing::Port::Direction::OUT, &newValue);
+
+  // before established connections must be disconnected
+  ASSERT_TRUE(moved.connect(input88));
+  EXPECT_EQ(moved.numOfConnections(), 1);
+  EXPECT_EQ(input88.numOfConnections(), 1);
+
+  moved = std::move(origin);
+
+  EXPECT_EQ(input88.numOfConnections(), 0);
+  EXPECT_EQ(moved.numOfConnections(), inputs.size());
+
+  for (const auto& input : inputs)
+  {
+    EXPECT_FALSE(input.isConnectedWith(origin));
+    EXPECT_TRUE(input.isConnectedWith(moved));
+    EXPECT_NE(&input.data<int>(), &newValue);
+    EXPECT_EQ(&input.data<int>(), &value);
   }
 }
 
