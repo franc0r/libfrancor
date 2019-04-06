@@ -18,27 +18,7 @@ namespace francor
 namespace processing
 {
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Data Processing Stage
-// class DataProcessingStage
-// {
-// protected:
-//   DataProcessingStage(void) = delete;
-//   DataProcessingStage(const std::string& name) : _name(name) { }
-//   DataProcessingStage(const DataProcessingStage&) = delete;
-//   DataProcessingStage(DataProcessingStage&&) = delete;
-//   virtual ~DataProcessingStage(void) = default;
 
-//   DataProcessingStage& operator=(const DataProcessingStage&) = delete;
-//   DataProcessingStage& operator=(DataProcessingStage&&) = delete;
-
-//   virtual bool process(void) = 0;
-
-//   inline const std::string& name(void) const noexcept { return _name; }
-
-// private:
-//   const std::string _name;
-// };
 
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // // Data Processing Stage Port including specialization

@@ -106,7 +106,7 @@ private:
 
 
 template <std::size_t NumPorts> 
-using InputPortBlock = PortBlockImpl<data::InputPort, NumPorts>;
+using InputPortBlock = PortBlockImpl<francor::processing::data::InputPort, NumPorts>;
 
 template <std::size_t NumPorts>
 using OutputPortBlock = PortBlockImpl<data::OutputPort, NumPorts>;

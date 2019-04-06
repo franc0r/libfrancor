@@ -11,14 +11,18 @@
 using francor::processing::DetectLines;
 using francor::processing::ExportClusteredPointsFromBitMask;
 
-TEST(DetectLines, Instantiate)
+TEST(DetectLines, InstantiateAndInitialize)
 {
   DetectLines detector;
+
+  EXPECT_TRUE(detector.initialize());
 }
 
-TEST(ExportClusteredPointsFromBitMask, Instantiate)
+TEST(ExportClusteredPointsFromBitMask, InstantiateAndInitialize)
 {
   ExportClusteredPointsFromBitMask stage;
+
+  EXPECT_TRUE(stage.initialize());
 }
 
 int main(int argc, char **argv)
