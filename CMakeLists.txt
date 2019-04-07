@@ -6,6 +6,8 @@ add_compile_options(-Wall -O2)
 
 set(CMAKE_CXX_STANDARD 17)
 
+enable_testing()
+
 add_subdirectory(francor_base)
 add_subdirectory(francor_algorithm)
 add_subdirectory(francor_processing)

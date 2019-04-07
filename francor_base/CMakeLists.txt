@@ -18,4 +18,17 @@ target_link_libraries(${PROJECT_NAME}
   INTERFACE Eigen3::Eigen
 )
 
+enable_testing()
+
 add_subdirectory(test)
+
+install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}
+        RUNTIME DESTINATION bin/francor
+        LIBRARY DESTINATION lib/francor
+        ARCHIVE DESTINATION lib/francor)
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/francor_base/include/francor_base
+        DESTINATION include
+        FILES_MATCHING PATTERN "*.h")
+
+install(EXPORT ${PROJECT_NAME} DESTINATION lib/francor)        

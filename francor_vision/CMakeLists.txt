@@ -5,7 +5,7 @@ project(francor-vision VERSION 0.1
 
 find_package(OpenCV REQUIRED core imgproc imgcodecs)
                        
-add_library(${PROJECT_NAME}
+add_library(${PROJECT_NAME} SHARED
   src/image.cpp  
 )
 
@@ -19,4 +19,17 @@ target_link_libraries(${PROJECT_NAME}
   PUBLIC ${OpenCV_LIBS}
 )
 
+enable_testing()
+
 add_subdirectory(test)
+
+install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}
+        RUNTIME DESTINATION bin/francor
+        LIBRARY DESTINATION lib/francor
+        ARCHIVE DESTINATION lib/francor)
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/francor_vision/include/francor_vision
+        DESTINATION include
+        FILES_MATCHING PATTERN "*.h")
+
+install(EXPORT ${PROJECT_NAME} DESTINATION lib/francor)

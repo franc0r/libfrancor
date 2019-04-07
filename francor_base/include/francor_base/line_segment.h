@@ -15,6 +15,9 @@ namespace base {
 class LineSegment
 {
 public:
+
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  
   /**
    * Default ctor. The object is invalid.
    */

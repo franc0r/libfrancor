@@ -120,7 +120,6 @@ public:
 
     return true;
   }
-
 };
 
 class ImageMaskFilterPipeline : public ImageFilterPipeline_<ImageMaskFilter>

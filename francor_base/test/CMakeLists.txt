@@ -12,8 +12,6 @@ target_link_libraries(unit-test-line PRIVATE
   PRIVATE francor-base
 )
 
-enable_testing()
-
 add_test(test-line
-  COMMAND unit-test-line
+  COMMAND ${PROJECT_BINARY_DIR}/unit-test-line
 )
