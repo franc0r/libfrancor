@@ -91,7 +91,6 @@ public:
     if (stageIndex >= _stages.size())
     {
       //TODO: print error
-      std::cout << "stage " << stageName << "not found" << std::endl;
       return false;
     }
 
@@ -105,7 +104,6 @@ public:
     if (inputIndex >= _stages[stageIndex]->numInputs())
     {
       //TODO: print error
-      std::cout << "port " << inputName << " of stage " << stageName << " not found" << std::endl;
       return false;
     }
 

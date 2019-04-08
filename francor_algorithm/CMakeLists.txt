@@ -19,7 +19,7 @@ target_link_libraries(${PROJECT_NAME}
 
 add_subdirectory(test)
 
-install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}
+install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}-config
         RUNTIME DESTINATION bin/francor
         LIBRARY DESTINATION lib/francor
         ARCHIVE DESTINATION lib/francor)
@@ -28,4 +28,4 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/francor_algorithm/include/francor_algorith
         DESTINATION include
         FILES_MATCHING PATTERN "*.h")
 
-install(EXPORT ${PROJECT_NAME} DESTINATION lib/francor)        
+install(EXPORT ${PROJECT_NAME}-config DESTINATION lib/cmake)        
