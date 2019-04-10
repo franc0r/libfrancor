@@ -17,7 +17,8 @@ target_link_libraries(unit-test-ransac
   PRIVATE francor-algorithm
 )
 
-add_test(test-ransac
+add_test(
+  NAME test-ransac
   COMMAND unit-test-ransac
 )
 
@@ -36,6 +37,7 @@ target_link_libraries(unit-test-line-ransac
   PRIVATE francor-algorithm
 )
 
-add_test(test-line-ransac
+add_test(
+  NAME test-line-ransac
   COMMAND unit-test-line-ransac
 )

@@ -16,7 +16,8 @@ target_link_libraries(unit-test-image PRIVATE
   PRIVATE francor-vision
 )
 
-add_test(test-image
+add_test(
+  NAME test-image
   COMMAND unit-test-image
 )
 
@@ -31,7 +32,8 @@ target_link_libraries(unit-test-filter-image PRIVATE
   PRIVATE francor-vision
 )
 
-add_test(test-filter-image
+add_test(
+  NAME test-filter-image
   COMMAND unit-test-filter-image
 )
 
@@ -46,7 +48,8 @@ target_link_libraries(unit-test-filter-image-criteria
   PRIVATE francor-vision
 )
 
-add_test(test-filter-image-criteria
+add_test(
+  NAME test-filter-image-criteria
   COMMAND unit-test-filter-image-criteria
 )
 
@@ -61,6 +64,7 @@ target_link_libraries(unit-test-io
   PRIVATE francor-vision
 )
 
-add_test(test-vision-io
+add_test(
+  NAME test-vision-io
   COMMAND unit-test-io
 )

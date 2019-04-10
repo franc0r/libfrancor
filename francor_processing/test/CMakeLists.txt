@@ -13,15 +13,12 @@ target_link_libraries(unit-test-data-processing-port
   PRIVATE francor-processing
 )
 
-add_test(test-data-processing-port
+add_test(
+  NAME test-data-processing-port
   COMMAND unit-test-data-processing-port
 )
 
 # port block
-add_test(test-data-processing-pipeline-port-block
-  COMMAND unit-test-data-processing-pipeline-port-block
-)
-
 add_executable(unit-test-data-processing-pipeline-port-block
   src/unit_test_data_processing_pipeline_port_block.cpp
 )
@@ -32,7 +29,8 @@ target_link_libraries(unit-test-data-processing-pipeline-port-block
   PRIVATE francor-processing
 )
 
-add_test(test-data-processing-pipeline-port-block
+add_test(
+  NAME test-data-processing-pipeline-port-block
   COMMAND unit-test-data-processing-pipeline-port-block
 )
 
@@ -49,7 +47,8 @@ target_link_libraries(unit-test-data-processing-pipeline-stage
 
 enable_testing()
 
-add_test(test-data-processing-pipeline-stage
+add_test(
+  NAME test-data-processing-pipeline-stage
   COMMAND unit-test-data-processing-pipeline-stage
 )
 
@@ -66,6 +65,7 @@ target_link_libraries(unit-test-data-processing-pipeline
 
 enable_testing()
 
-add_test(test-data-processing-pipeline
+add_test(
+  NAME test-data-processing-pipeline
   COMMAND unit-test-data-processing-pipeline
 )
