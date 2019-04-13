@@ -10,7 +10,7 @@ add_library(${PROJECT_NAME} INTERFACE
 )
 
 target_include_directories(${PROJECT_NAME}
-  PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/francor_base/include/>
+  INTERFACE $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/francor_base/include/>
             $<INSTALL_INTERFACE:include/francor_base>
             $<BUILD_INTERFACE:${EIGEN3_INCLUDE_DIRS}>
 )
@@ -29,5 +29,4 @@ install(TARGETS ${PROJECT_NAME} EXPORT francor-config
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/francor_base/include/francor_base
         DESTINATION include
         FILES_MATCHING PATTERN "*.h")
-
-# install(EXPORT ${PROJECT_NAME}-config DESTINATION lib/cmake)        
+      

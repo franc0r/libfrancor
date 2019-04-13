@@ -31,5 +31,3 @@ install(TARGETS ${PROJECT_NAME} EXPORT francor-config
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/francor_vision/include/francor_vision
         DESTINATION include
         FILES_MATCHING PATTERN "*.h")
-
-# install(EXPORT ${PROJECT_NAME}-config DESTINATION lib/cmake)
