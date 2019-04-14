@@ -112,6 +112,21 @@ public:
   }
 
   /**
+   * Calculates the x value for the given y value.
+   * 
+   * \param y The y value.
+   * \return x The x value for the given y value.
+   */
+  inline double x(const double y) const
+  {
+    // if m is zero it exists inf number of solutions --> return just zero as x value
+    if (m_ == 0.0)
+      return 0.0;
+
+    return (y - t_) / m_;
+  }
+
+  /**
    * Calculates the distance along the normal of this line.
    * 
    * \param p The distance will be calculated to that point.

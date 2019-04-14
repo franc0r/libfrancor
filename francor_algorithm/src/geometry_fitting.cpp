@@ -1,5 +1,7 @@
 #include "francor_algorithm/geometry_fitting.h"
 
+#include <algorithm>
+
 namespace francor {
 
 namespace algorithm {
@@ -61,6 +63,38 @@ base::Line fittingLineFromPoints(const base::VectorVector2d& points, const std::
 
   return {m, t};
 }
+
+base::LineSegment fittingLineSegmentFromPoints(const base::VectorVector2d& points, const std::vector<std::size_t>& indices)
+{
+  if (points.size() < 2 || indices.size() == 1)
+  {
+    //TODO: print error
+    return { };
+  }
+  
+  //TODO: deal with m = 0
+  const base::Line line(fittingLineFromPoints(points, indices));
+
+  if (indices.size() == 0)
+  {
+    const double minY = std::min_element(points.begin(), points.end(), [&] (const base::Vector2d& left, const base::Vector2d& right) { return left.y() < right.y(); })->y();
+    const double maxY = std::max_element(points.begin(), points.end(), [&] (const base::Vector2d& left, const base::Vector2d& right) { return left.y() > right.y(); })->y();
+
+    return { base::Vector2d(line.x(minY), minY), base::Vector2d(line.x(maxY), maxY) };
+  }
+  else
+  {
+    const double minY = points[*std::min_element(indices.begin(),
+                                                 indices.end(), 
+                                                 [&] (const std::size_t left, const std::size_t right) { return points[left].y() < points[right].y(); } )
+                              ].y();
+    const double maxY = points[*std::max_element(indices.begin(),
+                                                 indices.end(), 
+                                                 [&] (const std::size_t left, const std::size_t right) { return points[left].y() > points[right].y(); } )
+                              ].y();                              
+    return { base::Vector2d(line.x(minY), minY), base::Vector2d(line.x(maxY), maxY) };
+  }
+}                                               
 
 } // end namespace algorithm
 

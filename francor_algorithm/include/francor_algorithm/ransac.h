@@ -77,6 +77,34 @@ public:
 };
 
 /**
+ * Ransac model for line segments.
+ */
+class RansacLineSegmentModel : public RansacTargetModel<base::Vector2d, base::LineSegment, 2>
+{
+public:
+  RansacLineSegmentModel(void) = default;
+  virtual ~RansacLineSegmentModel(void) = default;
+
+  virtual double error(const Input::type& data) const override final
+  {
+    return _model.line().distanceTo(data);
+  }
+
+  virtual bool estimate(const std::array<Input::type, Input::count>& modelData) override final
+  {
+    static_assert(Input::count == 2);
+    _model = base::LineSegment(modelData[1], modelData[0]);
+    return true;
+  }
+
+  virtual typename Output::type fitData(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData,
+                                        const std::vector<std::size_t>& indices) const override final
+  {
+    return { fittingLineSegmentFromPoints(inputData, indices) };
+  }                                          
+};
+
+/**
  * Base ransac class. This class requires a target model type. Input and output are std::vectors with deducted types by the target
  * model.
  */

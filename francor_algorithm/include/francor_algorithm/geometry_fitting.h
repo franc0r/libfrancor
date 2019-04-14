@@ -7,6 +7,7 @@
 #pragma once
 
 #include "francor_base/line.h"
+#include "francor_base/line_segment.h"
 
 namespace francor {
 
@@ -14,6 +15,9 @@ namespace algorithm {
 
 base::Line fittingLineFromPoints(const base::VectorVector2d& points,
                                  const std::vector<std::size_t>& indices = std::vector<std::size_t>());
+
+base::LineSegment fittingLineSegmentFromPoints(const base::VectorVector2d& points,
+                                               const std::vector<std::size_t>& indices = std::vector<std::size_t>());                                 
 
 } // end namespace algorithm
 
