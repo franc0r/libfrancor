@@ -50,6 +50,8 @@ private:
   Vector2d p1_;
 };
 
+using LineSegmentVector = std::vector<LineSegment, Eigen::aligned_allocator<LineSegment>>;
+
 } // end namespace base
 
 } // end namespace francor

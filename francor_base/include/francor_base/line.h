@@ -43,9 +43,12 @@ public:
   Line(const Vector2d v, const Vector2d p)
     : v_(v),
       p_(p),
-      m_(v.x() == 0.0 ? std::numeric_limits<double>::max() : v.y() / v.x()),
+      m_(std::abs(v.x()) < 1e-6 ? std::numeric_limits<double>::max() : v.y() / v.x()),
       t_(p.y() - m_ * p.x())
   {
+    if (std::isinf(t_))
+      t_ = -std::numeric_limits<double>::max();
+
     assert(v_.norm() <= 1.01);
   }
 
