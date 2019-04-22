@@ -33,6 +33,8 @@ public:
       t_(t)
   {
     v_.normalize();
+    assert(std::abs(m_) <= static_cast<double>(std::numeric_limits<std::size_t>::max()));
+    assert(std::abs(t_) <= static_cast<double>(std::numeric_limits<std::size_t>::max()));
   }
   /**
    * Construct a line from a direction vector and point.
@@ -43,11 +45,24 @@ public:
   Line(const Vector2d v, const Vector2d p)
     : v_(v),
       p_(p),
-      m_(std::abs(v.x()) < 1e-6 ? std::numeric_limits<double>::max() : v.y() / v.x()),
+      // if v.x is close to zero use limit or zero
+      m_(std::abs(v.x()) < 1e-6 ? (std::abs(v.y()) < 1e-6 ? 0.0 : static_cast<double>(std::numeric_limits<std::size_t>::max())) : v.y() / v.x()),
       t_(p.y() - m_ * p.x())
   {
     if (std::isinf(t_))
-      t_ = -std::numeric_limits<double>::max();
+      t_ = -static_cast<double>(std::numeric_limits<std::size_t>::max());
+    // limit m_ to size_t max limit. That is the maximum expected number of cols or rows of an image.
+    // at moment the is the supported range
+    if (std::abs(m_) > static_cast<double>(std::numeric_limits<std::size_t>::max()))
+    {
+      const double positive = m_ >= 0.0;
+      m_ = static_cast<double>(std::numeric_limits<std::size_t>::max()) * (positive ? 1.0 : -1.0);
+    }
+    if (std::abs(t_) > static_cast<double>(std::numeric_limits<std::size_t>::max()))
+    {
+      const double positive = t_ >= 0.0;
+      t_ = static_cast<double>(std::numeric_limits<std::size_t>::max()) * (positive ? 1.0 : -1.0);
+    }
 
     assert(v_.norm() <= 1.01);
   }
@@ -163,6 +178,9 @@ public:
 
     const double x = (t_ - line.t_) / subM;
     const double y = m_ * x + t_;
+
+    assert(!std::isinf(x));
+    assert(!std::isinf(y));
 
     return { x, y };
   }

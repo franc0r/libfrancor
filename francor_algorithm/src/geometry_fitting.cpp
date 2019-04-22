@@ -55,7 +55,7 @@ base::Line fittingLineFromPoints(const base::VectorVector2d& points, const std::
 
   // m is infinity
   if (sumX == 0.0)
-    return { }; // TODO: print error
+    return {static_cast<double>(std::numeric_limits<std::size_t>::max()), -static_cast<double>(std::numeric_limits<std::size_t>::max())};
 
   // construct line segment and return it
   const double m = sumXY / sumX;
@@ -88,10 +88,12 @@ base::LineSegment fittingLineSegmentFromPoints(const base::VectorVector2d& point
                                                  indices.end(), 
                                                  [&] (const std::size_t left, const std::size_t right) { return points[left].y() < points[right].y(); } )
                               ].y();
+
     const double maxY = points[*std::max_element(indices.begin(),
                                                  indices.end(), 
-                                                 [&] (const std::size_t left, const std::size_t right) { return points[left].y() > points[right].y(); } )
-                              ].y();                              
+                                                 [&] (const std::size_t left, const std::size_t right) { return points[left].y() < points[right].y(); } )
+                              ].y();             
+                                              
     return { base::Vector2d(line.x(minY), minY), base::Vector2d(line.x(maxY), maxY) };
   }
 }                                               

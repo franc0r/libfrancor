@@ -46,8 +46,18 @@ TEST(LineTest, ConstructFromVerticalVectorPoint)
   // construct a line with m = inf and t = -inf
   const francor::base::Line line(Eigen::Vector2d(0.0, 1.0).normalized(), Eigen::Vector2d(100.0, 1.0));
 
-  EXPECT_NEAR(line.m(), std::numeric_limits<double>::max(), 0.001);
-  EXPECT_NEAR(line.t(), -std::numeric_limits<double>::max(), 0.001);
+  EXPECT_NEAR(line.m(),  static_cast<double>(std::numeric_limits<std::size_t>::max()), 1e-6);
+  EXPECT_GE(line.t(), -static_cast<double>(std::numeric_limits<std::size_t>::max()));
+}
+
+// check if m is calculated well from a negative pointing direction vector
+TEST(LineTest, ConstructFromNegativeDirectionVector)
+{
+  // construct a line with m = inf and t = -inf
+  const francor::base::Line line(Eigen::Vector2d(-1.0, -1.0).normalized(), Eigen::Vector2d(1.0, 1.0));
+
+  EXPECT_NEAR(line.m(), 1.0, 1e-6);
+  EXPECT_NEAR(line.t(), 0.0, 1e-6);
 }
 
 TEST(LineTest, Normal)
@@ -122,7 +132,7 @@ TEST(LineTest, DistanceToVerticalLine)
   const Eigen::Vector2d point(-2.0, 5.0);
   constexpr double distance = 2.0;
 
-  EXPECT_NEAR(line.m(), std::numeric_limits<double>::max(), 1e-3);
+  EXPECT_NEAR(line.m(), static_cast<double>(std::numeric_limits<std::size_t>::max()), 1e-3);
   EXPECT_NEAR(line.t(), 1.0, 1e-3);
   
   EXPECT_NEAR(line.distanceTo(point), distance, 0.001);
