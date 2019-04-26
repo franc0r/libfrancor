@@ -2,19 +2,19 @@
 #include "francor_vision/io.h"
 
 using francor::processing::DataProcssingPipeline;
-using francor::processing::DetectLines;
+using francor::processing::DetectLineSegments;
 using francor::processing::ExportClusteredPointsFromBitMask;
 using francor::processing::ColouredImageToBitMask;
 using francor::processing::data::SourcePort;
 using francor::processing::data::DestinationPort;
 using francor::vision::Image;
 using francor::vision::ColourSpace;
-using francor::base::LineVector;
+using francor::base::LineSegmentVector;
 
 DataProcssingPipeline pipeline;
 Image inputImage;
 SourcePort source(SourcePort::create<Image>("coloured image", &inputImage));
-DestinationPort destination(DestinationPort::create<LineVector>("lines"));
+DestinationPort destination(DestinationPort::create<LineSegmentVector>("line segments"));
 
 bool initialize(void)
 {
@@ -35,7 +35,7 @@ bool initialize(void)
   }
   
   // find lines in point set
-  auto detectLines = std::make_unique<DetectLines>(100, 10, 5.0);
+  auto detectLines = std::make_unique<DetectLineSegments>(100, 10, 5.0);
 
   if (!pipeline.addStage(std::move(detectLines)))
   {
@@ -67,6 +67,8 @@ bool initialize(void)
 
 int main(int argc, char** argv)
 {
+  francor::base::setLogLevel(francor::base::LogLevel::DEBUG);
+
   if (!initialize())
   {
     std::cout << "error occurred during initialization" << std::endl;
@@ -82,8 +84,8 @@ int main(int argc, char** argv)
     return 2;
   }
 
-  for (const auto& line : destination.data<LineVector>())
-    std::cout << "found line: m = " << line.m() << ", t = " << line.t() << std::endl;
+  for (const auto& segment : destination.data<LineSegmentVector>())
+    std::cout << "found line segment: " << segment << std::endl;
 
   return 0;
 }

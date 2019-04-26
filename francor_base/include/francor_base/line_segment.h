@@ -8,6 +8,8 @@
 
 #include "line.h"
 
+#include <ostream>
+
 namespace francor {
 
 namespace base {
@@ -55,3 +57,16 @@ using LineSegmentVector = std::vector<LineSegment, Eigen::aligned_allocator<Line
 } // end namespace base
 
 } // end namespace francor
+
+namespace std
+{
+
+std::ostream& operator<<(std::ostream& os, const francor::base::LineSegment& segment)
+{
+  os << "[line: " << segment.line() << " | p0: x = " << segment.p0().x() << ", y = " << segment.p0().y()
+     << " | p1: x = " << segment.p1().x() << ", y = " << segment.p1().y() << "]";
+
+  return os;
+}
+
+} // end namespace std

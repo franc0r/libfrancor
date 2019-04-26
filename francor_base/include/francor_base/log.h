@@ -32,11 +32,16 @@ class Log
 {
 public:
   Log(void) = default;
+  Log(const Log<Level>&) = delete;
+  Log(Log<Level>&&) = delete;
   ~Log(void)
   {
     if (Level >= getLogLevel())
       std::clog << std::endl;
   }
+
+  Log<Level>& operator=(const Log<Level>&) = delete;
+  Log<Level>& operator=(Log<Level>&&) = delete;
 
   static constexpr LogLevel level = Level;
 

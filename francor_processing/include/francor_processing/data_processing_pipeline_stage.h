@@ -8,6 +8,7 @@
 
 #include "francor_base/vector.h"
 #include "francor_base/line.h"
+#include "francor_base/log.h"
 
 #include "francor_algorithm/ransac.h"
 
@@ -62,14 +63,18 @@ public:
 
   virtual bool initialize(void) override final
   {
+    using francor::base::LogError;
+
     if (!this->configurePorts(_inputs, _outputs))
     {
-      //TODO: print error
+      LogError() << "Data Processing Stage \"" << this->name() << "\": error occurred during configuring of data ports."
+                 << " Cancel initialization.";
       return false;
     }
     if (!this->configureProcessing())
     {
-      //TODO: print error
+      LogError() << "Data Processing Stage \"" << this->name() << "\": error occurred during configuring of processing."
+                 << " Cancel initialization.";
       return false;
     }
 
@@ -125,21 +130,31 @@ public:
 
   virtual bool process(void) override final
   {
+    using francor::base::LogDebug;
+
+    LogDebug() << this->name() << ": start data procssing.";
     _lines.clear();
 
     if (this->inputs().port(0).numOfConnections() > 0)
     {
+      LogDebug() << this->name() << ": process with a single set of 2d points.";
       _lines = _detector(this->inputs().port(0).data<VectorVector2d>());
     }
     if (this->inputs().port(1).numOfConnections() > 0)
     {
+      LogDebug() << this->name() << ": process with " << this->inputs().port(1).data<std::vector<VectorVector2d>>().size()
+                 << " sets of 2d points.";
+
       for (const auto& cluster : this->inputs().port(1).data<std::vector<VectorVector2d>>())
       {
         base::LineVector lines(_detector(cluster));
         _lines.insert(_lines.end(), lines.begin(), lines.end());
       }
+
+      LogDebug() << this->name() << ": found " << _lines.size() << " lines.";
     }
 
+    LogDebug() << this->name() << ": finished data processing.";
     return true;
   }
 
@@ -171,7 +186,7 @@ class DetectLineSegments : public DataProcessingStageIO<2, 1>
 {
 public:
   DetectLineSegments(const unsigned int maxIterations = 100, const std::size_t minNumPoints = 2, const double epsilon = 0.3)
-    : DataProcessingStageIO<2, 1>("detect lines")
+    : DataProcessingStageIO<2, 1>("detect line segments")
   {
     _detector.setMaxIterations(maxIterations);
     _detector.setMinNumPoints(minNumPoints);
@@ -181,21 +196,31 @@ public:
 
   virtual bool process(void) override final
   {
+    using francor::base::LogDebug;
+
+    LogDebug() << this->name() << ": start data procssing.";
     _lines.clear();
 
     if (this->inputs().port(0).numOfConnections() > 0)
     {
+      LogDebug() << this->name() << ": process with a single set of 2d points.";
       _lines = _detector(this->inputs().port(0).data<VectorVector2d>());
     }
     if (this->inputs().port(1).numOfConnections() > 0)
     {
+      LogDebug() << this->name() << ": process with " << this->inputs().port(1).data<std::vector<VectorVector2d>>().size()
+                 << " sets of 2d points.";
+
       for (const auto& cluster : this->inputs().port(1).data<std::vector<VectorVector2d>>())
       {
-        base::LineVector lines(_detector(cluster));
+        base::LineSegmentVector lines(_detector(cluster));
         _lines.insert(_lines.end(), lines.begin(), lines.end());
       }
+
+      LogDebug() << this->name() << ": found " << _lines.size() << " line segments.";      
     }
 
+    LogDebug() << this->name() << ": finished data processing.";
     return true;
   }
 
@@ -207,7 +232,7 @@ private:
     ret &= inputs.configurePort<VectorVector2d>(0, "2d points");
     ret &= inputs.configurePort<std::vector<VectorVector2d>>(1, "clustered 2d points");
 
-    ret &= outputs.configurePort<LineVector>(0, "2d line segments", &_lines);
+    ret &= outputs.configurePort<base::LineSegmentVector>(0, "2d line segments", &_lines);
 
     return ret;
   }
@@ -216,8 +241,8 @@ private:
     return true;
   }
 
-  LineVector _lines;
-  algorithm::LineRansac _detector;
+  base::LineSegmentVector _lines;
+  algorithm::LineSegmentRansac _detector;
 };
 
 using francor::vision::Image;

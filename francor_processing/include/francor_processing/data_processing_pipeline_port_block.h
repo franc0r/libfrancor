@@ -6,6 +6,8 @@
  */
 #pragma once
 
+#include "francor_base/log.h"
+
 #include "francor_processing/data_processing_port.h"
 
 #include <array>
@@ -26,66 +28,93 @@ public:
 
   bool connect(const std::string& portNameA, data::Port& portB)
   {
+    using francor::base::LogError;
+    using francor::base::LogDebug;
+
+    LogDebug() << "PortBlock: try to connect to data port \"" << portB.name() << "\".";
     const std::size_t portIndex = this->getPortIndex(portNameA);
 
     if (portIndex >= _ports.size())
     {
-      //TODO: print error
+      LogError() << "PortBlock: data port \"" << portNameA << " isn't contained. Can't connect to data port \""
+                 << portB.name() << "\".";
       return false;
     }
 
     if (!_ports[portIndex].connect(portB))
     {
-      //TODO: print error
+      LogError() << "PortBlock: error occurred during connecting to data port \"" << portB.name() << "\".";
       return false;
     }
 
+    LogDebug() << "PortBlock: connection to data port \"" << portB.name() << "\" has been established.";
     return true;
   }
 
   bool disconnect(const std::string& portNameA, data::Port& portB)
   {
+    using francor::base::LogError;
+    using francor::base::LogDebug;
+
+    LogDebug() << "PortBlock: try to disconnect from data port \"" << portB.name() << "\".";
     const std::size_t portIndex = this->getPortIndex(portNameA);
 
     if (portIndex >= _ports.size())
     {
-      //TODO: print error
+      LogError() << "PortBlock: data port \"" << portNameA << " isn't contained. Can't disconnect from data port \""
+                 << portB.name() << "\".";      
       return false;
     }
 
     if (!_ports[portIndex].disconnect(portB))
     {
-      //TODO: print error
+      LogError() << "PortBlock: error occurred during disconnecting from data port \"" << portB.name() << "\".";
       return false;
     }
 
+    LogDebug() << "PortBlock: data port \"" << portB.name() << "\" successfully disconnected from \"" << portNameA
+               << "\".";
     return true;
   }
 
   template <typename DataType>
   bool configurePort(const std::size_t portIndex, const std::string& name)
   {
+    using francor::base::LogError;
+    using francor::base::LogDebug;
+    LogDebug() << "PortBlock: try to configure data port with index = " << portIndex << ".";
+
     if (portIndex >= _ports.size())
     {
-      //TODO: print error
+      LogError() << "PortBlock: port index " << portIndex << " is out of range. Can't configure data port.";
       return false;
     }
 
     _ports[portIndex] = std::move(data::InputPort::create<DataType>(name));
+
+    LogDebug() << "PortBlock: data port with index = " << portIndex << " successfully configured. Used port name \""
+               << name << "\" and data type \"" << typeid(DataType).name() << "\".";
     return true;
   }
 
   template <typename DataType>
   bool configurePort(const std::size_t portIndex, const std::string& name, DataType const* const data)
   {
+    using francor::base::LogError;
+    using francor::base::LogDebug;
+    LogDebug() << "PortBlock: try to configure data port with index = " << portIndex << ".";
+
     static_assert(std::is_same<PortType, data::OutputPort>::value);
     if (portIndex >= _ports.size())
     {
-      //TODO: print error
+      LogError() << "PortBlock: port index " << portIndex << " is out of range. Can't configure data port.";      
       return false;
     }
 
     _ports[portIndex] = std::move(data::OutputPort::create<DataType>(name, data));
+
+    LogDebug() << "PortBlock: data port with index = " << portIndex << " successfully configured. Used port name \""
+               << name << "\" and data type \"" << typeid(DataType).name() << "\".";
     return true;
   }
 

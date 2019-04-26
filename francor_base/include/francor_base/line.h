@@ -7,8 +7,9 @@
 #pragma once
 
 #include "francor_base/vector.h"
+#include "francor_base/log.h"
 
-#include <iostream>
+#include <ostream>
 
 namespace francor {
 
@@ -198,3 +199,15 @@ using LineVector = std::vector<Line, Eigen::aligned_allocator<Line>>;
 } // end namespace base
 
 } // end namespace francor
+
+namespace std
+{
+
+std::ostream& operator<<(std::ostream& os, const francor::base::Line& line)
+{
+  os << "[m = " << line.m() << ", t = " << line.t() << "]";
+
+  return os;
+}
+
+} // end namespace std
