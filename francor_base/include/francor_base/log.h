@@ -31,7 +31,10 @@ template <LogLevel Level>
 class Log
 {
 public:
-  Log(void) = default;
+  Log(void)
+  {
+    this->printWarnLevel(Level);
+  }
   Log(const Log<Level>&) = delete;
   Log(Log<Level>&&) = delete;
   ~Log(void)
@@ -55,6 +58,37 @@ public:
     std::clog << in;
 
     return *this;
+  }
+
+private:
+  static void printWarnLevel(const LogLevel level)
+  {
+    switch (level)
+    {
+    case LogLevel::DEBUG:
+      std::clog << "[DEBUG] ";
+      break;
+
+    case LogLevel::INFO:
+      std::clog << "[INFO] ";
+      break;
+
+    case LogLevel::WARNING:
+      std::clog << "[WARNING] ";
+      break;
+
+    case LogLevel::ERROR:
+      std::clog << "[ERROR] ";
+      break;
+
+    case LogLevel::FATAL:
+      std::clog << "[FATAL] ";
+      break;
+
+    default:
+      std::clog << "[UNKOWN] ";
+      break;
+    }
   }
 };
 

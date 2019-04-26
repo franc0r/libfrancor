@@ -178,6 +178,7 @@ public:
     if (!ret)
       LogError() << "DataProcessingPipeline: error occurred during initializing of pipeline.";
 
+    LogInfo() << "DataProcessingPipeline: pipeline successfully initialized.";
     return ret;
   }
 

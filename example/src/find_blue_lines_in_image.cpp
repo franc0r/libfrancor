@@ -35,7 +35,7 @@ bool initialize(void)
   }
   
   // find lines in point set
-  auto detectLines = std::make_unique<DetectLineSegments>(100, 10, 5.0);
+  auto detectLines = std::make_unique<DetectLineSegments>(100, 10, 3.0);
 
   if (!pipeline.addStage(std::move(detectLines)))
   {
@@ -49,7 +49,7 @@ bool initialize(void)
   {
     return false;
   }
-  if (!pipeline.connectInputWithOutput("detect lines", "clustered 2d points", "export clustered points from bit mask", "clustered 2d points"))
+  if (!pipeline.connectInputWithOutput("detect line segments", "clustered 2d points", "export clustered points from bit mask", "clustered 2d points"))
   {
     return false;
   }
@@ -57,7 +57,7 @@ bool initialize(void)
   {
     return false;
   }
-  if (!pipeline.connectDataDestinationPort(destination, "detect lines", "2d lines"))
+  if (!pipeline.connectDataDestinationPort(destination, "detect line segments", "2d line segments"))
   {
     return false;
   }
