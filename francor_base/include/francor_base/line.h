@@ -188,6 +188,7 @@ public:
 private:
   Vector2d v_;
   Vector2d p_;
+  //TODO: replace attribute m with an angle
   double m_;
   double t_;
 };

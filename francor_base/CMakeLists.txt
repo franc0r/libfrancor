@@ -5,18 +5,18 @@ project(francor-base VERSION 0.1
 
 find_package(Eigen3 REQUIRED NO_MODULE)
 
-add_library(${PROJECT_NAME} INTERFACE
-  
+add_library(${PROJECT_NAME} SHARED
+  src/log.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
-  INTERFACE $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/francor_base/include/>
-            $<INSTALL_INTERFACE:include/francor_base>
-            $<BUILD_INTERFACE:${EIGEN3_INCLUDE_DIRS}>
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/francor_base/include/>
+         $<INSTALL_INTERFACE:include/francor_base>
+         $<BUILD_INTERFACE:${EIGEN3_INCLUDE_DIRS}>
 )
 
 target_link_libraries(${PROJECT_NAME}
-  INTERFACE Eigen3::Eigen
+  PUBLIC Eigen3::Eigen
 )
 
 add_subdirectory(test)

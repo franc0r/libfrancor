@@ -164,6 +164,62 @@ private:
   algorithm::LineRansac _detector;
 };
 
+/**
+ * \brief This class searches lines in a 2d point set using a line ransac.
+ */
+class DetectLineSegments : public DataProcessingStageIO<2, 1>
+{
+public:
+  DetectLineSegments(const unsigned int maxIterations = 100, const std::size_t minNumPoints = 2, const double epsilon = 0.3)
+    : DataProcessingStageIO<2, 1>("detect lines")
+  {
+    _detector.setMaxIterations(maxIterations);
+    _detector.setMinNumPoints(minNumPoints);
+    _detector.setEpsilon(epsilon);
+  }
+  virtual ~DetectLineSegments(void) = default;
+
+  virtual bool process(void) override final
+  {
+    _lines.clear();
+
+    if (this->inputs().port(0).numOfConnections() > 0)
+    {
+      _lines = _detector(this->inputs().port(0).data<VectorVector2d>());
+    }
+    if (this->inputs().port(1).numOfConnections() > 0)
+    {
+      for (const auto& cluster : this->inputs().port(1).data<std::vector<VectorVector2d>>())
+      {
+        base::LineVector lines(_detector(cluster));
+        _lines.insert(_lines.end(), lines.begin(), lines.end());
+      }
+    }
+
+    return true;
+  }
+
+private:
+  virtual bool configurePorts(InputPortBlock<num_inputs>& inputs, OutputPortBlock<num_outputs>& outputs) override final
+  {
+    bool ret = true;
+
+    ret &= inputs.configurePort<VectorVector2d>(0, "2d points");
+    ret &= inputs.configurePort<std::vector<VectorVector2d>>(1, "clustered 2d points");
+
+    ret &= outputs.configurePort<LineVector>(0, "2d line segments", &_lines);
+
+    return ret;
+  }
+  virtual bool configureProcessing(void) override final
+  {
+    return true;
+  }
+
+  LineVector _lines;
+  algorithm::LineRansac _detector;
+};
+
 using francor::vision::Image;
   
 class ExportClusteredPointsFromBitMask : public DataProcessingStageIO<1, 1>

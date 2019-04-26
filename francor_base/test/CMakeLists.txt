@@ -16,3 +16,18 @@ add_test(
   NAME test-line
   COMMAND unit-test-line
 )
+
+add_executable(unit-test-logger
+  src/unit_test_logger.cpp
+)
+
+target_link_libraries(unit-test-logger PRIVATE
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-base
+)
+
+add_test(
+  NAME test-logger
+  COMMAND unit-test-logger
+)
