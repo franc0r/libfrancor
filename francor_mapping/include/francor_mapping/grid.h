@@ -23,7 +23,7 @@ public:
   /**
    * \brief Moves all context to this and resets the origin grid object.
    */
-  Grid(Grid& origin)
+  Grid(Grid&& origin)
   {
     this->operator=(std::move(origin));
   }
