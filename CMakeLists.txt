@@ -15,6 +15,7 @@ enable_testing()
 add_subdirectory(francor_base)
 add_subdirectory(francor_algorithm)
 add_subdirectory(francor_processing)
+add_subdirectory(francor_mapping)
 add_subdirectory(francor_vision)
 add_subdirectory(example)
 
