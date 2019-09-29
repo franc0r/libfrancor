@@ -25,88 +25,64 @@ namespace francor
 
 namespace processing
 {
+
+class DiagnosticData { };
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Data Processing Stage
-class DataProcessingStage
+template <std::size_t NumOfInputs, std::size_t NumOfOutputs>
+class ProcessingStage
 {
 protected:
-  DataProcessingStage(void) = delete;
-  DataProcessingStage(const std::string& stageName) : _name(stageName) { }
-  DataProcessingStage(const DataProcessingStage&) = delete;
-  DataProcessingStage(DataProcessingStage&&) = delete;
+  ProcessingStage() = delete;
+  ProcessingStage(const std::string& stageName) : _name(stageName) { }
+  ProcessingStage(const ProcessingStage&) = delete;
+  ProcessingStage(ProcessingStage&&) = delete;
 
-  DataProcessingStage& operator=(const DataProcessingStage&) = delete;
-  DataProcessingStage& operator=(DataProcessingStage&&) = delete;
+  ProcessingStage& operator=(const ProcessingStage&) = delete;
+  ProcessingStage& operator=(ProcessingStage&&) = delete;
 
 public:
-  virtual ~DataProcessingStage(void) = default;
+  virtual ~ProcessingStage(void) = default;
 
-  virtual bool process(void) = 0;
-  virtual bool initialize(void) = 0;
-  virtual data::InputPort& input(const std::size_t index) = 0;
-  virtual data::OutputPort& output(const std::size_t index) = 0;
-  virtual std::size_t numInputs(void) const = 0;
-  virtual std::size_t numOutputs(void) const = 0;
+  bool process()
+  {
+    this->doProcess();
+  }
+  virtual bool initialize() = 0;
+  const data::InputPort& input(const std::string& portName) const
+  {
+    for (auto& port : _input_ports)
+      if (port.name() == portName)
+        return port;
 
-  inline const std::string& name(void) const noexcept { return _name; }
+    throw "Processing Stage: input port name is unkown.";
+  }
+  const data::OutputPort& output(const std::string& portName) const
+  {
+    for (auto& port : _output_ports)
+      if (port.name() == portName)
+        return port;
 
+    throw "Processing Stage: output port name is unkown.";
+  }
+
+  inline const std::string& name() const noexcept { return _name; }
+
+protected:
+  inline std::array<data::InputPort, NumOfInputs>& getInputs() { return _input_ports; }
+  inline std::array<data::OutputPort, NumOfOutputs>& getOutputs() { return _output_ports; }
+
+  virtual bool doProcess() = 0;
+  virtual DiagnosticData getDiagnostic() const = 0;
+  
 private:
   const std::string _name;
+  std::array<data::InputPort, NumOfInputs> _input_ports;
+  std::array<data::OutputPort, NumOfOutputs> _output_ports;
 };
 
 
-template <std::size_t NumInputs, std::size_t NumOutputs>
-class DataProcessingStageIO : public DataProcessingStage
-{
-public:
-  DataProcessingStageIO(const std::string& stageName) : DataProcessingStage(stageName) { }
-
-  virtual bool initialize(void) override final
-  {
-    using francor::base::LogError;
-
-    if (!this->configurePorts(_inputs, _outputs))
-    {
-      LogError() << "Data Processing Stage \"" << this->name() << "\": error occurred during configuring of data ports."
-                 << " Cancel initialization.";
-      return false;
-    }
-    if (!this->configureProcessing())
-    {
-      LogError() << "Data Processing Stage \"" << this->name() << "\": error occurred during configuring of processing."
-                 << " Cancel initialization.";
-      return false;
-    }
-
-    return true;
-  }
-  virtual ~DataProcessingStageIO(void) = default;
-
-  virtual data::InputPort& input(const std::size_t index) override final
-  {
-    return _inputs.port(index);
-  }
-  virtual data::OutputPort& output(const std::size_t index) override final
-  {
-    return _outputs.port(index);
-  }
-  virtual std::size_t numInputs(void) const override final { return num_inputs; }
-  virtual std::size_t numOutputs(void) const override final { return num_outputs; }
-
-protected:
-  InputPortBlock<NumInputs>& inputs(void) { return _inputs; }
-  OutputPortBlock<NumOutputs>& outputs(void) { return _outputs; }
-  
-  virtual bool configurePorts(InputPortBlock<NumInputs>& inputs, OutputPortBlock<NumOutputs>& outputs) = 0;
-  virtual bool configureProcessing(void) = 0;
-
-  static constexpr std::size_t num_inputs = NumInputs;
-  static constexpr std::size_t num_outputs = NumOutputs;
-
-private:
-  InputPortBlock<NumInputs> _inputs;
-  OutputPortBlock<NumOutputs> _outputs;
-};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Data Processing Stage Detect Lines
@@ -116,11 +92,11 @@ using francor::base::LineVector;
 /**
  * \brief This class searches lines in a 2d point set using a line ransac.
  */
-class DetectLines : public DataProcessingStageIO<2, 1>
+class DetectLines : public ProcessingStageIO<2, 1>
 {
 public:
   DetectLines(const unsigned int maxIterations = 100, const std::size_t minNumPoints = 2, const double epsilon = 0.3)
-    : DataProcessingStageIO<2, 1>("detect lines")
+    : ProcessingStageIO<2, 1>("detect lines")
   {
     _detector.setMaxIterations(maxIterations);
     _detector.setMinNumPoints(minNumPoints);
@@ -182,11 +158,11 @@ private:
 /**
  * \brief This class searches lines in a 2d point set using a line ransac.
  */
-class DetectLineSegments : public DataProcessingStageIO<2, 1>
+class DetectLineSegments : public ProcessingStageIO<2, 1>
 {
 public:
   DetectLineSegments(const unsigned int maxIterations = 100, const std::size_t minNumPoints = 2, const double epsilon = 0.3)
-    : DataProcessingStageIO<2, 1>("detect line segments")
+    : ProcessingStageIO<2, 1>("detect line segments")
   {
     _detector.setMaxIterations(maxIterations);
     _detector.setMinNumPoints(minNumPoints);
@@ -247,11 +223,11 @@ private:
 
 using francor::vision::Image;
   
-class ExportClusteredPointsFromBitMask : public DataProcessingStageIO<1, 1>
+class ExportClusteredPointsFromBitMask : public ProcessingStageIO<1, 1>
 {
 public:
   ExportClusteredPointsFromBitMask(void)
-    : DataProcessingStageIO<1, 1>("export clustered points from bit mask") {  }
+    : ProcessingStageIO<1, 1>("export clustered points from bit mask") {  }
   virtual ~ExportClusteredPointsFromBitMask(void) = default;
 
   virtual bool process(void) override final
@@ -311,11 +287,11 @@ using francor::vision::ColourSpace;
 using francor::vision::ImageMaskFilterPipeline;
 using francor::vision::ImageMaskFilterColourRange;
 
-class ColouredImageToBitMask : public DataProcessingStageIO<1, 1>
+class ColouredImageToBitMask : public ProcessingStageIO<1, 1>
 {
 public:
   ColouredImageToBitMask(void)
-    : DataProcessingStageIO<1, 1>("coloured image to bit mask") {  }
+    : ProcessingStageIO<1, 1>("coloured image to bit mask") {  }
   virtual ~ColouredImageToBitMask(void) = default;
 
   virtual bool process(void) override final
