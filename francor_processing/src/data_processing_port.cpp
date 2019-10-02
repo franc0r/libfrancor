@@ -184,8 +184,6 @@ bool Port::disconnect(Port& port)
     break;
 
   default:
-    LogError() << "Port (name = " << this->name() << "): can't disconnect from port (name = " << port.name() << "). "
-               << "Unsupported data flow.";
     return false;
   }
 
@@ -210,9 +208,7 @@ void Port::reset(void)
   // clean up, disconnect from all established connections
   for (auto& connection : _connections)
     if (connection != nullptr)
-      if (!this->disconnect(*connection))
-        LogError() << "Port (name = " << this->name() << "): error occurred during disconnect from port (name = "
-                   << connection->name() << ").";
+      this->disconnect(*connection);
 
   if (_data_flow == Direction::IN)
     _data = nullptr;
