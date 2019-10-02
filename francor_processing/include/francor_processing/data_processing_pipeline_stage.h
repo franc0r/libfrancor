@@ -99,7 +99,7 @@ protected:
     _input_ports[index] = InputType::template create<DataType>(name);
   }
   template <typename DataType>
-  void initializeOutputPort(const std::size_t index, const std::string& name, DataType const* const data)
+  void initializeOutputPort(const std::size_t index, const std::string& name, DataType const* const data = nullptr)
   {
     _output_ports[index] = OutputType::template create(name, data);
   }

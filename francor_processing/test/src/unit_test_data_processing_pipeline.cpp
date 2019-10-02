@@ -48,8 +48,24 @@ public:
   Pipeline() : ProcessingPipelineParent<1, 1>("pipeline") { }
 
 private:
-  bool configureStages() final { return true; }
-  void initializePorts() final { }
+  bool configureStages() final
+  {
+    auto stage = std::make_unique<StageDummyIntToDouble>();
+
+    bool ret = true;
+
+    ret &= stage->initialize();
+    ret &= stage->input("int").connect(this->input("input"));
+    ret &= stage->output("double").connect(this->output("output"));
+    ret &= this->addStage(std::move(stage));
+  
+    return ret;
+  }
+  void initializePorts() final
+  {
+    this->initializeInputPort<int>(0, "input");
+    this->initializeOutputPort<double>(0, "output");
+  }
 };
 
 TEST(ProcssingPipeline, Instantiate)
@@ -61,29 +77,22 @@ TEST(ProcssingPipeline, Process)
 {
   // initialized pipeline
   Pipeline pipeline;
-  auto test = std::make_unique<StageDummyIntToDouble>();
 
   // initialized source data port and destination port and connect it
   const int value = 8;
-  SourcePort source(SourcePort::create("data source", &value));
-  DestinationPort destination(DestinationPort::create<double>("data destination"));
-
-  ASSERT_TRUE(pipeline.addStage(std::move(test)));
-
-  auto stage = std::make_unique<StageDummyIntToDouble>();
-  stage->connectToInput("int", source);
-  stage->connectToOutput("double", destination);
-  ASSERT_FALSE(pipeline.addStage(std::move(stage)));
 
   ASSERT_TRUE(pipeline.initialize());
 
+  pipeline.input("input").assign(&value);
+
   // process pipeline
   EXPECT_TRUE(pipeline.process());
-  EXPECT_EQ(destination.data<double>(), static_cast<double>(value));
+  EXPECT_EQ(pipeline.output("output").data<double>(), static_cast<double>(value));
 }
 
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
+  francor::base::setLogLevel(francor::base::LogLevel::DEBUG);
   return RUN_ALL_TESTS();
 }

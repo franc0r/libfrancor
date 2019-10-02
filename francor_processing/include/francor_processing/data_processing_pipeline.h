@@ -50,23 +50,25 @@ public:
     using francor::base::LogInfo;
     using francor::base::LogError;
 
-    LogInfo() << "DataProcessingPipeline: initialize pipeline.";
+    LogInfo() << "DataProcessingPipeline (name = " << _name << "): initialize pipeline.";
  
-    if (this->configureStages())
+    if (!this->configureStages())
     {
-      LogError() << "DataProcessingPipeline: initializing of processing stages failed.";
+      LogError() << "DataProcessingPipeline (name = " << _name << "): initializing of processing stages failed.";
       return false;
     }
  
     bool ret = true;
 
+    LogInfo() << "DataProcessingPipeline (name = " << _name << "): initializing all processing stages...";
+  
     for (auto& stage : _stages)
       ret &= stage->initialize();
 
     if (!ret)
-      LogError() << "DataProcessingPipeline: error occurred during initializing of pipeline.";
+      LogError() << "DataProcessingPipeline (name = " << _name << "): error occurred during initializing of pipeline.";
 
-    LogInfo() << "DataProcessingPipeline: pipeline successfully initialized.";
+    LogInfo() << "DataProcessingPipeline (name = " << _name << "): pipeline successfully initialized.";
     return ret;
   }
 

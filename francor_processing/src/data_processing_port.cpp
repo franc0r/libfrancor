@@ -1,5 +1,7 @@
 #include "francor_processing/data_processing_port.h"
 
+#include <francor_base/log.h>
+
 #include <iostream>
 
 namespace francor
@@ -10,6 +12,9 @@ namespace processing
 
 namespace data
 {
+using francor::base::LogError;
+using francor::base::LogDebug;
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // PortId
 PortId::PortId(PortId&& origin)
@@ -86,7 +91,8 @@ bool Port::connect(Port& port)
   // the data flow must be different
   if (port._data_flow == _data_flow)
   {
-    //TODO: print error
+    LogError() << "Port (name = " << this->name() << "): can't connect to port (name = " << port.name() << "). "
+               << "Data flow isn't different.";
     return false;
   }
   // the data type must be equal and not of type void
@@ -94,13 +100,15 @@ bool Port::connect(Port& port)
       ||
       _data_type_info.get() == typeid(void))
   {
-    //TODO: print error
+    LogError() << "Port (name = " << this->name() << "): can't connect to port (name = " << port.name() << "). "
+               << "Data type is different";
     return false;
   }
   // if a connetions is already established then cancel
   if (this->isConnectedWith(port))
   {
-    //TODO: print error
+    LogError() << "Port (name = " << this->name() << "): can't connect to port (name = " << port.name() << "). "
+               << "Ports are already connected.";
     return false;
   }
 
@@ -110,7 +118,8 @@ bool Port::connect(Port& port)
     // only one connection is allowed
     if (_connections[0] != nullptr)
     {
-      //TODO: print error
+      LogError() << "Port (name = " << this->name() << "): can't connect to port (name = " << port.name() << "). "
+                 << "Maximum number of connections reached.";
       return false;
     }
 
@@ -125,7 +134,8 @@ bool Port::connect(Port& port)
       if (indexConnection >= _connections.size())
       // maximum number of connections is reached
       {
-        //TODO: print error
+        LogError() << "Port (name = " << this->name() << "): can't connect to port (name = " << port.name() << "). "
+                   << "Maximum number of connections reached.";
         return false;
       }
 
@@ -134,7 +144,8 @@ bool Port::connect(Port& port)
     break;
 
   default:
-    //TODO: print error
+    LogError() << "Port (name = " << this->name() << "): can't connect to port (name = " << port.name() << "). "
+               << "Unsupported data flow.";
     return false;
   }
 
@@ -149,7 +160,8 @@ bool Port::disconnect(Port& port)
 {
   if (!this->isConnectedWith(port))
   {
-    //TODO: print error
+    LogError() << "Port (name = " << this->name() << "): can't disconnect from port (name = " << port.name() << "). "
+               << "The ports aren't connected.";
     return false;
   }
 
@@ -172,7 +184,8 @@ bool Port::disconnect(Port& port)
     break;
 
   default:
-    //TODO: print error
+    LogError() << "Port (name = " << this->name() << "): can't disconnect from port (name = " << port.name() << "). "
+               << "Unsupported data flow.";
     return false;
   }
 
@@ -198,7 +211,8 @@ void Port::reset(void)
   for (auto& connection : _connections)
     if (connection != nullptr)
       if (!this->disconnect(*connection))
-        ;//TODO: print error
+        LogError() << "Port (name = " << this->name() << "): error occurred during disconnect from port (name = "
+                   << connection->name() << ").";
 
   if (_data_flow == Direction::IN)
     _data = nullptr;

@@ -230,7 +230,8 @@ protected:
     if (_data_flow == Direction::OUT)
     {
       for (auto& connection : _connections)
-        connection->_data = data;
+        if (connection != nullptr)
+          connection->_data = data;
     }
     // else
     // do nothing
