@@ -1,10 +1,12 @@
+#include "francor_algorithm/line_processing_pipeline.h"
+#include "francor_vision/image_processing_pipeline.h"
 #include "francor_processing/data_processing_pipeline.h"
 #include "francor_vision/io.h"
 
 using francor::processing::ProcessingPipelineParent;
-using francor::processing::DetectLineSegments;
-using francor::processing::ExportClusteredPointsFromBitMask;
-using francor::processing::ColouredImageToBitMask;
+using francor::algorithm::DetectLineSegments;
+using francor::vision::ExportClusteredPointsFromBitMask;
+using francor::vision::ColouredImageToBitMask;
 using francor::processing::data::InputPort;
 using francor::processing::data::OutputPort;
 using francor::processing::data::SourcePort;

@@ -11,8 +11,6 @@
 using francor::processing::ProcessingPipeline;
 using francor::processing::ProcessingStageParent;
 using francor::processing::ProcessingPipelineParent;
-using francor::processing::InputPortBlock;
-using francor::processing::OutputPortBlock;
 using francor::processing::data::SourcePort;
 using francor::processing::data::DestinationPort;
 
