@@ -20,11 +20,11 @@ namespace francor
 namespace processing
 {
 
-class DataProcssingPipeline
+class ProcssingPipeline
 {
 public:
-  DataProcssingPipeline(void) = default;
-  ~DataProcssingPipeline(void) = default;
+  ProcssingPipeline(void) = default;
+  ~ProcssingPipeline(void) = default;
 
   bool addStage(std::unique_ptr<ProcessingStage> stage)
   {

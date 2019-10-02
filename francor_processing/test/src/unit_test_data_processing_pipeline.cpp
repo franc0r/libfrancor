@@ -8,66 +8,63 @@
 
 #include "francor_processing/data_processing_pipeline.h"
 
-using francor::processing::DataProcssingPipeline;
-using francor::processing::DataProcessingStageIO;
+using francor::processing::ProcssingPipeline;
+using francor::processing::ProcessingStageParent;
 using francor::processing::InputPortBlock;
 using francor::processing::OutputPortBlock;
 using francor::processing::data::SourcePort;
 using francor::processing::data::DestinationPort;
 
-class StageDummyIntToDouble : public DataProcessingStageIO<1, 1>
+class StageDummyIntToDouble : public ProcessingStageParent<1, 1>
 {
 public:
-  StageDummyIntToDouble(void) : DataProcessingStageIO<1, 1>("dummy int to double") { }
+  StageDummyIntToDouble(void) : ProcessingStageParent<1, 1>("dummy int to double") { }
   virtual ~StageDummyIntToDouble(void) = default;
 
-  virtual bool process(void) override final
+  bool doProcess(void) final
   {
-    _value = static_cast<double>(this->inputs().port(0).data<int>());
+    _value = static_cast<double>(this->getInputs()[0].data<int>());
+    return true;
+  }
+  bool initialize() final
+  {
     return true;
   }
 
 private:
-  virtual bool configurePorts(InputPortBlock<num_inputs>& inputs, OutputPortBlock<num_outputs>& outputs) override final
+  void initializePorts() final
   {
-    bool ret = true;
-
-    ret &= inputs.configurePort<int>(0, "int");
-    ret &= outputs.configurePort<double>(0, "double", &_value);
-
-    return ret;
-  }
-
-  virtual bool configureProcessing(void)
-  {
-    return true;
+    this->initializeInputPort<int>(0, "int");
+    this->initializeOutputPort(0, "double", &_value);
   }
 
   double _value = 0.0;
 };
 
-TEST(DataProcssingPipeline, Instantiate)
+TEST(ProcssingPipeline, Instantiate)
 {
-  DataProcssingPipeline pipeline;
+  ProcssingPipeline pipeline;
 }
 
-TEST(DataProcssingPipeline, Process)
+TEST(ProcssingPipeline, Process)
 {
   // initialized pipeline
-  DataProcssingPipeline pipeline;
+  ProcssingPipeline pipeline;
   auto test = std::make_unique<StageDummyIntToDouble>();
-
-  ASSERT_TRUE(pipeline.addStage(std::move(test)));
-  ASSERT_FALSE(pipeline.addStage(std::make_unique<StageDummyIntToDouble>()));
-  ASSERT_TRUE(pipeline.initialize());
 
   // initialized source data port and destination port and connect it
   const int value = 8;
   SourcePort source(SourcePort::create("data source", &value));
   DestinationPort destination(DestinationPort::create<double>("data destination"));
 
-  ASSERT_TRUE(pipeline.connectDataSourcePort(source, "dummy int to double", "int"));
-  ASSERT_TRUE(pipeline.connectDataDestinationPort(destination, "dummy int to double", "double"));
+  ASSERT_TRUE(pipeline.addStage(std::move(test)));
+
+  auto stage = std::make_unique<StageDummyIntToDouble>();
+  stage->connectToInput("int", source);
+  stage->connectToOutput("double", destination);
+  ASSERT_FALSE(pipeline.addStage(std::move(stage)));
+
+  ASSERT_TRUE(pipeline.initialize());
 
   // process pipeline
   EXPECT_TRUE(pipeline.process());

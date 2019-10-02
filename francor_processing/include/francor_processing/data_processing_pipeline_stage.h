@@ -66,21 +66,21 @@ public:
 
   const data::InputPort& input(const std::string& portName) const
   {
-    for (auto& port : _input_ports)
-      if (port.name() == portName)
-        return port;
-
-    base::LogError() << "Processing Stage: input port name is unkown.";
-    throw std::invalid_argument("Processing Stage: input port name is unkown.");
+    return this->findInput(portName);
   }
   const data::OutputPort& output(const std::string& portName) const
   {
-    for (auto& port : _output_ports)
-      if (port.name() == portName)
-        return port;
-
-    base::LogError() << "Processing Stage: output port name is unkown.";
-    throw std::invalid_argument("Processing Stage: output port name is unkown.");
+    return this->findOutput(portName);
+  }
+  void connectToInput(const std::string& name, data::OutputPort& output)
+  {
+    auto& input = this->findInput(name);
+    input.connect(output);
+  }
+  void connectToOutput(const std::string& name, data::InputPort& input)
+  {
+    auto& output = this->findOutput(name);
+    output.connect(input);
   }
 
 protected:
@@ -110,6 +110,24 @@ private:
 
     for (const auto& output : _output_ports)
       ; // TODO: check if output is initialized
+  }
+  data::InputPort& findInput(const std::string& portName)
+  {
+    for (auto& port : _input_ports)
+      if (port.name() == portName)
+        return port;
+
+    base::LogError() << "Processing Stage: input port name is unkown.";
+    throw std::invalid_argument("Processing Stage: input port name is unkown.");
+  }
+  data::OutputPort& findOutput(const std::string portName)
+  {
+    for (auto& port : _output_ports)
+      if (port.name() == portName)
+        return port;
+
+    base::LogError() << "Processing Stage: output port name is unkown.";
+    throw std::invalid_argument("Processing Stage: output port name is unkown.");
   }
 
   std::array<data::InputPort, NumOfInputs> _input_ports;
