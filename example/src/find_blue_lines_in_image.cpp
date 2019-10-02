@@ -1,66 +1,65 @@
 #include "francor_processing/data_processing_pipeline.h"
 #include "francor_vision/io.h"
 
-using francor::processing::DataProcssingPipeline;
+using francor::processing::ProcessingPipelineParent;
 using francor::processing::DetectLineSegments;
 using francor::processing::ExportClusteredPointsFromBitMask;
 using francor::processing::ColouredImageToBitMask;
+using francor::processing::data::InputPort;
+using francor::processing::data::OutputPort;
 using francor::processing::data::SourcePort;
 using francor::processing::data::DestinationPort;
 using francor::vision::Image;
 using francor::vision::ColourSpace;
 using francor::base::LineSegmentVector;
 
-DataProcssingPipeline pipeline;
+class FindLinesPipeline : public ProcessingPipelineParent<1, 1>
+{
+public:
+  FindLinesPipeline() : ProcessingPipelineParent<1, 1>("find lines") { }
+
+private:
+  bool configureStages() final
+  {
+    auto colour_range   = std::make_unique<ColouredImageToBitMask>();
+    auto extract_points = std::make_unique<ExportClusteredPointsFromBitMask>();
+    auto detect_lines   = std::make_unique<DetectLineSegments>(100, 10, 3.0);
+
+    bool ret = true;
+
+    ret &= this->addStage(std::move(colour_range));
+    ret &= this->addStage(std::move(extract_points));
+    ret &= this->addStage(std::move(detect_lines));
+
+    ret &= extract_points->input("bit mask").connect(colour_range->output("bit mask"));
+    ret &= detect_lines->input("clustered 2d points").connect(extract_points->output("clustered 2d points"));
+
+    ret &= colour_range->input("coloured image").connect(this->input("coloured image"));
+    ret &= detect_lines->output("line segments").connect(this->output("line segments"));
+
+    return ret;
+  }
+  void initializePorts() final
+  {
+    this->initializeInputPort<Image>(0, "coloured image");
+    this->initializeOutputPort<LineSegmentVector>(0, "line segments", nullptr);
+  }
+
+  LineSegmentVector _result;
+};
+
+FindLinesPipeline pipeline;
 Image inputImage;
 SourcePort source(SourcePort::create<Image>("coloured image", &inputImage));
 DestinationPort destination(DestinationPort::create<LineSegmentVector>("line segments"));
 
+
+
 bool initialize(void)
 {
   // colour range image filter
-  auto colourRange = std::make_unique<ColouredImageToBitMask>();
-
-  if (!pipeline.addStage(std::move(colourRange)))
-  {
-    return false;
-  }
-
-  // extract points from bit mask
-  auto extractPoints = std::make_unique<ExportClusteredPointsFromBitMask>();
-
-  if (!pipeline.addStage(std::move(extractPoints)))
-  {
-    return false;
-  }
-  
-  // find lines in point set
-  auto detectLines = std::make_unique<DetectLineSegments>(100, 10, 3.0);
-
-  if (!pipeline.addStage(std::move(detectLines)))
-  {
-    return false;
-  }
-
 
   pipeline.initialize();
-
-  if (!pipeline.connectInputWithOutput("export clustered points from bit mask", "bit mask", "coloured image to bit mask", "bit mask"))
-  {
-    return false;
-  }
-  if (!pipeline.connectInputWithOutput("detect line segments", "clustered 2d points", "export clustered points from bit mask", "clustered 2d points"))
-  {
-    return false;
-  }
-  if (!pipeline.connectDataSourcePort(source, "coloured image to bit mask", "coloured image"))
-  {
-    return false;
-  }
-  if (!pipeline.connectDataDestinationPort(destination, "detect line segments", "2d line segments"))
-  {
-    return false;
-  }
 
   return true;
 }

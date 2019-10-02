@@ -20,11 +20,12 @@ namespace francor
 namespace processing
 {
 
-class ProcssingPipeline
+class ProcessingPipeline
 {
 public:
-  ProcssingPipeline(void) = default;
-  ~ProcssingPipeline(void) = default;
+  ProcessingPipeline(void) = delete;
+  ProcessingPipeline(const std::string& name) : _name(name) { }
+  ~ProcessingPipeline(void) = default;
 
   bool addStage(std::unique_ptr<ProcessingStage> stage)
   {
@@ -44,12 +45,19 @@ public:
     return true;
   }
 
-  bool initialize(void)
+  bool initialize()
   {
     using francor::base::LogInfo;
     using francor::base::LogError;
 
     LogInfo() << "DataProcessingPipeline: initialize pipeline.";
+ 
+    if (this->configureStages())
+    {
+      LogError() << "DataProcessingPipeline: initializing of processing stages failed.";
+      return false;
+    }
+ 
     bool ret = true;
 
     for (auto& stage : _stages)
@@ -72,6 +80,10 @@ public:
     return ret;
   }
 
+  const std::string& name() const noexcept { return _name; }
+
+protected:
+  virtual bool configureStages() = 0;
 
 private:
   bool containStageByName(const std::string& stageName) const
@@ -91,7 +103,29 @@ private:
     return _stages.size();
   }
 
+  const std::string _name;
   std::vector<std::unique_ptr<ProcessingStage>> _stages;
+};
+
+template <std::size_t NumOfInputs, std::size_t NumOfOutputs>
+class ProcessingPipelineParent : public ProcessingPipeline,
+                                 public DataInputOutput<data::SourcePort, NumOfInputs, data::DestinationPort, NumOfOutputs>
+{
+public:
+  ProcessingPipelineParent(const std::string& name)
+    : ProcessingPipeline(name),
+      DataInputOutput<data::SourcePort, NumOfInputs, data::DestinationPort, NumOfOutputs>()
+  { }
+
+  bool initialize()
+  {
+    bool ret = true;
+
+    ret &= DataInputOutput<data::SourcePort, NumOfInputs, data::DestinationPort, NumOfOutputs>::initialize();
+    ret &= ProcessingPipeline::initialize();
+
+    return ret;
+  }  
 };
 
 } // end namespace processing

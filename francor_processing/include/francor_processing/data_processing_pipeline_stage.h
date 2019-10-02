@@ -43,65 +43,67 @@ public:
 
     return ret;
   }
-  virtual bool initialize() = 0;
+  bool initialize()
+  {
+    return this->doInitialization();
+  }
 
   inline const std::string& name() const noexcept { return _name; }
 
 protected:
   virtual bool doProcess() = 0;
+  virtual bool doInitialization() = 0;
   
 private:
   const std::string _name;
 };
 
-template <std::size_t NumOfInputs, std::size_t NumOfOutputs>
+template <typename InputType, std::size_t NumOfInputs, typename OutputType, std::size_t NumOfOutputs>
 class DataInputOutput
 {
 public:
-  DataInputOutput() { this->initialize(); };
+  DataInputOutput() {  };
   DataInputOutput(const DataInputOutput&) = delete;
   virtual ~DataInputOutput() = default;
 
   DataInputOutput& operator=(const DataInputOutput&) = delete;
 
-  const data::InputPort& input(const std::string& portName) const
+  InputType& input(const std::string& portName)
   {
     return this->findInput(portName);
   }
-  const data::OutputPort& output(const std::string& portName) const
+  OutputType& output(const std::string& portName)
   {
     return this->findOutput(portName);
   }
-  void connectToInput(const std::string& name, data::OutputPort& output)
+  void connectToInput(const std::string& name, OutputType& output)
   {
     auto& input = this->findInput(name);
     input.connect(output);
   }
-  void connectToOutput(const std::string& name, data::InputPort& input)
+  void connectToOutput(const std::string& name, InputType& input)
   {
     auto& output = this->findOutput(name);
     output.connect(input);
   }
 
 protected:
-  inline std::array<data::InputPort, NumOfInputs>& getInputs() { return _input_ports; }
-  inline std::array<data::OutputPort, NumOfOutputs>& getOutputs() { return _output_ports; }
+  inline std::array<InputType, NumOfInputs>& getInputs() { return _input_ports; }
+  inline std::array<OutputType, NumOfOutputs>& getOutputs() { return _output_ports; }
 
   virtual void initializePorts() = 0;
 
   template <typename DataType>
   inline void initializeInputPort(const std::size_t index, const std::string& name)
   {
-    _input_ports[index] = data::InputPort::create<DataType>(name);
+    _input_ports[index] = InputType::template create<DataType>(name);
   }
   template <typename DataType>
   void initializeOutputPort(const std::size_t index, const std::string& name, DataType const* const data)
   {
-    _output_ports[index] = data::OutputPort::create(name, data);
+    _output_ports[index] = OutputType::template create(name, data);
   }
-
-private:
-  void initialize()
+  bool initialize()
   {
     this->initializePorts();
 
@@ -110,8 +112,12 @@ private:
 
     for (const auto& output : _output_ports)
       ; // TODO: check if output is initialized
+
+    return true;
   }
-  data::InputPort& findInput(const std::string& portName)
+
+private:
+  InputType& findInput(const std::string& portName)
   {
     for (auto& port : _input_ports)
       if (port.name() == portName)
@@ -120,7 +126,7 @@ private:
     base::LogError() << "Processing Stage: input port name is unkown.";
     throw std::invalid_argument("Processing Stage: input port name is unkown.");
   }
-  data::OutputPort& findOutput(const std::string portName)
+  OutputType& findOutput(const std::string portName)
   {
     for (auto& port : _output_ports)
       if (port.name() == portName)
@@ -130,16 +136,29 @@ private:
     throw std::invalid_argument("Processing Stage: output port name is unkown.");
   }
 
-  std::array<data::InputPort, NumOfInputs> _input_ports;
-  std::array<data::OutputPort, NumOfOutputs> _output_ports;
+  std::array<InputType, NumOfInputs> _input_ports;
+  std::array<OutputType, NumOfOutputs> _output_ports;
 };
 
 
 template <std::size_t NumOfInputs, std::size_t NumOfOutputs>
-class ProcessingStageParent : public ProcessingStage, public DataInputOutput<NumOfInputs, NumOfOutputs>
+class ProcessingStageParent : public ProcessingStage,
+                              public DataInputOutput<data::InputPort, NumOfInputs, data::OutputPort, NumOfOutputs>
 {
 public:
-  ProcessingStageParent(const std::string& name) : ProcessingStage(name), DataInputOutput<NumOfInputs, NumOfOutputs>() { }
+  ProcessingStageParent(const std::string& name)
+    : ProcessingStage(name),
+      DataInputOutput<data::InputPort, NumOfInputs, data::OutputPort, NumOfOutputs>() { }
+
+  bool initialize()
+  {
+    bool ret = true;
+
+    ret &= DataInputOutput<data::InputPort, NumOfInputs, data::OutputPort, NumOfOutputs>::initialize();
+    ret &= ProcessingStage::initialize();
+
+    return ret;
+  }
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -191,7 +210,7 @@ public:
     LogDebug() << this->name() << ": finished data processing.";
     return true;
   }
-  bool initialize() final
+  bool doInitialization() final
   {
     return true;
   }
@@ -253,7 +272,7 @@ public:
     LogDebug() << this->name() << ": finished data processing.";
     return true;
   }
-  bool initialize(void) final
+  bool doInitialization() final
   {
     return true;
   }
@@ -310,7 +329,7 @@ public:
 
     return true;
   }
-  bool initialize(void) final
+  bool doInitialization() final
   {
     return true;
   }
@@ -354,7 +373,7 @@ public:
     return _image_pipeline(this->getInputs()[0].data<Image>(), _bit_mask);
   }
 
-  bool initialize(void) final
+  bool doInitialization() final
   {
     auto rangeFilter = std::make_unique<ImageMaskFilterColourRange>(100, 120, 70, 255, 30, 255);
     

@@ -8,8 +8,9 @@
 
 #include "francor_processing/data_processing_pipeline.h"
 
-using francor::processing::ProcssingPipeline;
+using francor::processing::ProcessingPipeline;
 using francor::processing::ProcessingStageParent;
+using francor::processing::ProcessingPipelineParent;
 using francor::processing::InputPortBlock;
 using francor::processing::OutputPortBlock;
 using francor::processing::data::SourcePort;
@@ -26,7 +27,7 @@ public:
     _value = static_cast<double>(this->getInputs()[0].data<int>());
     return true;
   }
-  bool initialize() final
+  bool doInitialization() final
   {
     return true;
   }
@@ -41,15 +42,25 @@ private:
   double _value = 0.0;
 };
 
+class Pipeline : public ProcessingPipelineParent<1, 1>
+{
+public:
+  Pipeline() : ProcessingPipelineParent<1, 1>("pipeline") { }
+
+private:
+  bool configureStages() final { return true; }
+  void initializePorts() final { }
+};
+
 TEST(ProcssingPipeline, Instantiate)
 {
-  ProcssingPipeline pipeline;
+  Pipeline pipeline;
 }
 
 TEST(ProcssingPipeline, Process)
 {
   // initialized pipeline
-  ProcssingPipeline pipeline;
+  Pipeline pipeline;
   auto test = std::make_unique<StageDummyIntToDouble>();
 
   // initialized source data port and destination port and connect it
