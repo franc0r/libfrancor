@@ -20,13 +20,18 @@ namespace francor
 namespace processing
 {
 
-class DataProcssingPipeline
+template <typename DataStructureType = void>
+class ProcessingPipeline : public DataInputOutput<data::SourcePort, data::DestinationPort>
 {
 public:
-  DataProcssingPipeline(void) = default;
-  ~DataProcssingPipeline(void) = default;
+  ProcessingPipeline(void) = delete;
+  ProcessingPipeline(const std::string& name, const std::size_t numOfInputs, const std::size_t numOfOutputs)
+    : DataInputOutput<data::SourcePort, data::DestinationPort>(numOfInputs, numOfOutputs),
+      _name(name)
+  { }
+  ~ProcessingPipeline(void) = default;
 
-  bool addStage(std::unique_ptr<DataProcessingStage> stage)
+  bool addStage(std::unique_ptr<ProcessingStage<DataStructureType>> stage)
   {
     using francor::base::LogError;
     using francor::base::LogDebug;
@@ -44,161 +49,48 @@ public:
     return true;
   }
 
-  bool connectInputWithOutput(const std::string& stageNameA,
-                              const std::string& inputName,
-                              const std::string& stageNameB,
-                              const std::string& outputName)
-  {
-    using francor::base::LogError;
-    using francor::base::LogDebug;
-    LogDebug() << "DataProcessingPipeline: try to connect input \"" << inputName << "\" of stage \"" << stageNameA
-               << "\" with output \"" << outputName << "\" of stage \"" << stageNameB << "\".";
-
-    // get required stages
-    const std::size_t stageIndexA = this->getStageIndexByName(stageNameA);
-    const std::size_t stageIndexB = this->getStageIndexByName(stageNameB);
-
-    if (stageIndexA >= _stages.size())
-    {
-      LogError() << "DataProcessingPipeline: stage \"" << stageNameA << "\" isn't contained in pipeline. Can't connect data ports";
-      return false;
-    }
-    if (stageIndexB >= _stages.size())
-    {
-      LogError() << "DataProcessingPipeline: stage \"" << stageNameB << "\" isn't contained in pipeline. Can't connect data ports";
-      return false;
-    }
-
-    // get input index
-    std::size_t inputIndex;
-
-    for (inputIndex = 0; inputIndex < _stages[stageIndexA]->numInputs(); ++inputIndex)
-      if (_stages[stageIndexA]->input(inputIndex).name() == outputName)
-        break;
-
-    if (inputIndex >= _stages[stageIndexA]->numInputs())
-    {
-      LogError() << "DataProcessingPipeline: input port \"" << inputName << "\" not found. Can't connect data ports.";
-      return false;
-    }
-
-    // get target output index
-    std::size_t outputIndex;
-    
-    for (outputIndex = 0; outputIndex < _stages[stageIndexB]->numOutputs(); ++outputIndex)
-      if (_stages[stageIndexB]->output(outputIndex).name() == outputName)
-        break;
-        
-    if (outputIndex >= _stages[stageIndexB]->numOutputs())
-    {
-      LogError() << "DataProcessingPipeline: output port \"" << outputName << "\" not found. Can't connect data ports.";
-      return false;
-    }
-
-    LogDebug() << "DataProcessingPipeline: data ports successfully connected.";
-    return _stages[stageIndexA]->input(inputIndex).connect(_stages[stageIndexB]->output(outputIndex));
-  }
-
-  bool connectDataSourcePort(data::SourcePort& port, const std::string& stageName, const std::string& inputName)
-  {
-    using francor::base::LogError;
-    using francor::base::LogDebug;
-    LogDebug() << "DataProcessingPipeline: try to connect input \"" << inputName << "\" of stage \"" << stageName
-               << "\" with data source \"" << port.name() << "\".";
-
-    // get required stage
-    const std::size_t stageIndex = this->getStageIndexByName(stageName);
-
-    if (stageIndex >= _stages.size())
-    {
-      LogError() << "DataProcessingPipeline: stage \"" << stageName << " isn't contained in pipeline. Can't connect data ports";
-      return false;
-    }
-
-    // get input port index
-    std::size_t inputIndex;
-
-    for (inputIndex = 0; inputIndex < _stages[stageIndex]->numInputs(); ++inputIndex)
-      if (_stages[stageIndex]->input(inputIndex).name() == inputName)
-        break;
-
-    if (inputIndex >= _stages[stageIndex]->numInputs())
-    {
-      LogError() << "DataProcessingPipeline: input port \"" << inputName << "\" not found. Can't connect data ports.";
-      return false;
-    }
-
-    LogDebug() << "DataProcessingPipeline: data ports successfully connected.";
-    return _stages[stageIndex]->input(inputIndex).connect(port);
-  }
-
-  bool connectDataDestinationPort(data::DestinationPort& port, const std::string& stageName, const std::string& outputName)
-  {
-    using francor::base::LogError;
-    using francor::base::LogDebug;
-    LogDebug() << "DataProcessingPipeline: try to connect output \"" << outputName << "\" of stage \"" << stageName
-               << "\" with data destination port \"" << port.name() << "\".";    
-    // get required stage
-    const std::size_t stageIndex = this->getStageIndexByName(stageName);
-
-    if (stageIndex >= _stages.size())
-    {
-      LogError() << "DataProcessingPipeline: stage \"" << stageName << " isn't contained in pipeline. Can't connect data ports";
-      return false;
-    }
-
-    // get input port index
-    std::size_t outputIndex;
-
-    for (outputIndex = 0; outputIndex < _stages[stageIndex]->numOutputs(); ++outputIndex)
-      if (_stages[stageIndex]->output(outputIndex).name() == outputName)
-        break;
-
-    if (outputIndex >= _stages[stageIndex]->numOutputs())
-    {
-      LogError() << "DataProcessingPipeline: output port \"" << outputName << "\" not found. Can't connect data ports.";
-      return false;
-    }
-
-    LogDebug() << "DataProcessingPipeline: data ports successfully connected.";
-    return _stages[stageIndex]->output(outputIndex).connect(port);
-  }
-
-  bool initialize(void)
+  bool initialize()
   {
     using francor::base::LogInfo;
     using francor::base::LogError;
 
-    LogInfo() << "DataProcessingPipeline: initialize pipeline.";
-    bool ret = true;
+    LogInfo() << "DataProcessingPipeline (name = " << _name << "): initialize pipeline."; 
 
-    for (auto& stage : _stages)
-      ret &= stage->initialize();
+    // initialize input and output ports of this pipeline
+    this->initializePorts();
 
-    if (!ret)
-      LogError() << "DataProcessingPipeline: error occurred during initializing of pipeline.";
+    // configure all stages.
+    if (!this->configureStages())
+    {
+      LogError() << "DataProcessingPipeline (name = " << _name << "): initializing of processing stages failed.";
+      return false;
+    }
 
-    LogInfo() << "DataProcessingPipeline: pipeline successfully initialized.";
-    return ret;
+    LogInfo() << "DataProcessingPipeline (name = " << _name << "): pipeline successfully initialized.";
+    return true;
   }
 
-  bool process(void)
+  bool process(const std::shared_ptr<DataStructureType>& data = std::shared_ptr<DataStructureType>())
   {
     bool ret = true;
 
     for (auto& stage : _stages)
-      ret &= stage->process();
+      ret &= stage->process(data);
 
     return ret;
   }
 
+  const std::string& name() const noexcept { return _name; }
+
+protected:
+  virtual bool configureStages() = 0;
 
 private:
   bool containStageByName(const std::string& stageName) const
   {
     return std::find_if(_stages.begin(),
                         _stages.end(),
-                        [&] (const std::unique_ptr<DataProcessingStage>& stage) { return stage->name() == stageName; } )
+                        [&] (const std::unique_ptr<ProcessingStage<DataStructureType>>& stage) { return stage->name() == stageName; } )
            !=
            _stages.end();
   }
@@ -211,7 +103,8 @@ private:
     return _stages.size();
   }
 
-  std::vector<std::unique_ptr<DataProcessingStage>> _stages;
+  const std::string _name;
+  std::vector<std::unique_ptr<ProcessingStage<DataStructureType>>> _stages;
 };
 
 } // end namespace processing

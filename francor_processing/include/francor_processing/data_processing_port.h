@@ -219,6 +219,24 @@ public:
    */
   static constexpr std::size_t maxNumOfConnections(void) { return MAX_CONNECTIONS; }
 
+protected:
+  template <typename DataType>
+  void updateDataPtrOfConnections(DataType const* const data)
+  {
+    if (_data_type_info.get() != typeid(DataType))
+      throw std::string("Port: type ") + typeid(DataType).name() + " isn't supported.";
+
+    // only update data pointer if this port is an output
+    if (_data_flow == Direction::OUT)
+    {
+      for (auto& connection : _connections)
+        if (connection != nullptr)
+          connection->_data = data;
+    }
+    // else
+    // do nothing
+  }
+
 private:
   void initializeConnections(void);
   std::size_t nextConnectionIndex(void) const;
@@ -242,13 +260,9 @@ public:
     return { name, static_cast<DataType*>(nullptr) };
   }
 
-  InputPort(void) = default;
-  InputPort(InputPort&&) = default;
-  virtual ~InputPort(void) = default;
+  InputPort() = default;
 
-  InputPort& operator=(InputPort&&) = default;
-
-private:
+protected:
   template <typename DataType>
   InputPort(const std::string& name, DataType const* const data) : Port(name, Direction::IN, data) { }
 };
@@ -262,19 +276,51 @@ public:
     return { name, data };
   }
 
-  OutputPort(void) = default;
-  OutputPort(OutputPort&&) = default;
-  virtual ~OutputPort(void) = default;
+  OutputPort() = default;
 
-  OutputPort& operator=(OutputPort&&) = default;
-
-private:
+protected:
   template <typename DataType>
   OutputPort(const std::string& name, DataType const* const data) : Port(name, Direction::OUT, data) { }
 };
 
-using SourcePort = OutputPort;
-using DestinationPort = InputPort;
+class SourcePort : public OutputPort
+{
+public:
+  template <typename DataType>
+  static SourcePort create(const std::string& name, DataType const* const data = nullptr)
+  {
+    return { name, data };
+  }
+
+  SourcePort() = default;
+
+  template <typename DataType>
+  void assign(DataType const* const data)
+  {
+    this->updateDataPtrOfConnections(data);
+  }
+
+private:
+  template <typename DataType>
+  SourcePort(const std::string& name, DataType const* const data) : OutputPort(name, data) { }
+};
+
+class DestinationPort : public InputPort
+{
+public:
+  template <typename DataType>
+  static DestinationPort create(const std::string& name, DataType const* const data = nullptr)
+  {
+    return { name, data };
+  }
+
+  DestinationPort() = default;
+
+private:
+  template <typename DataType>
+  DestinationPort(const std::string& name, DataType const* const data) : InputPort(name, data) { }
+};
+
 
 } // end namespace data
 
