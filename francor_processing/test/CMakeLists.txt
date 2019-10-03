@@ -18,22 +18,6 @@ add_test(
   COMMAND unit-test-data-processing-port
 )
 
-# port block
-add_executable(unit-test-data-processing-pipeline-port-block
-  src/unit_test_data_processing_pipeline_port_block.cpp
-)
-
-target_link_libraries(unit-test-data-processing-pipeline-port-block
-  PRIVATE GTest::GTest
-  PRIVATE GTest::Main
-  PRIVATE francor-processing
-)
-
-add_test(
-  NAME test-data-processing-pipeline-port-block
-  COMMAND unit-test-data-processing-pipeline-port-block
-)
-
 # data processing pipeline
 add_executable(unit-test-data-processing-pipeline
   src/unit_test_data_processing_pipeline.cpp

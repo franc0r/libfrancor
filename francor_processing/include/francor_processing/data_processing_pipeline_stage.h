@@ -19,78 +19,32 @@ namespace francor
 namespace processing
 {
 
-template <typename DataStructureType>
-class ProcessingStage
-{
-protected:
-  ProcessingStage() = delete;
-  ProcessingStage(const std::string& stageName) : _name(stageName) { }
-
-public:
-  virtual ~ProcessingStage() = default;
-
-  bool process(const std::shared_ptr<DataStructureType>& data)
-  {
-    // TODO: check input data
-
-    bool ret = this->doProcess(data);
-    // TODO: check output data
-    // TODO: add diagnostic
-
-    if (!std::is_same<DataStructureType, void>::value)
-      ; // check if data is still consitent
-
-    return ret;
-  }
-  bool initialize()
-  {
-    return this->doInitialization();
-  }
-
-  inline const std::string& name() const noexcept { return _name; }
-
-protected:
-  virtual bool doProcess(const std::shared_ptr<DataStructureType>& data) = 0;
-  virtual bool doInitialization() = 0;
-  
-private:
-  const std::string _name;
-};
-
-template <typename InputType, std::size_t NumOfInputs, typename OutputType, std::size_t NumOfOutputs>
+template <class InputType, class OutputType>
 class DataInputOutput
 {
+protected:
+  DataInputOutput() = delete;
+  DataInputOutput(const std::size_t numOfInputs, const std::size_t numOfOutputs)
+    : _input_ports(numOfInputs),
+      _output_ports(numOfOutputs)
+  {  }
+
 public:
-  DataInputOutput() {  };
   DataInputOutput(const DataInputOutput&) = delete;
   virtual ~DataInputOutput() = default;
 
   DataInputOutput& operator=(const DataInputOutput&) = delete;
 
-  InputType& input(const std::string& portName)
-  {
-    return this->findInput(portName);
-  }
-  OutputType& output(const std::string& portName)
-  {
-    return this->findOutput(portName);
-  }
-  void connectToInput(const std::string& name, OutputType& output)
-  {
-    auto& input = this->findInput(name);
-    input.connect(output);
-  }
-  void connectToOutput(const std::string& name, InputType& input)
-  {
-    auto& output = this->findOutput(name);
-    output.connect(input);
-  }
+  inline InputType& input(const std::string& portName) { return this->findInput(portName); }
+  inline InputType& input(const std::size_t index) { return _input_ports[index]; }
+  inline OutputType& output(const std::string& portName) { return this->findOutput(portName); }
+  inline OutputType& output(const std::size_t index) { return _output_ports[index]; }
 
 protected:
-  inline std::array<InputType, NumOfInputs>& getInputs() { return _input_ports; }
-  inline std::array<OutputType, NumOfOutputs>& getOutputs() { return _output_ports; }
+  inline std::vector<InputType>& getInputs() { return _input_ports; }
+  inline std::vector<OutputType>& getOutputs() { return _output_ports; }
 
-  virtual void initializePorts() = 0;
+  virtual bool initializePorts() = 0;
 
   template <typename DataType>
   inline void initializeInputPort(const std::size_t index, const std::string& name)
@@ -101,18 +55,6 @@ protected:
   void initializeOutputPort(const std::size_t index, const std::string& name, DataType const* const data = nullptr)
   {
     _output_ports[index] = OutputType::template create(name, data);
-  }
-  bool initialize()
-  {
-    this->initializePorts();
-
-    // for (const auto& input : _input_ports)
-      ; // TODO: check if input is initialized
-
-    // for (const auto& output : _output_ports)
-      ; // TODO: check if output is initialized
-
-    return true;
   }
 
 private:
@@ -135,30 +77,62 @@ private:
     throw std::invalid_argument("Processing Stage: output port name \"" + portName + "\" is unkown.");
   }
 
-  std::array<InputType, NumOfInputs> _input_ports;
-  std::array<OutputType, NumOfOutputs> _output_ports;
+  std::vector<InputType> _input_ports; // TODO: I don't like to use heap memory here.
+  std::vector<OutputType> _output_ports;
 };
 
-
-template <std::size_t NumOfInputs, std::size_t NumOfOutputs, typename DataStructureType = void>
-class ProcessingStageParent : public ProcessingStage<DataStructureType>,
-                              public DataInputOutput<data::InputPort, NumOfInputs, data::OutputPort, NumOfOutputs>
+template <typename DataStructureType = void>
+class ProcessingStage : public DataInputOutput<data::InputPort, data::OutputPort>
 {
+protected:
+  ProcessingStage() = delete;
+  ProcessingStage(const std::string& stageName, const std::size_t numOfInputs, const std::size_t numOfOutputs)
+    : DataInputOutput<data::InputPort, data::OutputPort>(numOfInputs, numOfOutputs), _name(stageName)
+  { }
+
 public:
-  ProcessingStageParent(const std::string& name)
-    : ProcessingStage<DataStructureType>(name),
-      DataInputOutput<data::InputPort, NumOfInputs, data::OutputPort, NumOfOutputs>() { }
+  virtual ~ProcessingStage() = default;
 
-  bool initialize()
+  bool process(const std::shared_ptr<DataStructureType>& data)
   {
-    bool ret = true;
+    // TODO: check input data
 
-    ret &= DataInputOutput<data::InputPort, NumOfInputs, data::OutputPort, NumOfOutputs>::initialize();
-    ret &= ProcessingStage<DataStructureType>::initialize();
+    bool ret = this->doProcess(data);
+    // TODO: check output data
+    // TODO: add diagnostic
+
+    if (!std::is_same<DataStructureType, void>::value)
+      ; // check if data is still consitent
 
     return ret;
   }
+  bool initialize()
+  {
+    base::LogDebug() << "ProcessingStage (name = " << _name << "): initializing...";
+
+    bool ret = true;
+
+    // initialize all data ports
+    ret &= this->initializePorts();
+    // initialize the stage
+    ret &= this->doInitialization();
+
+    if (ret) base::LogDebug() << "ProcessingStage (name = " << _name << "): initialization was successful.";
+    else base::LogError() << "ProcessingStage (name = " << _name << "): error occurred during initialization.";
+
+    return ret;
+  }
+
+  inline const std::string& name() const noexcept { return _name; }
+
+protected:
+  virtual bool doProcess(const std::shared_ptr<DataStructureType>& data) = 0;
+  virtual bool doInitialization() = 0;
+  
+private:
+  const std::string _name;
 };
+
 
 } // end namespace processing
 

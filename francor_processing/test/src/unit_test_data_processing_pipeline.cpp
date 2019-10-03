@@ -9,15 +9,15 @@
 #include "francor_processing/data_processing_pipeline.h"
 
 using francor::processing::ProcessingPipeline;
-using francor::processing::ProcessingStageParent;
-using francor::processing::ProcessingPipelineParent;
+using francor::processing::ProcessingStage;
+using francor::processing::ProcessingPipeline;
 using francor::processing::data::SourcePort;
 using francor::processing::data::DestinationPort;
 
-class StageDummyIntToDouble : public ProcessingStageParent<1, 1>
+class StageDummyIntToDouble : public ProcessingStage<>
 {
 public:
-  StageDummyIntToDouble(void) : ProcessingStageParent<1, 1>("dummy int to double") { }
+  StageDummyIntToDouble(void) : ProcessingStage<>("dummy int to double", 1, 1) { }
   virtual ~StageDummyIntToDouble(void) = default;
 
   bool doProcess(const std::shared_ptr<void>&) final
@@ -31,19 +31,21 @@ public:
   }
 
 private:
-  void initializePorts() final
+  bool initializePorts() final
   {
     this->initializeInputPort<int>(0, "int");
     this->initializeOutputPort(0, "double", &_value);
+
+    return true;
   }
 
   double _value = 0.0;
 };
 
-class Pipeline : public ProcessingPipelineParent<1, 1>
+class Pipeline : public ProcessingPipeline<>
 {
 public:
-  Pipeline() : ProcessingPipelineParent<1, 1>("pipeline") { }
+  Pipeline() : ProcessingPipeline<>("pipeline", 1, 1) { }
 
 private:
   bool configureStages() final
@@ -59,10 +61,12 @@ private:
   
     return ret;
   }
-  void initializePorts() final
+  bool initializePorts() final
   {
     this->initializeInputPort<int>(0, "input");
     this->initializeOutputPort<double>(0, "output");
+
+    return true;
   }
 };
 

@@ -21,11 +21,14 @@ namespace processing
 {
 
 template <typename DataStructureType = void>
-class ProcessingPipeline
+class ProcessingPipeline : public DataInputOutput<data::SourcePort, data::DestinationPort>
 {
 public:
   ProcessingPipeline(void) = delete;
-  ProcessingPipeline(const std::string& name) : _name(name) { }
+  ProcessingPipeline(const std::string& name, const std::size_t numOfInputs, const std::size_t numOfOutputs)
+    : DataInputOutput<data::SourcePort, data::DestinationPort>(numOfInputs, numOfOutputs),
+      _name(name)
+  { }
   ~ProcessingPipeline(void) = default;
 
   bool addStage(std::unique_ptr<ProcessingStage<DataStructureType>> stage)
@@ -52,6 +55,9 @@ public:
     using francor::base::LogError;
 
     LogInfo() << "DataProcessingPipeline (name = " << _name << "): initialize pipeline."; 
+
+    // initialize input and output ports of this pipeline
+    this->initializePorts();
 
     // configure all stages.
     if (!this->configureStages())
@@ -99,27 +105,6 @@ private:
 
   const std::string _name;
   std::vector<std::unique_ptr<ProcessingStage<DataStructureType>>> _stages;
-};
-
-template <std::size_t NumOfInputs, std::size_t NumOfOutputs, typename DataStructureType = void>
-class ProcessingPipelineParent : public ProcessingPipeline<DataStructureType>,
-                                 public DataInputOutput<data::SourcePort, NumOfInputs, data::DestinationPort, NumOfOutputs>
-{
-public:
-  ProcessingPipelineParent(const std::string& name)
-    : ProcessingPipeline<DataStructureType>(name),
-      DataInputOutput<data::SourcePort, NumOfInputs, data::DestinationPort, NumOfOutputs>()
-  { }
-
-  bool initialize()
-  {
-    bool ret = true;
-
-    ret &= DataInputOutput<data::SourcePort, NumOfInputs, data::DestinationPort, NumOfOutputs>::initialize();
-    ret &= ProcessingPipeline<DataStructureType>::initialize();
-
-    return ret;
-  }  
 };
 
 } // end namespace processing

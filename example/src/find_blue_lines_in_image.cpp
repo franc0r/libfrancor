@@ -3,7 +3,7 @@
 #include "francor_processing/data_processing_pipeline.h"
 #include "francor_vision/io.h"
 
-using francor::processing::ProcessingPipelineParent;
+using francor::processing::ProcessingPipeline;
 using francor::algorithm::DetectLineSegments;
 using francor::vision::ExportClusteredPointsFromBitMask;
 using francor::vision::ColouredImageToBitMask;
@@ -15,10 +15,10 @@ using francor::vision::Image;
 using francor::vision::ColourSpace;
 using francor::base::LineSegmentVector;
 
-class FindLinesPipeline : public ProcessingPipelineParent<1, 1>
+class FindLinesPipeline : public ProcessingPipeline<>
 {
 public:
-  FindLinesPipeline() : ProcessingPipelineParent<1, 1>("find lines") { }
+  FindLinesPipeline() : ProcessingPipeline<>("find lines", 1, 1) { }
 
 private:
   bool configureStages() final
@@ -45,10 +45,12 @@ private:
 
     return ret;
   }
-  void initializePorts() final
+  bool initializePorts() final
   {
     this->initializeInputPort<Image>(0, "coloured image");
     this->initializeOutputPort<LineSegmentVector>(0, "line segments");
+
+    return true;
   }
 };
 

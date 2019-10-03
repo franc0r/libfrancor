@@ -22,11 +22,11 @@ namespace francor
 namespace vision
 {
 
-class ExportClusteredPointsFromBitMask : public processing::ProcessingStageParent<1, 1>
+class ExportClusteredPointsFromBitMask : public processing::ProcessingStage<>
 {
 public:
   ExportClusteredPointsFromBitMask(void)
-    : processing::ProcessingStageParent<1, 1>("export clustered points from bit mask") {  }
+    : processing::ProcessingStage<>("export clustered points from bit mask", 1, 1) {  }
   ~ExportClusteredPointsFromBitMask(void) = default;
 
   bool doProcess(const std::shared_ptr<void>&) final
@@ -59,30 +59,32 @@ public:
 
     return true;
   }
-  bool doInitialization() final
-  {
-    return true;
-  }
 
 private:
   using VectorVector2d = francor::base::VectorVector2d;
   using LineVector = francor::base::LineVector;
   
-  void initializePorts() final
+  bool doInitialization() final
+  {
+    return true;
+  }
+  bool initializePorts() final
   {
     this->initializeInputPort<Image>(0, "bit mask");
     this->initializeOutputPort<std::vector<VectorVector2d>>(0, "clustered 2d points", &_clustered_points);
+
+    return true;
   }
 
   std::vector<VectorVector2d> _clustered_points;
 };
 
-class ColouredImageToBitMask : public processing::ProcessingStageParent<1, 1>
+class ColouredImageToBitMask : public processing::ProcessingStage<>
 {
 public:
-  ColouredImageToBitMask(void)
-    : processing::ProcessingStageParent<1, 1>("coloured image to bit mask") {  }
-  ~ColouredImageToBitMask(void) = default;
+  ColouredImageToBitMask()
+    : processing::ProcessingStage<>("coloured image to bit mask", 1, 1) {  }
+  ~ColouredImageToBitMask() = default;
 
   bool doProcess(const std::shared_ptr<void>&) final
   {
@@ -100,18 +102,19 @@ public:
     return _image_pipeline(this->getInputs()[0].data<Image>(), _bit_mask);
   }
 
+private:
   bool doInitialization() final
   {
     auto rangeFilter = std::make_unique<ImageMaskFilterColourRange>(100, 120, 70, 255, 30, 255);
     
     return _image_pipeline.addFilter("colour range", std::move(rangeFilter));
   }
-  
-private:
-  void initializePorts() final
+  bool initializePorts() final
   {
     this->initializeInputPort<Image>(0, "coloured image");
     this->initializeOutputPort<Image>(0, "bit mask", &_bit_mask);
+
+    return true;
   }
 
   Image _bit_mask;
