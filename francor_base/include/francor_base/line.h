@@ -132,7 +132,12 @@ public:
    */
   double distanceTo(const Vector2d p) const
   {
-    return (this->intersectionPoint(Line(this->n(p) * -1.0, p)) - p).norm();
+    const Vector2d hypotenuse = p - _p;
+    const double hypotenuse_length = hypotenuse.norm();
+    const double angle_hypotenuse = std::atan2(hypotenuse.y(), hypotenuse.x());
+    const double gegenkathete_length = std::sin(std::abs(angle_hypotenuse - _angle)) * hypotenuse_length;
+
+    return gegenkathete_length;
   }
 
   /**
@@ -143,21 +148,11 @@ public:
    */
   Vector2d intersectionPoint(const Line& line) const
   {
-    // p0 + v0 * a = p1 + v1 * b
-    // p0.x + v0.x * a = p1.x + v1.x * b
-    // p0.y + v0.y * a = p1.y + v1.y * b
-    // 
-    // ==> a = (p1.x + v1.x * b) / v0.x
-    // ==> p0.y + v0.y * (p1.x + v1.x * b) / v0.x = p1.y + v1.y * b
-    //     v0.y / v0.x * (p1.x + v1.x * b) = p1.y + v1.y * b - p0.y
-    //     v0.y / v0.x * (p1.x + v1.x * b) - v1.y * b = p1.y - p0.y
-    //     b * (v0.y / v0.x * (p1.x + v1.x) - v1.y) = p1.y - p0.y
-    // ==> b = (p1.y - p0.y) / (v0.y / v0.x * (p1.x + v1.x) - v1.y)
-    double m = _v.y() / _v.x();
-    if (std::isinf(m)) m = std::numeric_limits<double>::max();
-    const double b = (line._p.y() - _p.y()) / (m * (line._p.x() + line._v.x()) - line._v.y());
-    const base::Vector2d intersection = line._p + line._v * b;
-    return intersection;
+    const double gegenkathete_length = this->distanceTo(line._p);
+    const double alpha = std::abs(line._angle - _angle);
+    const double hypotenuse_length = gegenkathete_length / std::sin(alpha);
+
+    return line._p + line._v * hypotenuse_length;
   }
 
 private:

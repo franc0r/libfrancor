@@ -132,9 +132,6 @@ TEST(LineTest, DistanceToVerticalLine)
   const Eigen::Vector2d point(-2.0, 5.0);
   constexpr double distance = 2.0;
 
-  EXPECT_NEAR(line.m(), static_cast<double>(std::numeric_limits<std::size_t>::max()), 1e-3);
-  EXPECT_NEAR(line.t(), 1.0, 1e-3);
-  
   EXPECT_NEAR(line.distanceTo(point), distance, 0.001);
 }
 
