@@ -8,74 +8,94 @@
 
 #include "francor_processing/data_processing_pipeline.h"
 
-using francor::processing::DataProcssingPipeline;
-using francor::processing::DataProcessingStageIO;
-using francor::processing::InputPortBlock;
-using francor::processing::OutputPortBlock;
+using francor::processing::ProcessingPipeline;
+using francor::processing::ProcessingStage;
+using francor::processing::ProcessingPipeline;
 using francor::processing::data::SourcePort;
 using francor::processing::data::DestinationPort;
 
-class StageDummyIntToDouble : public DataProcessingStageIO<1, 1>
+class StageDummyIntToDouble : public ProcessingStage<>
 {
 public:
-  StageDummyIntToDouble(void) : DataProcessingStageIO<1, 1>("dummy int to double") { }
-  virtual ~StageDummyIntToDouble(void) = default;
-
-  virtual bool process(void) override final
-  {
-    _value = static_cast<double>(this->inputs().port(0).data<int>());
-    return true;
-  }
+  StageDummyIntToDouble() : ProcessingStage<>("dummy int to double", 1, 1) { }
+  ~StageDummyIntToDouble() = default;
 
 private:
-  virtual bool configurePorts(InputPortBlock<num_inputs>& inputs, OutputPortBlock<num_outputs>& outputs) override final
+  bool doProcess(const std::shared_ptr<void>&) final
   {
-    bool ret = true;
-
-    ret &= inputs.configurePort<int>(0, "int");
-    ret &= outputs.configurePort<double>(0, "double", &_value);
-
-    return ret;
+    _value = static_cast<double>(this->getInputs()[0].data<int>());
+    return true;
   }
-
-  virtual bool configureProcessing(void)
+  bool doInitialization() final
   {
     return true;
   }
+
+  bool initializePorts() final
+  {
+    this->initializeInputPort<int>(0, "int");
+    this->initializeOutputPort(0, "double", &_value);
+
+    return true;
+  }
+  bool isReady() const final { return this->input(0).numOfConnections() > 0; }
 
   double _value = 0.0;
 };
 
-TEST(DataProcssingPipeline, Instantiate)
+class Pipeline : public ProcessingPipeline<>
 {
-  DataProcssingPipeline pipeline;
+public:
+  Pipeline() : ProcessingPipeline<>("pipeline", 1, 1) { }
+
+private:
+  bool configureStages() final
+  {
+    auto stage = std::make_unique<StageDummyIntToDouble>();
+
+    bool ret = true;
+
+    ret &= stage->initialize();
+    ret &= stage->input("int").connect(this->input("input"));
+    ret &= stage->output("double").connect(this->output("output"));
+    ret &= this->addStage(std::move(stage));
+  
+    return ret;
+  }
+  bool initializePorts() final
+  {
+    this->initializeInputPort<int>(0, "input");
+    this->initializeOutputPort<double>(0, "output");
+
+    return true;
+  }
+};
+
+TEST(ProcssingPipeline, Instantiate)
+{
+  Pipeline pipeline;
 }
 
-TEST(DataProcssingPipeline, Process)
+TEST(ProcssingPipeline, Process)
 {
   // initialized pipeline
-  DataProcssingPipeline pipeline;
-  auto test = std::make_unique<StageDummyIntToDouble>();
-
-  ASSERT_TRUE(pipeline.addStage(std::move(test)));
-  ASSERT_FALSE(pipeline.addStage(std::make_unique<StageDummyIntToDouble>()));
-  ASSERT_TRUE(pipeline.initialize());
+  Pipeline pipeline;
 
   // initialized source data port and destination port and connect it
   const int value = 8;
-  SourcePort source(SourcePort::create("data source", &value));
-  DestinationPort destination(DestinationPort::create<double>("data destination"));
 
-  ASSERT_TRUE(pipeline.connectDataSourcePort(source, "dummy int to double", "int"));
-  ASSERT_TRUE(pipeline.connectDataDestinationPort(destination, "dummy int to double", "double"));
+  ASSERT_TRUE(pipeline.initialize());
+
+  pipeline.input("input").assign(&value);
 
   // process pipeline
   EXPECT_TRUE(pipeline.process());
-  EXPECT_EQ(destination.data<double>(), static_cast<double>(value));
+  EXPECT_EQ(pipeline.output("output").data<double>(), static_cast<double>(value));
 }
 
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
+  francor::base::setLogLevel(francor::base::LogLevel::DEBUG);
   return RUN_ALL_TESTS();
 }
