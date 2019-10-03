@@ -54,22 +54,22 @@ class RansacLineModel : public RansacTargetModel<base::Vector2d, base::Line, 2>
 {
 public:
   RansacLineModel(void) = default;
-  virtual ~RansacLineModel(void) = default;
+  ~RansacLineModel(void) = default;
 
-  virtual double error(const Input::type& data) const override final
+  double error(const Input::type& data) const final
   {
     return _model.distanceTo(data);
   }
 
-  virtual bool estimate(const std::array<Input::type, Input::count>& modelData) override final
+  bool estimate(const std::array<Input::type, Input::count>& modelData) final
   {
     static_assert(Input::count == 2);
     _model = base::Line((modelData[1] - modelData[0]).normalized(), modelData[0]);
     return true;
   }
 
-  virtual typename Output::type fitData(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData,
-                                        const std::vector<std::size_t>& indices) const override final
+  typename Output::type fitData(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData,
+                                        const std::vector<std::size_t>& indices) const final
   {
     return { fittingLineFromPoints(inputData, indices) };
   }                             
@@ -82,22 +82,22 @@ class RansacLineSegmentModel : public RansacTargetModel<base::Vector2d, base::Li
 {
 public:
   RansacLineSegmentModel(void) = default;
-  virtual ~RansacLineSegmentModel(void) = default;
+  ~RansacLineSegmentModel(void) = default;
 
-  virtual double error(const Input::type& data) const override final
+  double error(const Input::type& data) const final
   {
     return _model.line().distanceTo(data);
   }
 
-  virtual bool estimate(const std::array<Input::type, Input::count>& modelData) override final
+  bool estimate(const std::array<Input::type, Input::count>& modelData) final
   {
     static_assert(Input::count == 2);
     _model = base::LineSegment(modelData[1], modelData[0]);
     return true;
   }
 
-  virtual typename Output::type fitData(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData,
-                                        const std::vector<std::size_t>& indices) const override final
+  typename Output::type fitData(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData,
+                                const std::vector<std::size_t>& indices) const final
   {
     return { fittingLineSegmentFromPoints(inputData, indices) };
   }                                          

@@ -22,9 +22,6 @@ TEST(RansacLineSegmentModel, EstimateModel)
   std::array<RansacLineSegmentModel::Input::type, RansacLineSegmentModel::Input::count> inputPoints = { Vector2d(2.0, 1.0), Vector2d(2.0, -1.0) };
   ASSERT_TRUE(model.estimate(inputPoints));
 
-  EXPECT_NEAR(model.model().line().m(),  static_cast<double>(std::numeric_limits<std::size_t>::max()), 1.0);
-  EXPECT_NEAR(model.model().line().t(), -static_cast<double>(std::numeric_limits<std::size_t>::max()), 1.0);
-
   EXPECT_EQ(model.model().p0().x(), 2.0);
   EXPECT_EQ(model.model().p0().y(),-1.0);
   EXPECT_EQ(model.model().p1().x(), 2.0);
@@ -49,8 +46,6 @@ TEST(LineSegmentRansac, FindHorizontalLineSegment)
 
   ASSERT_EQ(result.size(), 1);
 
-  EXPECT_NEAR(result[0].line().m(), 0.0, 1e-6);
-  // m == 0.0 so x is set ot zero, because m == 0.0 is not supported at the moment
   EXPECT_EQ(result[0].p0().x(), 0.0);
   EXPECT_EQ(result[0].p0().y(), 1.0);
   EXPECT_EQ(result[0].p1().x(), 0.0);
@@ -70,9 +65,6 @@ TEST(LineSegmentRansac, FindVerticalLineSegment)
 
   ASSERT_EQ(result.size(), 1);
 
-  EXPECT_NEAR(result[0].line().m(), static_cast<double>(std::numeric_limits<std::size_t>::max()), 1e-6);
-  // it exists inf solutions for t
-  // x == 1 because of the underlaying math model. It can deal with a vertical line.
   EXPECT_EQ(result[0].p0().x(),  1.0);
   EXPECT_EQ(result[0].p0().y(), -2.0);
   EXPECT_EQ(result[0].p1().x(),  1.0);

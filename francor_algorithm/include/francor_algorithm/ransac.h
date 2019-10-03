@@ -147,7 +147,7 @@ private:
       // find model points
       modelDataIndices.clear();
       modelDataIndices.reserve(inputData.size());
-
+      std::cout << "searching for model" << std::endl;
       for (std::size_t i = 0; i < inputData.size(); ++i)
       {
         // skip if data is already used. The indices used for model estimation aren't skipped
@@ -164,6 +164,7 @@ private:
       if (modelDataIndices.size() >= _min_number_points && modelDataIndices.size() > foundModelPoints)
       {
         foundModelPoints = modelDataIndices.size();
+        std::cout << "fit data" << std::endl;
         model = _target_model.fitData(inputData, modelDataIndices);
         _index_data_to_model = std::move(modelDataIndices);
       }
@@ -180,6 +181,7 @@ private:
 
   void estimateModel(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData)
   {
+      std::cout << "estimate model" << std::endl;
       // get random indices and estimate model parameter
       const auto modelIndices = this->getNextRandomIndices();
       std::array<typename Input::type, ModelType::Input::count> data;

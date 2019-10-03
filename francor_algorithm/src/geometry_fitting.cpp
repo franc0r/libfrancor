@@ -55,13 +55,13 @@ base::Line fittingLineFromPoints(const base::VectorVector2d& points, const std::
 
   // m is infinity
   if (sumX == 0.0)
-    return {static_cast<double>(std::numeric_limits<std::size_t>::max()), -static_cast<double>(std::numeric_limits<std::size_t>::max())};
+    return { base::Vector2d(0.0, 1.0), base::Vector2d(0.0, 0.0) };
 
   // construct line segment and return it
   const double m = sumXY / sumX;
   const double t = avg.y() - m * avg.x();
 
-  return {m, t};
+  return { std::atan2(sumXY, sumX), t };
 }
 
 base::LineSegment fittingLineSegmentFromPoints(const base::VectorVector2d& points, const std::vector<std::size_t>& indices)
@@ -74,7 +74,7 @@ base::LineSegment fittingLineSegmentFromPoints(const base::VectorVector2d& point
   
   //TODO: deal with m = 0
   const base::Line line(fittingLineFromPoints(points, indices));
-
+  std::cout << "created line: " << line << std::endl;
   if (indices.size() == 0)
   {
     const double minY = std::min_element(points.begin(), points.end(), [&] (const base::Vector2d& left, const base::Vector2d& right) { return left.y() < right.y(); })->y();
@@ -93,8 +93,19 @@ base::LineSegment fittingLineSegmentFromPoints(const base::VectorVector2d& point
                                                  indices.end(), 
                                                  [&] (const std::size_t left, const std::size_t right) { return points[left].y() < points[right].y(); } )
                               ].y();             
-                                              
-    return { base::Vector2d(line.x(minY), minY), base::Vector2d(line.x(maxY), maxY) };
+
+    // TODO: search for min and max x values, too.
+    base::Vector2d p0(line.x(minY), minY);
+    base::Vector2d p1(line.x(maxY), maxY);
+
+    if (std::isnan(p0.x()) || std::isnan(p1.x()))
+    {
+      base::LogInfo() << "fittingLineSegmentFromPoints(): estimated p0 and p1 contain a nan value. It seems they are "
+                      << "too many possible x values (m == 0).";
+      return { base::Vector2d(-1.0, minY), base::Vector2d(1.0, maxY) };
+    }
+
+    return { p0, p1 };
   }
 }                                               
 

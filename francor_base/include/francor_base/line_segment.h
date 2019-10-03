@@ -37,7 +37,8 @@ public:
       p0_(p0),
       p1_(p1)
   {
-
+    std::cout << "p0: " << p0 << std::endl;
+    std::cout << "p1: " << p1 << std::endl;
   }
 
   inline const Vector2d& p0(void) const noexcept { return p0_; }
