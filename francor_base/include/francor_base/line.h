@@ -135,7 +135,7 @@ public:
     const Vector2d hypotenuse = p - _p;
     const double hypotenuse_length = hypotenuse.norm();
     const double angle_hypotenuse = std::atan2(hypotenuse.y(), hypotenuse.x());
-    const double gegenkathete_length = std::sin(std::abs(angle_hypotenuse - _angle)) * hypotenuse_length;
+    const double gegenkathete_length = std::abs(std::sin(std::abs(angle_hypotenuse - _angle)) * hypotenuse_length);
 
     return gegenkathete_length;
   }

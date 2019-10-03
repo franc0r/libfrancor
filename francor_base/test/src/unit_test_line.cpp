@@ -98,8 +98,8 @@ TEST(LineTest, IntersectionPoint)
 
   const auto intersection = lineA.intersectionPoint(lineB);
 
-  EXPECT_NEAR(intersection.x(), 1.0, 0.001);
-  EXPECT_NEAR(intersection.y(), 4.0, 0.001);
+  EXPECT_NEAR(intersection.x(), 1.0, 1e-6);
+  EXPECT_NEAR(intersection.y(), 4.0, 1e-6);
 }
 
 TEST(LineTest, DistanceTo)
