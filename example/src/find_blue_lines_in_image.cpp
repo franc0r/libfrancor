@@ -29,15 +29,19 @@ private:
 
     bool ret = true;
 
-    ret &= this->addStage(std::move(colour_range));
-    ret &= this->addStage(std::move(extract_points));
-    ret &= this->addStage(std::move(detect_lines));
+    ret &= colour_range->initialize();
+    ret &= extract_points->initialize();
+    ret &= detect_lines->initialize();
 
     ret &= extract_points->input("bit mask").connect(colour_range->output("bit mask"));
     ret &= detect_lines->input("clustered 2d points").connect(extract_points->output("clustered 2d points"));
 
     ret &= colour_range->input("coloured image").connect(this->input("coloured image"));
-    ret &= detect_lines->output("line segments").connect(this->output("line segments"));
+    ret &= detect_lines->output("2d line segments").connect(this->output("line segments"));
+
+    ret &= this->addStage(std::move(colour_range));
+    ret &= this->addStage(std::move(extract_points));
+    ret &= this->addStage(std::move(detect_lines));
 
     return ret;
   }
@@ -46,22 +50,17 @@ private:
     this->initializeInputPort<Image>(0, "coloured image");
     this->initializeOutputPort<LineSegmentVector>(0, "line segments", nullptr);
   }
-
-  LineSegmentVector _result;
 };
 
 FindLinesPipeline pipeline;
 Image inputImage;
-SourcePort source(SourcePort::create<Image>("coloured image", &inputImage));
-DestinationPort destination(DestinationPort::create<LineSegmentVector>("line segments"));
-
-
 
 bool initialize(void)
 {
   // colour range image filter
 
   pipeline.initialize();
+  pipeline.input("coloured image").assign(&inputImage);
 
   return true;
 }
@@ -85,7 +84,7 @@ int main(int argc, char** argv)
     return 2;
   }
 
-  for (const auto& segment : destination.data<LineSegmentVector>())
+  for (const auto& segment : pipeline.output("line segments").data<LineSegmentVector>())
     std::cout << "found line segment: " << segment << std::endl;
 
   return 0;

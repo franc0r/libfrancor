@@ -99,10 +99,10 @@ protected:
   {
     this->initializePorts();
 
-    for (const auto& input : _input_ports)
+    // for (const auto& input : _input_ports)
       ; // TODO: check if input is initialized
 
-    for (const auto& output : _output_ports)
+    // for (const auto& output : _output_ports)
       ; // TODO: check if output is initialized
 
     return true;
@@ -115,8 +115,8 @@ private:
       if (port.name() == portName)
         return port;
 
-    base::LogError() << "Processing Stage: input port name is unkown.";
-    throw std::invalid_argument("Processing Stage: input port name is unkown.");
+    base::LogError() << "Processing Stage: input port name \"" << portName << "\" is unkown.";
+    throw std::invalid_argument("Processing Stage: input port name \"" + portName + "\" is unkown.");
   }
   OutputType& findOutput(const std::string portName)
   {
@@ -124,8 +124,8 @@ private:
       if (port.name() == portName)
         return port;
 
-    base::LogError() << "Processing Stage: output port name is unkown.";
-    throw std::invalid_argument("Processing Stage: output port name is unkown.");
+    base::LogError() << "Processing Stage: output port name \"" << portName << "\" is unkown.";
+    throw std::invalid_argument("Processing Stage: output port name \"" + portName + "\" is unkown.");
   }
 
   std::array<InputType, NumOfInputs> _input_ports;
