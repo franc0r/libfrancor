@@ -48,7 +48,7 @@ private:
   void initializePorts() final
   {
     this->initializeInputPort<Image>(0, "coloured image");
-    this->initializeOutputPort<LineSegmentVector>(0, "line segments", nullptr);
+    this->initializeOutputPort<LineSegmentVector>(0, "line segments");
   }
 };
 

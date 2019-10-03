@@ -19,6 +19,7 @@ namespace francor
 namespace processing
 {
 
+template <typename DataStructureType>
 class ProcessingStage
 {
 protected:
@@ -28,10 +29,16 @@ protected:
 public:
   virtual ~ProcessingStage() = default;
 
-  bool process()
+  bool process(const std::shared_ptr<DataStructureType>& data)
   {
-    bool ret = this->doProcess();
+    // TODO: check input data
+
+    bool ret = this->doProcess(data);
+    // TODO: check output data
     // TODO: add diagnostic
+
+    if (!std::is_same<DataStructureType, void>::value)
+      ; // check if data is still consitent
 
     return ret;
   }
@@ -43,7 +50,7 @@ public:
   inline const std::string& name() const noexcept { return _name; }
 
 protected:
-  virtual bool doProcess() = 0;
+  virtual bool doProcess(const std::shared_ptr<DataStructureType>& data) = 0;
   virtual bool doInitialization() = 0;
   
 private:
@@ -133,13 +140,13 @@ private:
 };
 
 
-template <std::size_t NumOfInputs, std::size_t NumOfOutputs>
-class ProcessingStageParent : public ProcessingStage,
+template <std::size_t NumOfInputs, std::size_t NumOfOutputs, typename DataStructureType = void>
+class ProcessingStageParent : public ProcessingStage<DataStructureType>,
                               public DataInputOutput<data::InputPort, NumOfInputs, data::OutputPort, NumOfOutputs>
 {
 public:
   ProcessingStageParent(const std::string& name)
-    : ProcessingStage(name),
+    : ProcessingStage<DataStructureType>(name),
       DataInputOutput<data::InputPort, NumOfInputs, data::OutputPort, NumOfOutputs>() { }
 
   bool initialize()
@@ -147,7 +154,7 @@ public:
     bool ret = true;
 
     ret &= DataInputOutput<data::InputPort, NumOfInputs, data::OutputPort, NumOfOutputs>::initialize();
-    ret &= ProcessingStage::initialize();
+    ret &= ProcessingStage<DataStructureType>::initialize();
 
     return ret;
   }

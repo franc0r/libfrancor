@@ -20,7 +20,7 @@ public:
   StageDummyIntToDouble(void) : ProcessingStageParent<1, 1>("dummy int to double") { }
   virtual ~StageDummyIntToDouble(void) = default;
 
-  bool doProcess(void) final
+  bool doProcess(const std::shared_ptr<void>&) final
   {
     _value = static_cast<double>(this->getInputs()[0].data<int>());
     return true;

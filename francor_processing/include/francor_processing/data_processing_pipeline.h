@@ -20,6 +20,7 @@ namespace francor
 namespace processing
 {
 
+template <typename DataStructureType = void>
 class ProcessingPipeline
 {
 public:
@@ -27,7 +28,7 @@ public:
   ProcessingPipeline(const std::string& name) : _name(name) { }
   ~ProcessingPipeline(void) = default;
 
-  bool addStage(std::unique_ptr<ProcessingStage> stage)
+  bool addStage(std::unique_ptr<ProcessingStage<DataStructureType>> stage)
   {
     using francor::base::LogError;
     using francor::base::LogDebug;
@@ -63,12 +64,12 @@ public:
     return true;
   }
 
-  bool process(void)
+  bool process(const std::shared_ptr<DataStructureType>& data = std::shared_ptr<DataStructureType>())
   {
     bool ret = true;
 
     for (auto& stage : _stages)
-      ret &= stage->process();
+      ret &= stage->process(data);
 
     return ret;
   }
@@ -83,7 +84,7 @@ private:
   {
     return std::find_if(_stages.begin(),
                         _stages.end(),
-                        [&] (const std::unique_ptr<ProcessingStage>& stage) { return stage->name() == stageName; } )
+                        [&] (const std::unique_ptr<ProcessingStage<DataStructureType>>& stage) { return stage->name() == stageName; } )
            !=
            _stages.end();
   }
@@ -97,16 +98,16 @@ private:
   }
 
   const std::string _name;
-  std::vector<std::unique_ptr<ProcessingStage>> _stages;
+  std::vector<std::unique_ptr<ProcessingStage<DataStructureType>>> _stages;
 };
 
-template <std::size_t NumOfInputs, std::size_t NumOfOutputs>
-class ProcessingPipelineParent : public ProcessingPipeline,
+template <std::size_t NumOfInputs, std::size_t NumOfOutputs, typename DataStructureType = void>
+class ProcessingPipelineParent : public ProcessingPipeline<DataStructureType>,
                                  public DataInputOutput<data::SourcePort, NumOfInputs, data::DestinationPort, NumOfOutputs>
 {
 public:
   ProcessingPipelineParent(const std::string& name)
-    : ProcessingPipeline(name),
+    : ProcessingPipeline<DataStructureType>(name),
       DataInputOutput<data::SourcePort, NumOfInputs, data::DestinationPort, NumOfOutputs>()
   { }
 
@@ -115,7 +116,7 @@ public:
     bool ret = true;
 
     ret &= DataInputOutput<data::SourcePort, NumOfInputs, data::DestinationPort, NumOfOutputs>::initialize();
-    ret &= ProcessingPipeline::initialize();
+    ret &= ProcessingPipeline<DataStructureType>::initialize();
 
     return ret;
   }  
