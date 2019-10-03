@@ -75,6 +75,10 @@ private:
 
     return true;
   }
+  bool isReady() const final
+  {
+    return this->input(0).numOfConnections() > 0 || this->input(1).numOfConnections() > 0;
+  }
 
   std::vector<VectorVector2d> _clustered_points;
 };
@@ -115,6 +119,10 @@ private:
     this->initializeOutputPort<Image>(0, "bit mask", &_bit_mask);
 
     return true;
+  }
+  bool isReady() const final
+  {
+    return this->input(0).numOfConnections() > 0;
   }
 
   Image _bit_mask;

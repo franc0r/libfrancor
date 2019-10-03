@@ -17,9 +17,10 @@ using francor::processing::data::DestinationPort;
 class StageDummyIntToDouble : public ProcessingStage<>
 {
 public:
-  StageDummyIntToDouble(void) : ProcessingStage<>("dummy int to double", 1, 1) { }
-  virtual ~StageDummyIntToDouble(void) = default;
+  StageDummyIntToDouble() : ProcessingStage<>("dummy int to double", 1, 1) { }
+  ~StageDummyIntToDouble() = default;
 
+private:
   bool doProcess(const std::shared_ptr<void>&) final
   {
     _value = static_cast<double>(this->getInputs()[0].data<int>());
@@ -30,7 +31,6 @@ public:
     return true;
   }
 
-private:
   bool initializePorts() final
   {
     this->initializeInputPort<int>(0, "int");
@@ -38,6 +38,7 @@ private:
 
     return true;
   }
+  bool isReady() const final { return this->input(0).numOfConnections() > 0; }
 
   double _value = 0.0;
 };

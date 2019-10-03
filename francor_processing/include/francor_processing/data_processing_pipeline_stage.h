@@ -37,6 +37,7 @@ public:
 
   inline InputType& input(const std::string& portName) { return this->findInput(portName); }
   inline InputType& input(const std::size_t index) { return _input_ports[index]; }
+  inline const InputType& input(const std::size_t index) const { return _input_ports[index]; }
   inline OutputType& output(const std::string& portName) { return this->findOutput(portName); }
   inline OutputType& output(const std::size_t index) { return _output_ports[index]; }
 
@@ -95,16 +96,53 @@ public:
 
   bool process(const std::shared_ptr<DataStructureType>& data)
   {
-    // TODO: check input data
-
-    bool ret = this->doProcess(data);
-    // TODO: check output data
+    base::LogDebug() << "ProcessingStage (name = " << _name << "): processing...";
+    
+    // first check if this stage is ready for processing
+    if (!this->isReady())
+    {
+      base::LogError() << "ProcessingStage (name = " << _name << "): stage is not ready for processing. Cancel it.";
+      // TODO: throw exception
+      return false;
+    }
+    // check if input data are valid
+    if (!this->validateInputData())
+    {
+      base::LogError() << "ProcessingStage (name = " << _name << "): input data isn't valid. Cancel processing.";
+      // TODO: throw exception
+      return false;
+    }
+    // check if data structure data is valid
+    if (!std::is_same<DataStructureType, void>::value && !this->isDataConsistant(data))
+    {
+      base::LogError() << "ProcessingStage (name = " << _name << "): data structure is not consistent. Cancel processing.";
+      // TODO: throw exception
+      return false;
+    }
+    // process
+    if (!this->doProcess(data))
+    {
+      base::LogError() << "ProcessingStage (name = " << _name << "): error occurred during processing.";
+      // TODO: throw exception
+      return false;
+    }
+    // check if output data are valid
+    if (!this->validateOutputData())
+    {
+      base::LogError() << "ProcessingStage (name = " << _name << "): output data aren't valid.";
+      // TODO: throw exception
+      return false;
+    }
     // TODO: add diagnostic
 
-    if (!std::is_same<DataStructureType, void>::value)
-      ; // check if data is still consitent
+    if (!std::is_same<DataStructureType, void>::value && !this->isDataConsistant(data))
+    {
+      base::LogError() << "ProcessingStage (name = " << _name << "): data structure is not consistent. Cancel processing.";
+      // TODO: throw exception
+      return false;
+    }
 
-    return ret;
+    return true;
   }
   bool initialize()
   {
@@ -128,6 +166,10 @@ public:
 protected:
   virtual bool doProcess(const std::shared_ptr<DataStructureType>& data) = 0;
   virtual bool doInitialization() = 0;
+  virtual bool isReady() const = 0;
+  virtual bool validateInputData() const { return true; }
+  virtual bool validateOutputData() const { return true; }
+  virtual bool isDataConsistant(const std::shared_ptr<DataStructureType>&) const { return true; }
   
 private:
   const std::string _name;
