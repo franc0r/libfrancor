@@ -27,15 +27,13 @@ public:
    * \param m Gradient of the line.
    * \param t Offset of the line.
    */
-  Line(const double m = 0.0, const double t = 0.0)
-    : v_(1.0, m),
-      p_(0.0, t),
-      m_(m),
-      t_(t)
+  Line(const double angle = 0.0, const double t = 0.0)
+    : _v(std::cos(angle), std::sin(angle)),
+      _p(0.0, t),
+      _t(t),
+      _angle(angle)
   {
-    v_.normalize();
-    assert(std::abs(m_) <= static_cast<double>(std::numeric_limits<std::size_t>::max()));
-    assert(std::abs(t_) <= static_cast<double>(std::numeric_limits<std::size_t>::max()));
+    assert(_v.norm() <= 1.01 && _v.norm() >= 0.99);
   }
   /**
    * Construct a line from a direction vector and point.
@@ -44,28 +42,13 @@ public:
    * \param p One point of the line.
    */
   Line(const Vector2d v, const Vector2d p)
-    : v_(v),
-      p_(p),
-      // if v.x is close to zero use limit or zero
-      m_(std::abs(v.x()) < 1e-6 ? (std::abs(v.y()) < 1e-6 ? 0.0 : static_cast<double>(std::numeric_limits<std::size_t>::max())) : v.y() / v.x()),
-      t_(p.y() - m_ * p.x())
+    : _v(v),
+      _p(p),
+      _t(p.y() - ((p.x() / v.x()) * v.y())),
+      _angle(std::atan2(v.y(), v.x()))
   {
-    if (std::isinf(t_))
-      t_ = -static_cast<double>(std::numeric_limits<std::size_t>::max());
-    // limit m_ to size_t max limit. That is the maximum expected number of cols or rows of an image.
-    // at moment the is the supported range
-    if (std::abs(m_) > static_cast<double>(std::numeric_limits<std::size_t>::max()))
-    {
-      const double positive = m_ >= 0.0;
-      m_ = static_cast<double>(std::numeric_limits<std::size_t>::max()) * (positive ? 1.0 : -1.0);
-    }
-    if (std::abs(t_) > static_cast<double>(std::numeric_limits<std::size_t>::max()))
-    {
-      const double positive = t_ >= 0.0;
-      t_ = static_cast<double>(std::numeric_limits<std::size_t>::max()) * (positive ? 1.0 : -1.0);
-    }
-
-    assert(v_.norm() <= 1.01);
+    assert(_v.norm() <= 1.01 && _v.norm() >= 0.99);
+    assert(_angle >= -M_PI && _angle <= M_PI);
   }
 
   /**
@@ -88,7 +71,7 @@ public:
    */
   Vector2d n(void) const
   {
-    return { -v_.y(), v_.x() };
+    return { -_v.y(), _v.x() };
   }
 
   /**
@@ -96,28 +79,28 @@ public:
    * 
    * \return The direction vector v.
    */
-  inline const Vector2d& v(void) const noexcept { return v_; }
+  inline const Vector2d& v(void) const noexcept { return _v; }
 
   /**
    * Returns the reference point p. Actually it is more a offset point.
    * 
    * \return The reference point p.
    */
-  inline const Vector2d& p(void) const noexcept { return p_; }
+  inline const Vector2d& p(void) const noexcept { return _p; }
 
   /**
    * Returns the gradient m of the line.
    * 
    * \return The gradient m.
    */
-  inline double m(void) const noexcept { return m_; }
+  inline double m(void) const noexcept { return _v.y() / _v.x(); }
 
   /**
    * Returns the offset t of the line.
    * 
    * \return The offset t.
    */
-  inline double t(void) const noexcept { return t_; }
+  inline double t(void) const noexcept { return _t; }
 
   /**
    * Calculates the y value for the given x value.
@@ -127,7 +110,7 @@ public:
    */
   inline double y(const double x) const noexcept
   {
-    return m_ * x + t_;
+    return this->m() * x + _t;
   }
 
   /**
@@ -138,11 +121,7 @@ public:
    */
   inline double x(const double y) const
   {
-    // if m is zero it exists inf number of solutions --> return just zero as x value
-    if (m_ == 0.0)
-      return 0.0;
-
-    return (y - t_) / m_;
+    return (y - _t) / this->m();
   }
 
   /**
@@ -153,10 +132,6 @@ public:
    */
   double distanceTo(const Vector2d p) const
   {
-    // special case m = 0.0
-    if (m_ == 0.0)
-      return std::abs(p.y() - t_);
-
     return (this->intersectionPoint(Line(this->n(p) * -1.0, p)) - p).norm();
   }
 
@@ -168,30 +143,28 @@ public:
    */
   Vector2d intersectionPoint(const Line& line) const
   {
-    // m_1 * x + t_1 = m_2 * x + t_2
-    //     t_1 - t_2 = m_2 * x - m_1 * x = (m_2 - m_1) * x
-    //
-    // ==> x = (t_1 - t_2) / (m_2 - m_1)
-    const double subM = line.m_ - m_;
-
-    if (subM == 0.0)
-      return p_;
-
-    const double x = (t_ - line.t_) / subM;
-    const double y = m_ * x + t_;
-
-    assert(!std::isinf(x));
-    assert(!std::isinf(y));
-
-    return { x, y };
+    // p0 + v0 * a = p1 + v1 * b
+    // p0.x + v0.x * a = p1.x + v1.x * b
+    // p0.y + v0.y * a = p1.y + v1.y * b
+    // 
+    // ==> a = (p1.x + v1.x * b) / v0.x
+    // ==> p0.y + v0.y * (p1.x + v1.x * b) / v0.x = p1.y + v1.y * b
+    //     v0.y / v0.x * (p1.x + v1.x * b) = p1.y + v1.y * b - p0.y
+    //     v0.y / v0.x * (p1.x + v1.x * b) - v1.y * b = p1.y - p0.y
+    //     b * (v0.y / v0.x * (p1.x + v1.x) - v1.y) = p1.y - p0.y
+    // ==> b = (p1.y - p0.y) / (v0.y / v0.x * (p1.x + v1.x) - v1.y)
+    double m = _v.y() / _v.x();
+    if (std::isinf(m)) m = std::numeric_limits<double>::max();
+    const double b = (line._p.y() - _p.y()) / (m * (line._p.x() + line._v.x()) - line._v.y());
+    const base::Vector2d intersection = line._p + line._v * b;
+    return intersection;
   }
 
 private:
-  Vector2d v_;
-  Vector2d p_;
-  //TODO: replace attribute m with an angle
-  double m_;
-  double t_;
+  Vector2d _v;
+  Vector2d _p;
+  double _t;
+  double _angle;
 };
 
 using LineVector = std::vector<Line, Eigen::aligned_allocator<Line>>;
