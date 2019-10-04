@@ -102,6 +102,19 @@ TEST(LineTest, IntersectionPoint)
   EXPECT_NEAR(intersection.y(), 4.0, 1e-6);
 }
 
+TEST(LineTest, IntersectionPointBehindP0)
+{
+  // construct a line with m = 3.0 and t = 1.0 and a second with m = 0 and t = 4.
+  // the lines should intersect at x = 1.0 and y = 4.0
+  const francor::base::Line lineA(Eigen::Vector2d(1.0, 3.0).normalized(), Eigen::Vector2d(0.0, 3.0));
+  const francor::base::Line lineB(Eigen::Vector2d(1.0, 0.0).normalized(), Eigen::Vector2d(1.0, 0.0));
+
+  const auto intersection = lineA.intersectionPoint(lineB);
+
+  EXPECT_NEAR(intersection.x(), -1.0, 1e-6);
+  EXPECT_NEAR(intersection.y(), -0.0, 1e-6);
+}
+
 TEST(LineTest, DistanceTo)
 {
   // construct a line with m = 3.0 and t = 1.0
@@ -111,6 +124,17 @@ TEST(LineTest, DistanceTo)
 
   EXPECT_NEAR(line.distanceTo(point), distance, 0.001);
 }
+
+TEST(LineTest, DistanceToBehindP0)
+{
+  // construct a line with m = 3.0 and t = 1.0
+  const francor::base::Line line(Eigen::Vector2d(1.0, 0.0).normalized(), Eigen::Vector2d(0.0, 1.0));
+  const Eigen::Vector2d point(-2.0, 5.0);
+  const double distance = point.y() - line.t();
+
+  EXPECT_NEAR(line.distanceTo(point), distance, 0.001);
+}
+
 
 TEST(LineTest, DistanceToHorizontalLine)
 {
