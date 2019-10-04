@@ -128,8 +128,8 @@ TEST(LineTest, DistanceTo)
 TEST(LineTest, DistanceToBehindP0)
 {
   // construct a line with m = 3.0 and t = 1.0
-  const francor::base::Line line(Eigen::Vector2d(1.0, 0.0).normalized(), Eigen::Vector2d(0.0, 1.0));
-  const Eigen::Vector2d point(-2.0, 5.0);
+  const francor::base::Line line(Eigen::Vector2d(1.0, 0.0).normalized(), Eigen::Vector2d(2.0, 0.0));
+  const Eigen::Vector2d point(1.0, 2.0);
   const double distance = point.y() - line.t();
 
   EXPECT_NEAR(line.distanceTo(point), distance, 0.001);
