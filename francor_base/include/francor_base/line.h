@@ -152,13 +152,14 @@ public:
     const double alpha = std::abs(line._angle - _angle);
     const double hypotenuse_length = gegenkathete_length / std::sin(alpha);
 
-    if (line._p.y() >= _p.y() && _angle >= 0.0 && line._angle <= 0.0)
+    if (_p.y() >= line._p.y())
       return line._p + line._v * hypotenuse_length;
-    else if (_p.y() >= line._p.y() && _angle >= 0.0 && line._angle <= 0.0)
-      return line._p - line._v * hypotenuse_length;
     else
-      base::LogFatal() << "implement for: this line [" << _p << " " << _angle << "] and that line [" << line._p 
-                       << " " << line._angle << "].";
+      return line._p - line._v * hypotenuse_length;
+
+    // else
+    //   base::LogFatal() << "implement for: this line [" << _p << " " << _angle << "] and that line [" << line._p 
+    //                    << " " << line._angle << "].";
 
     return { };
   }

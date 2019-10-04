@@ -34,14 +34,13 @@ TEST(Ray, MoveInPositiveX)
   std::size_t idxX = idxXOffset;
   Ray2d ray(Ray2d::create(idxX, idxY, { 1.0, 1.0 }, 0.1, { 1.0, 1.0 }, { 1.0, 0.0 }, 1.0));
 
-  // for (; ray; ++ray)
-  // {
-  //   ++idxX;
-  //   const auto& current_idx = ray.getCurrentIndex();
+  for (; ray; ++ray, ++idxX)
+  {
+    const auto& current_idx = ray.getCurrentIndex();
 
-  //   EXPECT_EQ(idxX, current_idx.x());
-  //   EXPECT_EQ(idxY, current_idx.y());
-  // }
+    EXPECT_EQ(idxX, current_idx.x());
+    EXPECT_EQ(idxY, current_idx.y());
+  }
 
   EXPECT_EQ(idxX, 10 + idxXOffset);
 }
