@@ -74,7 +74,7 @@ base::LineSegment fittingLineSegmentFromPoints(const base::VectorVector2d& point
   
   //TODO: deal with m = 0
   const base::Line line(fittingLineFromPoints(points, indices));
-  std::cout << "created line: " << line << std::endl;
+
   if (indices.size() == 0)
   {
     const double minY = std::min_element(points.begin(), points.end(), [&] (const base::Vector2d& left, const base::Vector2d& right) { return left.y() < right.y(); })->y();

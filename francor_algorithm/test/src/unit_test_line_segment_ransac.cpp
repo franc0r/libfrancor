@@ -39,16 +39,16 @@ TEST(LineSegmentRansac, FindHorizontalLineSegment)
   const VectorVector2d inputPoints = { Vector2d(-2.0, 1.0), Vector2d(-1.0, 1.0), Vector2d(0.0, 1.0), Vector2d(1.0, 1.0), Vector2d(2.0, 1.0) };
 
   ransac.setEpsilon(0.1);
-  ransac.setMaxIterations(100);
+  ransac.setMaxIterations(10);
   ransac.setMinNumPoints(4);                                   
 
   LineSegmentVector result = ransac(inputPoints);
 
   ASSERT_EQ(result.size(), 1);
 
-  EXPECT_EQ(result[0].p0().x(), 0.0);
+  EXPECT_EQ(result[0].p0().x(),-1.0);
   EXPECT_EQ(result[0].p0().y(), 1.0);
-  EXPECT_EQ(result[0].p1().x(), 0.0);
+  EXPECT_EQ(result[0].p1().x(), 1.0);
   EXPECT_EQ(result[0].p1().y(), 1.0);
 }
 
@@ -57,18 +57,18 @@ TEST(LineSegmentRansac, FindVerticalLineSegment)
   LineSegmentRansac ransac;
   const VectorVector2d inputPoints = { Vector2d(-2.0,  1.0), Vector2d(-2.0, -1.0), Vector2d(-2.0,  0.0), Vector2d(-2.0,  2.0), Vector2d(-2.0, -2.0) };
 
-  ransac.setEpsilon(2.5);
-  ransac.setMaxIterations(100);
+  ransac.setEpsilon(0.2);
+  ransac.setMaxIterations(10);
   ransac.setMinNumPoints(4);                                   
 
   LineSegmentVector result = ransac(inputPoints);
 
   ASSERT_EQ(result.size(), 1);
 
-  EXPECT_EQ(result[0].p0().x(),  1.0);
-  EXPECT_EQ(result[0].p0().y(), -2.0);
-  EXPECT_EQ(result[0].p1().x(),  1.0);
-  EXPECT_EQ(result[0].p1().y(),  2.0);
+  EXPECT_NEAR(result[0].p0().x(), -1.0, 1e-6);
+  EXPECT_NEAR(result[0].p0().y(), -2.0, 1e-6);
+  EXPECT_NEAR(result[0].p1().x(),  1.0, 1e-6);
+  EXPECT_NEAR(result[0].p1().y(),  2.0, 1e-6);
 }
 
 TEST(LineSegmentRansac, FindDiagonalLineSegment)
@@ -77,7 +77,7 @@ TEST(LineSegmentRansac, FindDiagonalLineSegment)
   const VectorVector2d inputPoints = { Vector2d(-2.0, -2.0), Vector2d(-1.0, -1.0), Vector2d(0.0,  0.0), Vector2d(1.0, 1.0), Vector2d(2.0, 2.0) };
 
   ransac.setEpsilon(0.1);
-  ransac.setMaxIterations(100);
+  ransac.setMaxIterations(10);
   ransac.setMinNumPoints(4);                                   
 
   LineSegmentVector result = ransac(inputPoints);
@@ -86,10 +86,10 @@ TEST(LineSegmentRansac, FindDiagonalLineSegment)
 
   EXPECT_NEAR(result[0].line().m(), 1.0, 1e-6);
   // it exists inf solutions for t
-  EXPECT_EQ(result[0].p0().x(), -2.0);
-  EXPECT_EQ(result[0].p0().y(), -2.0);
-  EXPECT_EQ(result[0].p1().x(),  2.0);
-  EXPECT_EQ(result[0].p1().y(),  2.0);
+  EXPECT_NEAR(result[0].p0().x(), -2.0, 1e-6);
+  EXPECT_NEAR(result[0].p0().y(), -2.0, 1e-6);
+  EXPECT_NEAR(result[0].p1().x(),  2.0, 1e-6);
+  EXPECT_NEAR(result[0].p1().y(),  2.0, 1e-6);
 }
 
 TEST(LineSegmentRansac, FindTwoLineSegments)
@@ -99,8 +99,8 @@ TEST(LineSegmentRansac, FindTwoLineSegments)
                                        Vector2d(12.0, 14.0), Vector2d(12.0, 13.0), Vector2d(12.0, 12.0), Vector2d(12.0, 11.0), Vector2d(12.0, 10.0),
                                        Vector2d(33.0, 23.0), Vector2d(25.0, 33.0) }; // the last two are outliers
 
-  ransac.setEpsilon(0.9);
-  ransac.setMaxIterations(100);
+  ransac.setEpsilon(0.2);
+  ransac.setMaxIterations(10);
   ransac.setMinNumPoints(4);                                   
 
   LineSegmentVector result = ransac(inputPoints);

@@ -60,7 +60,7 @@ TEST(LineRansac, FindTwoLines)
                                        Vector2d(9.0, 9.0), Vector2d(5.0, 0.0) }; // the last two are outliers
 
   ransac.setEpsilon(0.1);
-  ransac.setMaxIterations(100);
+  ransac.setMaxIterations(10);
   ransac.setMinNumPoints(4);
 
   LineVector result = ransac(inputPoints);

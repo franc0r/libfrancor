@@ -47,8 +47,6 @@ public:
       _t(p.y() - ((p.x() / v.x()) * v.y())),
       _angle(std::atan2(v.y(), v.x()))
   {
-    std::cout << "v = " << _v << std::endl;
-    std::cout << "v.norm() = " << _v.norm() << std::endl;
     assert(_v.norm() <= 1.01 && _v.norm() >= 0.99);
     assert(_angle >= -M_PI && _angle <= M_PI);
   }
