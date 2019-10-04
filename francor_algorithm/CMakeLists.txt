@@ -6,6 +6,7 @@ project(francor-algorithm VERSION 0.1
                 
 add_library(${PROJECT_NAME} SHARED
   src/geometry_fitting.cpp
+  src/ray_caster_2d.cpp
 )
 
 target_include_directories(${PROJECT_NAME}

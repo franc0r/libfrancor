@@ -61,3 +61,23 @@ add_test(
   NAME test-line-segment-ransac
   COMMAND unit-test-line-segment-ransac
 )
+
+# Ray2d and RayCaster2d
+add_executable(unit-test-ray-caster-2d
+  src/unit_test_ray_caster_2d.cpp
+)
+
+target_include_directories(unit-test-ray-caster-2d
+  PRIVATE ${GTEST_INCLUDE_DIRS}
+)
+
+target_link_libraries(unit-test-ray-caster-2d
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-algorithm
+)
+
+add_test(
+  NAME test-ray-caster-2d
+  COMMAND unit-test-ray-caster-2d
+)

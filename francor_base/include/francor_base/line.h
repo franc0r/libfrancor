@@ -171,7 +171,7 @@ using LineVector = std::vector<Line, Eigen::aligned_allocator<Line>>;
 namespace std
 {
 
-std::ostream& operator<<(std::ostream& os, const francor::base::Line& line)
+inline std::ostream& operator<<(std::ostream& os, const francor::base::Line& line)
 {
   os << "[m = " << line.m() << ", t = " << line.t() << "]";
 
