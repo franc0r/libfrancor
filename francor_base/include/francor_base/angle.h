@@ -50,32 +50,32 @@ protected:
 class NormalizedAngle : public Angle
 {
 public:
-  NormalizedAngle(const double radian = 0.0) : Angle(radian) { this->normalize(); }
-  NormalizedAngle(const Angle& angle) : Angle(angle) { this->normalize(); }
+  constexpr NormalizedAngle(const double radian = 0.0) : Angle(radian) { this->normalize(); }
+  constexpr NormalizedAngle(const Angle& angle) : Angle(angle) { this->normalize(); }
   ~NormalizedAngle() = default;
 
-  void normalize()
+  constexpr void normalize()
   {
     // add or sub pi/2 from angle until it is in range of [-pi/2, pi/2]
     while (_value >   M_PI_2) _value -= M_PI;
     while (_value <= -M_PI_2) _value += M_PI;
   }
 
-  inline void setRadian(const double value) noexcept { Angle::setRadian(value); this->normalize(); }
-  inline void setDegree(const double value) noexcept { Angle::setDegree(value); this->normalize(); }
+  inline constexpr void setRadian(const double value) noexcept { Angle::setRadian(value); this->normalize(); }
+  inline constexpr void setDegree(const double value) noexcept { Angle::setDegree(value); this->normalize(); }
 
-  inline NormalizedAngle operator+(const Angle& operant) const noexcept { return { Angle::operator+(operant) }; }
-  inline NormalizedAngle operator+(const double operant) const noexcept { return { Angle::operator+(operant) }; }
-  inline NormalizedAngle operator-(const Angle& operant) const noexcept { return { Angle::operator-(operant) }; }
-  inline NormalizedAngle operator-(const double operant) const noexcept { return { Angle::operator-(operant) }; }
+  inline constexpr NormalizedAngle operator+(const Angle& operant) const noexcept { return { Angle::operator+(operant) }; }
+  inline constexpr NormalizedAngle operator+(const double operant) const noexcept { return { Angle::operator+(operant) }; }
+  inline constexpr NormalizedAngle operator-(const Angle& operant) const noexcept { return { Angle::operator-(operant) }; }
+  inline constexpr NormalizedAngle operator-(const double operant) const noexcept { return { Angle::operator-(operant) }; }
 
-  inline NormalizedAngle& operator+=(const Angle& operant) { Angle::operator+=(operant); this->normalize(); return *this;}
-  inline NormalizedAngle& operator+=(const double operant) { Angle::operator+=(operant); this->normalize(); return *this;}
-  inline NormalizedAngle& operator-=(const Angle& operant) { Angle::operator-=(operant); this->normalize(); return *this;}
-  inline NormalizedAngle& operator-=(const double operant) { Angle::operator-=(operant); this->normalize(); return *this;}
+  inline constexpr NormalizedAngle& operator+=(const Angle& operant) { Angle::operator+=(operant); this->normalize(); return *this;}
+  inline constexpr NormalizedAngle& operator+=(const double operant) { Angle::operator+=(operant); this->normalize(); return *this;}
+  inline constexpr NormalizedAngle& operator-=(const Angle& operant) { Angle::operator-=(operant); this->normalize(); return *this;}
+  inline constexpr NormalizedAngle& operator-=(const double operant) { Angle::operator-=(operant); this->normalize(); return *this;}
 
-  inline NormalizedAngle& operator=(const Angle& operant) { Angle::operator=(operant); this->normalize(); return *this; }
-  inline NormalizedAngle& operator=(const double operant) { Angle::operator=(operant); this->normalize(); return *this; }
+  inline constexpr NormalizedAngle& operator=(const Angle& operant) { Angle::operator=(operant); this->normalize(); return *this; }
+  inline constexpr NormalizedAngle& operator=(const double operant) { Angle::operator=(operant); this->normalize(); return *this; }
 };
 
 } // end namespace base

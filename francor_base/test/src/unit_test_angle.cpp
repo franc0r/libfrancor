@@ -93,6 +93,20 @@ TEST(Angle, CastToDouble)
   EXPECT_NEAR(double_value, radian, 1e-6);
 }
 
+
+
+TEST(NormalizedAngle, CreateFromRadian)
+{
+  constexpr double radian = 2.25 * M_PI;
+  constexpr NormalizedAngle angle_positive( radian);
+  constexpr NormalizedAngle angle_negative(-radian);
+
+  EXPECT_NEAR(angle_positive.radian(),  M_PI_4, 1e-6);
+  EXPECT_NEAR(angle_negative.radian(), -M_PI_4, 1e-6);
+}
+
+// TODO: add missing test for normalized angle
+
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);

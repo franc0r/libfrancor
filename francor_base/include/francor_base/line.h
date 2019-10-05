@@ -32,12 +32,11 @@ public:
    * \param x0 x-value of this line for y == 0. Note: that value is ussely set by this class automatically, but
    *        in case the angle is close to pi/2 or -pi/2 it helps a lot.
    */
-  Line(const Angle angle = Angle(0.0), const double y0 = 0.0)
+  Line(const Angle& angle = Angle(0.0), const double y0 = 0.0)
     :  _y0(y0),
        _phi(angle)
   {
     assert(!std::isnan(y0) && !std::isinf(y0));
-    _phi.normalize();
   }
 
   Line(const double x0, const double y0)
@@ -45,7 +44,7 @@ public:
       _y0(y0),
       _phi(std::atan2(_y0, _x0))
   {
-    _phi.normalize();
+
   }      
 
   /**
@@ -60,7 +59,6 @@ public:
       _phi(std::atan2(v.y(), v.x()))
   {
     assert(v.norm() <= 1.01 && v.norm() >= 0.99);
-    _phi.normalize();
   }
 
   /**
@@ -145,7 +143,7 @@ public:
 private:
   double _x0; //> x-value for y == 0
   double _y0; //> y-value for x == 0 
-  Angle _phi; //> angle in rad of the gradient regarding the x-axis
+  NormalizedAngle _phi; //> angle in rad of the gradient regarding the x-axis
 };
 
 using LineVector = std::vector<Line, Eigen::aligned_allocator<Line>>;
