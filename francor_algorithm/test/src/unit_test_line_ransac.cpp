@@ -33,8 +33,8 @@ TEST(RansacLineModel, EstimateModelFromTwoPoints)
 
   ASSERT_TRUE(model.estimate(inputData));
 
-  EXPECT_NEAR(model.model().m(), 0.0, 1e-3);
-  EXPECT_NEAR(model.model().t(), 1.0, 1e-3);
+  EXPECT_NEAR(model.model().phi(), 0.0, 1e-3);
+  EXPECT_NEAR(model.model().y0() , 1.0, 1e-3);
 }
 
 /**
@@ -67,10 +67,10 @@ TEST(LineRansac, FindTwoLines)
 
   ASSERT_EQ(result.size(), 2);
 
-  EXPECT_NEAR(result[0].m(), 0.0, 1e-3);
-  EXPECT_NEAR(result[1].m(), 0.0, 1e-3);
-  EXPECT_NEAR(std::max(result[0].t(), result[1].t()), 3.0, 1e-3);
-  EXPECT_NEAR(std::min(result[0].t(), result[1].t()), 1.0, 1e-3);
+  EXPECT_NEAR(result[0].phi(), 0.0, 1e-3);
+  EXPECT_NEAR(result[1].phi(), 0.0, 1e-3);
+  EXPECT_NEAR(std::max(result[0].y0(), result[1].y0()), 3.0, 1e-3);
+  EXPECT_NEAR(std::min(result[0].y0(), result[1].y0()), 1.0, 1e-3);
 }
 
 int main(int argc, char **argv)

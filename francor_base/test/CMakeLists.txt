@@ -31,3 +31,19 @@ add_test(
   NAME test-logger
   COMMAND unit-test-logger
 )
+
+# Angle and NormalizedAngle
+add_executable(unit-test-angle
+  src/unit_test_angle.cpp
+)
+
+target_link_libraries(unit-test-angle PRIVATE
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-base
+)
+
+add_test(
+  NAME test-angle
+  COMMAND unit-test-angle
+)

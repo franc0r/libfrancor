@@ -84,7 +84,7 @@ TEST(LineSegmentRansac, FindDiagonalLineSegment)
 
   ASSERT_EQ(result.size(), 1);
 
-  EXPECT_NEAR(result[0].line().m(), 1.0, 1e-6);
+  EXPECT_NEAR(result[0].line().phi(), std::atan(1.0), 1e-6);
   // it exists inf solutions for t
   EXPECT_NEAR(result[0].p0().x(), -2.0, 1e-6);
   EXPECT_NEAR(result[0].p0().y(), -2.0, 1e-6);

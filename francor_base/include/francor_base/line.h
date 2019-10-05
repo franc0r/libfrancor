@@ -8,12 +8,15 @@
 
 #include "francor_base/vector.h"
 #include "francor_base/log.h"
+#include "francor_base/angle.h"
 
 #include <ostream>
 
 namespace francor {
 
 namespace base {
+
+using francor::base::Angle;
 
 class Line
 {
@@ -24,17 +27,27 @@ public:
   /**
    * Default constructor.
    * 
-   * \param m Gradient of the line.
-   * \param t Offset of the line.
+   * \param angle gradient of the line as angle in rad.
+   * \param y0 y-value of this line for x == 0.
+   * \param x0 x-value of this line for y == 0. Note: that value is ussely set by this class automatically, but
+   *        in case the angle is close to pi/2 or -pi/2 it helps a lot.
    */
-  Line(const double angle = 0.0, const double t = 0.0)
-    : _v(std::cos(angle), std::sin(angle)),
-      _p(0.0, t),
-      _t(t),
-      _angle(angle)
+  Line(const Angle angle = Angle(0.0), const double y0 = 0.0)
+    :  _y0(y0),
+       _phi(angle)
   {
-    assert(_v.norm() <= 1.01 && _v.norm() >= 0.99);
+    assert(!std::isnan(y0) && !std::isinf(y0));
+    _phi.normalize();
   }
+
+  Line(const double x0, const double y0)
+    : _x0(x0),
+      _y0(y0),
+      _phi(std::atan2(_y0, _x0))
+  {
+    _phi.normalize();
+  }      
+
   /**
    * Construct a line from a direction vector and point.
    * 
@@ -42,65 +55,24 @@ public:
    * \param p One point of the line.
    */
   Line(const Vector2d v, const Vector2d p)
-    : _v(v),
-      _p(p),
-      _t(p.y() - ((p.x() / v.x()) * v.y())),
-      _angle(std::atan2(v.y(), v.x()))
+    : _x0(NAN),
+      _y0(p.y() - ((p.x() / v.x()) * v.y())),
+      _phi(std::atan2(v.y(), v.x()))
   {
-    assert(_v.norm() <= 1.01 && _v.norm() >= 0.99);
-    assert(_angle >= -M_PI && _angle <= M_PI);
+    assert(v.norm() <= 1.01 && v.norm() >= 0.99);
+    _phi.normalize();
   }
 
   /**
    * Returns the normal of this line.
    * 
-   * \param p The normal points in direction of p.
    * \return The normal of this line.
    */
-  Vector2d n(const Vector2d p) const
-  {
-    if (p.y() >= this->y(p.x()))
-      return this->n();
-    else
-      return this->n() * -1.0;
-  }
- /**
-   * Returns the normal of this line.
-   * 
-   * \return The normal of this line.
-   */
-  Vector2d n(void) const
-  {
-    return { -_v.y(), _v.x() };
-  }
+  inline Line n() const { return { _phi + M_PI_2, _y0 }; }
 
-  /**
-   * Returns the direction vector v.
-   * 
-   * \return The direction vector v.
-   */
-  inline const Vector2d& v(void) const noexcept { return _v; }
-
-  /**
-   * Returns the reference point p. Actually it is more a offset point.
-   * 
-   * \return The reference point p.
-   */
-  inline const Vector2d& p(void) const noexcept { return _p; }
-
-  /**
-   * Returns the gradient m of the line.
-   * 
-   * \return The gradient m.
-   */
-  inline double m(void) const noexcept { return _v.y() / _v.x(); }
-
-  /**
-   * Returns the offset t of the line.
-   * 
-   * \return The offset t.
-   */
-  inline double t(void) const noexcept { return _t; }
+  inline double x0() const noexcept { return _x0;  }
+  inline double y0() const noexcept { return _y0;  }
+  inline Angle phi() const noexcept { return _phi; }
 
   /**
    * Calculates the y value for the given x value.
@@ -108,10 +80,7 @@ public:
    * \param x The x value.
    * \return y The y value for given x value.
    */
-  inline double y(const double x) const noexcept
-  {
-    return this->m() * x + _t;
-  }
+  inline double y(const double x) const { return std::tan(_phi) * x; }
 
   /**
    * Calculates the x value for the given y value.
@@ -119,10 +88,7 @@ public:
    * \param y The y value.
    * \return x The x value for the given y value.
    */
-  inline double x(const double y) const
-  {
-    return (y - _t) / this->m();
-  }
+  inline double x(const double y) const { return y / std::tan(_phi); }
 
   /**
    * Calculates the distance along the normal of this line.
@@ -132,10 +98,10 @@ public:
    */
   double distanceTo(const Vector2d p) const
   {
-    const Vector2d hypotenuse = p - _p;
+    const Vector2d hypotenuse = p - Vector2d(0.0, _y0);
     const double hypotenuse_length = hypotenuse.norm();
     const double angle_hypotenuse = std::atan2(hypotenuse.y(), hypotenuse.x());
-    const double gegenkathete_length = std::abs(std::sin(std::abs(angle_hypotenuse - _angle)) * hypotenuse_length);
+    const double gegenkathete_length = std::abs(std::sin(angle_hypotenuse - _phi) * hypotenuse_length);
 
     return gegenkathete_length;
   }
@@ -148,27 +114,38 @@ public:
    */
   Vector2d intersectionPoint(const Line& line) const
   {
-    const double gegenkathete_length = this->distanceTo(line._p);
-    const double alpha = std::abs(line._angle - _angle);
-    const double hypotenuse_length = gegenkathete_length / std::sin(alpha);
+    if ((_y0 >= line._y0 && _phi < line._phi)
+        ||
+        (line._y0 >= _y0 && line._phi < _phi))
+    // intersection is on right side, x >= 0
+    {
+      const Angle gamma(std::abs(_phi - line._phi));
+      const Angle target_gamma(M_PI - (M_PI_2 - _phi) - M_PI_2);
+      const double gamma_factor = target_gamma / gamma;
+      const double diff_y0 = _y0 - line._y0;
+      const double pos_y = _y0 + diff_y0 * gamma_factor;
+      const double pos_x = std::tan(_phi) * diff_y0 * gamma_factor;
 
-    if (_p.y() >= line._p.y())
-      return line._p + line._v * hypotenuse_length;
+      return { pos_x, pos_y };
+    }
     else
-      return line._p - line._v * hypotenuse_length;
+    // intersection is on left side, x < 0
+    {
+      const Angle gamma(std::abs(_phi - line._phi));
+      const Angle target_gamma(M_PI - (M_PI_2 - _phi) - M_PI_2);
+      const double gamma_factor = target_gamma / gamma;
+      const double diff_y0 = _y0 - line._y0;
+      const double pos_y = _y0 + diff_y0 * gamma_factor;
+      const double pos_x = -std::tan(_phi) * diff_y0 * gamma_factor;
 
-    // else
-    //   base::LogFatal() << "implement for: this line [" << _p << " " << _angle << "] and that line [" << line._p 
-    //                    << " " << line._angle << "].";
-
-    return { };
+      return { pos_x, pos_y };
+    }
   }
 
 private:
-  Vector2d _v;
-  Vector2d _p;
-  double _t;
-  double _angle;
+  double _x0; //> x-value for y == 0
+  double _y0; //> y-value for x == 0 
+  Angle _phi; //> angle in rad of the gradient regarding the x-axis
 };
 
 using LineVector = std::vector<Line, Eigen::aligned_allocator<Line>>;
@@ -182,7 +159,7 @@ namespace std
 
 inline std::ostream& operator<<(std::ostream& os, const francor::base::Line& line)
 {
-  os << "[m = " << line.m() << ", t = " << line.t() << "]";
+  os << "line [phi = " << line.phi().radian() << ", y0 = " << line.y0() << "]";
 
   return os;
 }
