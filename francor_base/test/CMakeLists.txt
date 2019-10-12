@@ -47,3 +47,20 @@ add_test(
   NAME test-angle
   COMMAND unit-test-angle
 )
+
+
+# Point
+add_executable(unit-test-point
+  src/unit_test_point.cpp
+)
+
+target_link_libraries(unit-test-point PRIVATE
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-base
+)
+
+add_test(
+  NAME test-point
+  COMMAND unit-test-point
+)

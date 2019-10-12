@@ -64,7 +64,7 @@ public:
   bool estimate(const std::array<Input::type, Input::count>& modelData) final
   {
     static_assert(Input::count == 2);
-    _model = base::Line((modelData[1] - modelData[0]).normalized(), modelData[0]);
+    _model = base::Line::createFromTwoPoints(modelData[0], modelData[1]);
     return true;
   }
 

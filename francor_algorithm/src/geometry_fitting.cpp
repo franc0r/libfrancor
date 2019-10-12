@@ -52,16 +52,12 @@ base::Line fittingLineFromPoints(const base::VectorVector2d& points, const std::
     }
   }
   
-
-  // m is infinity
-  if (sumX == 0.0)
-    return { base::Vector2d(0.0, 1.0), base::Vector2d(0.0, 0.0) };
-
   // construct line segment and return it
-  const double m = sumXY / sumX;
-  const double t = avg.y() - m * avg.x();
+  // const double m = sumXY / sumX;
+  // const double t = avg.y() - m * avg.x();
+  // use instead phi and average point
 
-  return { std::atan2(sumXY, sumX), t };
+  return { std::atan2(sumXY, sumX), avg };
 }
 
 base::LineSegment fittingLineSegmentFromPoints(const base::VectorVector2d& points, const std::vector<std::size_t>& indices)

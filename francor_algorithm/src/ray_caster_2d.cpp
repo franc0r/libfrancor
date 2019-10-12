@@ -36,29 +36,35 @@ bool Ray2d::initialize(const std::size_t xIdx,
 
   assert(direction.norm() >= 0.99 && direction.norm() <= 1.01);
 
+  // take start index and max distance
+  _current_idx.x() = static_cast<int>(xIdx);
+  _current_idx.y() = static_cast<int>(yIdx);
+  _max_distance = distance;
+
+
   // select right operation according the direction vector
   _operation = Operation::NONE;
 
   if (direction.x() >= 0.0) _operation |= Operation::MOVE_RIGHT; else _operation |= Operation::MOVE_LEFT;
   if (direction.y() >= 0.0) _operation |= Operation::MOVE_DOWN;  else _operation |= Operation::MOVE_UP;
   
-  // take start index and max distance
-  _current_idx.x() = static_cast<int>(xIdx);
-  _current_idx.y() = static_cast<int>(yIdx);
-  _max_distance = distance;
+  // if (_operation & Operation::MOVE_LEFT) --_current_idx.x();
+  // if (_operation & Operation::MOVE_UP) --_current_idx.y();
+
 
   // calculate next x and y position of next y and x grid line.
   const double posNextGridLineX = cellPosition.x() + cellSize * 0.5;
   const double posNextGridLineY = cellPosition.y() + cellSize * 0.5;
-  const Line ray(direction, position);
+  const Line ray(Line::createFromVectorAndPoint(direction, position));
   std::cout << "pos next grid line x = " << posNextGridLineX << std::endl;
   std::cout << "pos next grid line y = " << posNextGridLineY << std::endl;
-  const auto intersectionNextCellX = ray.intersectionPoint(Line(Vector2d(0.0, 1.0), Vector2d(posNextGridLineX, 0.0)));
-  const auto intersectionNextCellY = ray.intersectionPoint(Line(Vector2d(1.0, 0.0), Vector2d(0.0, posNextGridLineY)));
-
+  const auto intersectionNextCellX = ray.intersectionPoint(Line::createFromVectorAndPoint(Vector2d(0.0, 1.0), Vector2d(posNextGridLineX, 0.0)));
+  const auto intersectionNextCellY = ray.intersectionPoint(Line::createFromVectorAndPoint(Vector2d(1.0, 0.0), Vector2d(0.0, posNextGridLineY)));
+  std::cout << "intersection x:" << std::endl << intersectionNextCellX << std::endl;
+  std::cout << "intersection y:" << std::endl << intersectionNextCellY << std::endl;
   // already get distances (m) of next iteration in x and y direction
-  _side_dist.x() = intersectionNextCellX.norm();
-  _side_dist.y() = intersectionNextCellY.norm();
+  _side_dist.x() = intersectionNextCellX.hasNaN() ? std::numeric_limits<double>::max() : (intersectionNextCellX - position).norm();
+  _side_dist.y() = intersectionNextCellY.hasNaN() ? std::numeric_limits<double>::max() : (intersectionNextCellY - position).norm();
   std::cout << "side dist:" << std::endl << _side_dist << std::endl;
 
   // calculate for each direction the step length

@@ -33,7 +33,7 @@ public:
    */
   LineSegment(const Vector2d p0, const Vector2d p1)
     : valid_(true),
-      line_((p1 - p0).normalized(), p0),
+      line_(Line::createFromTwoPoints(p0, p1)),
       p0_(p0),
       p1_(p1)
   {
