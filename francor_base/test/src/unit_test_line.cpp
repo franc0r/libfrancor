@@ -41,7 +41,7 @@ TEST(LineTest, ConstructFromVerticalVectorPoint)
 
   EXPECT_NEAR(line.phi(), M_PI_2,  1e-6);
   EXPECT_NEAR(line.x0(), 100.0, 1e-6);
-  EXPECT_TRUE(std::isnan(line.y0()));
+  EXPECT_NE(line.y0(), -1e10);
 }
 
 // check if m is calculated well from a negative pointing direction vector
@@ -61,8 +61,8 @@ TEST(LineTest, Normal)
   const auto v = Eigen::Vector2d(1.0, 3.0).normalized();
   const Line line(Line::createFromVectorAndPoint(v, { 0.0, 1.0 }));
 
-  EXPECT_NEAR(line.n().x(), -v.y(), 1e-6);
-  EXPECT_NEAR(line.n().y(),  v.x(), 1e-6);
+  EXPECT_NEAR(line.n().x(),  v.y(), 1e-6);
+  EXPECT_NEAR(line.n().y(), -v.x(), 1e-6);
 }
 
 TEST(LineTest, IntersectionPoint)

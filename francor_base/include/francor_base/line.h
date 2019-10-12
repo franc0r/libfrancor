@@ -44,7 +44,7 @@ public:
    * 
    * \return The normal of this line.
    */
-  inline Vector2d n() const { return { std::sin(_phi), -std::cos(_phi) }; }
+  inline Vector2d n() const { return { std::cos(_phi + M_PI_2), std::sin(_phi + M_PI_2) }; }
   inline Vector2d v() const { return { std::cos(_phi),  std::sin(_phi) }; }
   inline double x0() const { const double delta_x = _p.y() / std::tan(_phi); return _phi >= 0.0 ? _p.x() - delta_x : _p.x() + delta_x; }
   inline double y0() const { const double delta_y = _p.x() * std::tan(_phi); return _phi >= 0.0 ? _p.y() - delta_y : _p.x() + delta_y; }
@@ -90,7 +90,30 @@ public:
    */
   Vector2d intersectionPoint(const Line& line) const
   {
-    return { };
+    // p_x = intersection point
+    //
+    // p_x = p0 + s0 * v0 = p1 + s1 * v1
+    //
+    // ==> p_x.x = p0.x + s0 * v0.x = p1.x + s1 * v1.x
+    //     p_x.y = p0.y + s0 * v0.y = p1.y + s1 * v1.y
+    //
+    // ==> s1 = (p0.x + s0 * v0.x - p1.x) / v1.x
+    //
+    // ==> p0.y + s0 * v0.y = p1.y + (p0.x + s0 * v0.x - p1.x) * v1.y / v1.x
+    //     s0 * v0.y - s0 * (v0.x / v1.y) / v1.x = p1.y - p0.y + (p0.x - p1.x) * v1.y / v1.x
+    //     s0 * v0.y * v1.x - s0 * v0.x * v1.y = (p1.y - p0.y) * v1.x + (p0.x - p1.x) * v1.y
+    //
+    //          (p1.y - p0.y) * v1.x + (p0.x - p1.x) * v1.y      a
+    // ==> s0 = -------------------------------------------  =  ---
+    //                  v0.y * v1.x - v0.x * v1.y                b
+    // 
+    const auto v0 = this->v();
+    const auto v1 = line.v();
+    const double a = (line._p.y() - _p.y()) * v1.x() + (_p.x() - line._p.x()) * v1.y();
+    const double b = v0.y() * v1.x() - v0.x() * v1.y();
+    const double s0 = a / b;
+
+    return _p + v0 * s0;
   }
 
   static Line createFromVectorAndPoint(const Vector2d& v, const Vector2d& p)
