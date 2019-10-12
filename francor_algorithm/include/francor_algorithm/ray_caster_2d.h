@@ -66,7 +66,7 @@ public:
     {
       _operation = Operation::NONE;
     }
-
+    
     return *this;
   }
 

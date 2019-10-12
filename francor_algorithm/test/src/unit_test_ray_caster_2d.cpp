@@ -113,28 +113,28 @@ TEST(Ray, MoveDiagonalPositiveXY)
                                                                { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
                                                                { 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 },
                                                                { 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 },
-                                                               { 0, 0, 1, 1, 0, 0, 0, 0, 0, 0 },
-                                                               { 0, 0, 1, 0, 0, 0, 0, 0, 0, 0 },
+                                                               { 0, 0, 0, 1, 1, 0, 0, 0, 0, 0 },
+                                                               { 0, 0, 0, 0, 1, 0, 0, 0, 0, 0 },
                                                                { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
                                                                { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } } };
 
-  const Vector2d track(Vector2d(idxX - 1, idxY + 3) - Vector2d(idxX, idxY));
+  const Vector2d track(Vector2d(idxX + 1, idxY + 3) - Vector2d(idxX, idxY));
   const Vector2d direction(track.normalized());
-  Ray2d ray(Ray2d::create(idxX, idxY, { 1.0, 1.0 }, 0.1, { 1.0, 1.0 }, direction, track.norm()));
+  Ray2d ray(Ray2d::create(idxX, idxY, { 1.0, 1.0 }, 0.1, { 1.0, 1.0 }, direction, track.norm() * 0.1));
   std::size_t counter = 0;
 
   for (; ray; ++ray, ++counter)
   {
     const auto& current_idx = ray.getCurrentIndex();
-    EXPECT_EQ(grid[current_idx.x()][current_idx.y()], 1);
+    EXPECT_EQ(grid[current_idx.y()][current_idx.x()], 1);
   }
 
-  EXPECT_EQ(counter, 5);
+  EXPECT_EQ(counter, 4);
 }
 
 TEST(Ray, MoveDiagonalNegativeXY)
 {
-  constexpr std::size_t idxX = 2;
+  constexpr std::size_t idxX = 4;
   constexpr std::size_t idxY = 7;
   constexpr std::size_t grid_size = 10;
   std::array<std::array<int, grid_size>, grid_size> grid = { { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -143,23 +143,23 @@ TEST(Ray, MoveDiagonalNegativeXY)
                                                                { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
                                                                { 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 },
                                                                { 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 },
-                                                               { 0, 0, 1, 1, 0, 0, 0, 0, 0, 0 },
-                                                               { 0, 0, 1, 0, 0, 0, 0, 0, 0, 0 },
+                                                               { 0, 0, 0, 1, 1, 0, 0, 0, 0, 0 },
+                                                               { 0, 0, 0, 0, 1, 0, 0, 0, 0, 0 },
                                                                { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
                                                                { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } } };
 
-  const Vector2d track(Vector2d(idxX + 1, idxY - 3) - Vector2d(idxX, idxY));
+  const Vector2d track(Vector2d(idxX - 1, idxY - 3) - Vector2d(idxX, idxY));
   const Vector2d direction(track.normalized());
-  Ray2d ray(Ray2d::create(idxX, idxY, { 1.0, 1.0 }, 0.1, { 1.0, 1.0 }, direction, track.norm()));
+  Ray2d ray(Ray2d::create(idxX, idxY, { 1.0, 1.0 }, 0.1, { 1.0, 1.0 }, direction, track.norm() * 0.1));
   std::size_t counter = 0;
 
   for (; ray; ++ray, ++counter)
   {
     const auto& current_idx = ray.getCurrentIndex();
-    EXPECT_EQ(grid[current_idx.x()][current_idx.y()], 1);
+    EXPECT_EQ(grid[current_idx.y()][current_idx.x()], 1);
   }
 
-  EXPECT_EQ(counter, 5);
+  EXPECT_EQ(counter, 4);
 }
 
 int main(int argc, char **argv)

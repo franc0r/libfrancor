@@ -30,6 +30,11 @@ public:
   inline constexpr Type& y() noexcept { return _y; }
   inline constexpr Type y() const noexcept { return _y; }
 
+  inline constexpr bool isValid() const noexcept
+  {
+    return !std::isnan(_x) && !std::isnan(_y) && !std::isinf(_x) && !std::isinf(_y);
+  }
+
   inline constexpr Vector2<Type> operator-(const Point2dImpl& operant) const { return { operant._x - _x, operant._y - _y }; }
   inline constexpr Point2dImpl operator+(const Vector2<Type>& operant) const { return { _x + operant.x(), _y + operant.y() }; }
   inline constexpr Point2dImpl& operator+=(const Point2dImpl& operant) { _x += operant._x; _y += operant._y; return *this; }
