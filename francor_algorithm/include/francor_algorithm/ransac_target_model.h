@@ -39,7 +39,7 @@ public:
 
   virtual double error(const typename Input::type& data) const = 0;
   virtual bool estimate(const std::array<typename Input::type, Input::count>& modelData) = 0;
-  virtual typename Output::type fitData(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData,
+  virtual typename Output::type fitData(const std::vector<typename Input::type>& inputData,
                                         const std::vector<std::size_t>& indices) const = 0;
   inline constexpr const typename Output::type& model(void) const noexcept { return _model; }
 
@@ -50,7 +50,7 @@ protected:
 /**
  * Ransac model for lines.
  */
-class RansacLineModel : public RansacTargetModel<base::Vector2d, base::Line, 2>
+class RansacLineModel : public RansacTargetModel<base::Point2d, base::Line, 2>
 {
 public:
   RansacLineModel(void) = default;
@@ -68,7 +68,7 @@ public:
     return true;
   }
 
-  typename Output::type fitData(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData,
+  typename Output::type fitData(const std::vector<typename Input::type>& inputData,
                                         const std::vector<std::size_t>& indices) const final
   {
     return { fittingLineFromPoints(inputData, indices) };
@@ -78,7 +78,7 @@ public:
 /**
  * Ransac model for line segments.
  */
-class RansacLineSegmentModel : public RansacTargetModel<base::Vector2d, base::LineSegment, 2>
+class RansacLineSegmentModel : public RansacTargetModel<base::Point2d, base::LineSegment, 2>
 {
 public:
   RansacLineSegmentModel(void) = default;
@@ -96,7 +96,7 @@ public:
     return true;
   }
 
-  typename Output::type fitData(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData,
+  typename Output::type fitData(const std::vector<typename Input::type>& inputData,
                                 const std::vector<std::size_t>& indices) const final
   {
     return { fittingLineSegmentFromPoints(inputData, indices) };

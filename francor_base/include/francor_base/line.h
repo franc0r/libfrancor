@@ -9,6 +9,7 @@
 #include "francor_base/vector.h"
 #include "francor_base/log.h"
 #include "francor_base/angle.h"
+#include "francor_base/point.h"
 
 #include <ostream>
 
@@ -32,7 +33,7 @@ public:
    * \param x0 x-value of this line for y == 0. Note: that value is ussely set by this class automatically, but
    *        in case the angle is close to pi/2 or -pi/2 it helps a lot.
    */
-  Line(const Angle& angle = Angle(0.0), const Vector2d& point = Vector2d(0.0, 0.0))
+  Line(const Angle& angle = Angle(0.0), const Point2d& point = Point2d(0.0, 0.0))
     : _phi(angle),
       _p(point)
   {
@@ -72,7 +73,7 @@ public:
    * \param p The distance will be calculated to that point.
    * \return Distance to the point p.
    */
-  double distanceTo(const Vector2d p) const
+  double distanceTo(const Point2d p) const
   {
     const Vector2d hypotenuse = p - _p;
     const double hypotenuse_length = hypotenuse.norm();
@@ -88,7 +89,7 @@ public:
    * \param line Other line.
    * \return Intersection point of that two lines.
    */
-  Vector2d intersectionPoint(const Line& line) const
+  Point2d intersectionPoint(const Line& line) const
   {
     // p_x = intersection point
     //
@@ -116,12 +117,12 @@ public:
     return _p + v0 * s0;
   }
 
-  static Line createFromVectorAndPoint(const Vector2d& v, const Vector2d& p)
+  static Line createFromVectorAndPoint(const Vector2d& v, const Point2d& p)
   {
     assert(v.norm() - 1.0 <= 1e-6);
     return { std::atan2(v.y(), v.x()), p };
   }
-  static Line createFromTwoPoints(const Vector2d& p0, const Vector2d& p1)
+  static Line createFromTwoPoints(const Point2d& p0, const Point2d& p1)
   {
     assert(p0 != p1);
     const auto v = (p1 - p0).normalized();
@@ -130,10 +131,10 @@ public:
 
 private:
   NormalizedAngle _phi; //> angle in rad of the gradient regarding the x-axis
-  Vector2d _p; //> center point of this line
+  Point2d _p; //> center point of this line
 };
 
-using LineVector = std::vector<Line, Eigen::aligned_allocator<Line>>;
+using LineVector = std::vector<Line>;
 
 } // end namespace base
 

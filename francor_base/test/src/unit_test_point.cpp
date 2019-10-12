@@ -8,7 +8,7 @@
 
 #include "francor_base/point.h"
 
-using francor::base::Point;
+using francor::base::Point2d;
 
 TEST(Point2d, Instantiate)
 {

@@ -22,9 +22,9 @@ public:
   ~Ray2d() = default;
   static Ray2d create(const std::size_t xIdx,
                       const std::size_t yIdx,
-                      const base::Vector2d cellPosition,
+                      const base::Point2d cellPosition,
                       const double cellSize,
-                      const base::Vector2d position,
+                      const base::Point2d position,
                       const base::Vector2d direction,
                       const double distance);                
 
@@ -89,9 +89,9 @@ private:
 
   bool initialize(const std::size_t xIdx,
                   const std::size_t yIdx,
-                  const base::Vector2d cellPosition,
+                  const base::Point2d cellPosition,
                   const double cellSize,
-                  const base::Vector2d position,
+                  const base::Point2d position,
                   const base::Vector2d direction,
                   const double distance);             
 

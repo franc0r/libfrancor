@@ -10,57 +10,59 @@
 #include <ostream>
 #include <type_traits>
 
+#include "francor_base/vector.h"
+
 namespace francor {
 
 namespace base {
 
-template <std::size_t Element, typename Type, std::size_t Dimension, typename>
-class PointImpl;
-
-template <std::size_t Element, typename Type, std::size_t Dimension>
-class PointImpl<Element, Type, Dimension, std::enable_if_t<(Element >= Dimension), void>>
+template <typename Type>
+class Point2dImpl
 {
 public:
-  PointImpl() = default;
-};
+  constexpr Point2dImpl(const Type x = 0.0, const Type y = 0.0) : _x(x), _y(y) { }
+  Point2dImpl(const Point2dImpl&) = default;
+  Point2dImpl(Point2dImpl&&) = default;
+  ~Point2dImpl() = default;
 
-template <std::size_t Element, typename Type, std::size_t Dimension>
-class PointImpl<Element, Type, Dimension, std::enable_if_t<(Element < Dimension), void>> : public PointImpl<Element + 1, Type, Dimension, void>
-{
-public:
-  PointImpl() = default;
-  // template <typename ...Args, std::enable_if_t<sizeof...(Args) == Dimension> = 0>
-  // PointImpl(const Type valueElement, const Args... args) : PointImpl<Element + 1, Type, Dimension>(args...), _data(valueElement) { }
+  inline constexpr Type& x() noexcept { return _x; }
+  inline constexpr Type x() const noexcept { return _x; }
+  inline constexpr Type& y() noexcept { return _y; }
+  inline constexpr Type y() const noexcept { return _y; }
 
-  template <std::enable_if_t<Element == 0, int> = 0>
-  Type& x() { return _data; }
-  template <std::enable_if_t<Element != 0, int> = 0>
-  Type& x() { return _data; }
-  // template <std::enable_if_t<Element == 1, int> = 0>
-  // Type& y() { return _data; }
-  // template <std::enable_if_t<Element == 2, int> = 0>
-  // Type& z() { return _data; }
+  inline constexpr Vector2<Type> operator-(const Point2dImpl& operant) const { return { operant._x - _x, operant._y - _y }; }
+  inline constexpr Point2dImpl operator+(const Vector2<Type>& operant) const { return { _x + operant.x(), _y + operant.y() }; }
+  inline constexpr Point2dImpl& operator+=(const Point2dImpl& operant) { _x += operant._x; _y += operant._y; return *this; }
+  inline constexpr Point2dImpl& operator/=(const double operant) { _x /= operant; _y /= operant; return *this; }
 
+  inline constexpr bool operator==(const Point2dImpl& operant) const { return _x == operant._x && _y == operant._y; }
+  inline constexpr bool operator!=(const Point2dImpl& operant) const { return !this->operator==(operant); }
+
+  inline constexpr Point2dImpl& operator=(const Point2dImpl& operant) = default;
+  inline constexpr Point2dImpl& operator=(Point2dImpl&& operant) = default;
 
 private:
-  Type _data;
+  Type _x;
+  Type _y;
 };
 
-template <typename Type, std::size_t Dimension>
-using Point = PointImpl<0, Type, Dimension, void>;
+using Point2d = Point2dImpl<double>;
+
+using Point2dVector = std::vector<Point2d>;
 
 } // end namespace base
 
 } // end namespace francor
 
-// namespace std
-// {
+namespace std
+{
 
-// inline ostream& operator<<(ostream& os, const francor::base::Point& angle)
-// {
-//   os << "angle [radian = " << angle.radian() << ", degree = " << angle.degree() << "]";
+template <typename Type>
+inline ostream& operator<<(ostream& os, const francor::base::Point2dImpl<Type>& point)
+{
+  os << "[x = " << point.x() << ", y = " << point.y() << "]";
 
-//   return os;
-// }
+  return os;
+}
 
-// } // end namespace std
+} // end namespace std

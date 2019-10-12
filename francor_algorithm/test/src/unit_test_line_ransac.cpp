@@ -29,7 +29,7 @@ TEST(LineRansac, Instantiate)
 TEST(RansacLineModel, EstimateModelFromTwoPoints)
 {
   RansacLineModel model;
-  std::array<RansacLineModel::Input::type, RansacLineModel::Input::count> inputData = { Vector2d(0.0, 1.0), Vector2d(1.0, 1.0) };
+  std::array<RansacLineModel::Input::type, RansacLineModel::Input::count> inputData = {{ { 0.0, 1.0 }, { 1.0, 1.0 } }};
 
   ASSERT_TRUE(model.estimate(inputData));
 
@@ -43,21 +43,24 @@ TEST(RansacLineModel, EstimateModelFromTwoPoints)
 TEST(RansacLineModel, CalculateErrorToModel)
 {
   RansacLineModel model;
-  std::array<RansacLineModel::Input::type, RansacLineModel::Input::count> inputData = { Vector2d(0.0, 1.0), Vector2d(1.0, 1.0) };
+  std::array<RansacLineModel::Input::type, RansacLineModel::Input::count> inputData = {{ { 0.0, 1.0 }, { 1.0, 1.0 } }};
 
   ASSERT_TRUE(model.estimate(inputData));
 
-  const Vector2d point(0.5, 2.0);
+  const RansacLineModel::Input::type point(0.5, 2.0);
 
   EXPECT_NEAR(model.error(point), 1.0, 1e-3);
 }
 
 TEST(LineRansac, FindTwoLines)
 {
+  using francor::base::Point2dVector;
+  using francor::base::Point2d;
+
   LineRansac ransac;
-  const VectorVector2d inputPoints = { Vector2d(0.0, 1.0), Vector2d(1.0, 1.0), Vector2d(2.0, 1.0), Vector2d(3.0, 1.0), Vector2d(4.0, 1.0),
-                                       Vector2d(0.0, 3.0), Vector2d(1.0, 3.0), Vector2d(2.0, 3.0), Vector2d(3.0, 3.0), Vector2d(4.0, 3.0),
-                                       Vector2d(9.0, 9.0), Vector2d(5.0, 0.0) }; // the last two are outliers
+  const Point2dVector inputPoints = { { 0.0, 1.0 }, { 1.0, 1.0 }, { 2.0, 1.0 }, { 3.0, 1.0 }, { 4.0, 1.0 },
+                                      { 0.0, 3.0 }, { 1.0, 3.0 }, { 2.0, 3.0 }, { 3.0, 3.0 }, { 4.0, 3.0 },
+                                      { 9.0, 9.0 }, { 5.0, 0.0 } }; // the last two are outliers
 
   ransac.setEpsilon(0.1);
   ransac.setMaxIterations(10);

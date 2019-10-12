@@ -22,7 +22,7 @@ namespace algorithm {
  */
 class DetectLineSegments : public processing::ProcessingStage<>
 {
-  using VectorVector2d = francor::base::VectorVector2d;
+  using Point2dVector = francor::base::Point2dVector;
 
 public:
   DetectLineSegments(const unsigned int maxIterations = 100, const std::size_t minNumPoints = 2, const double epsilon = 0.3)
@@ -44,14 +44,14 @@ public:
     if (this->getInputs()[0].numOfConnections() > 0)
     {
       LogDebug() << this->name() << ": process with a single set of 2d points.";
-      _lines = _detector(this->getInputs()[0].data<VectorVector2d>());
+      _lines = _detector(this->getInputs()[0].data<Point2dVector>());
     }
     if (this->getInputs()[1].numOfConnections() > 0)
     {
-      LogDebug() << this->name() << ": process with " << this->getInputs()[1].data<std::vector<VectorVector2d>>().size()
+      LogDebug() << this->name() << ": process with " << this->getInputs()[1].data<std::vector<Point2dVector>>().size()
                  << " sets of 2d points.";
 
-      for (const auto& cluster : this->getInputs()[1].data<std::vector<VectorVector2d>>())
+      for (const auto& cluster : this->getInputs()[1].data<std::vector<Point2dVector>>())
       {
         base::LineSegmentVector lines(_detector(cluster));
         _lines.insert(_lines.end(), lines.begin(), lines.end());
@@ -71,8 +71,8 @@ private:
   }
   bool initializePorts() final
   {
-    this->initializeInputPort<VectorVector2d>(0, "2d points");
-    this->initializeInputPort<std::vector<VectorVector2d>>(1, "clustered 2d points");
+    this->initializeInputPort<Point2dVector>(0, "2d points");
+    this->initializeInputPort<std::vector<Point2dVector>>(1, "clustered 2d points");
 
     this->initializeOutputPort(0, "2d line segments", &_lines);
 
@@ -92,7 +92,7 @@ private:
  */
 class DetectLines : public processing::ProcessingStage<>
 {
-  using VectorVector2d = francor::base::VectorVector2d;
+  using Point2dVector = francor::base::Point2dVector;
   using LineVector = francor::base::LineVector;
 
 public:
@@ -125,14 +125,14 @@ public:
     if (this->input(IN_POINT).numOfConnections() > 0)
     {
       LogDebug() << this->name() << ": process with a single set of 2d points.";
-      _lines = _detector(this->input(IN_POINT).data<VectorVector2d>());
+      _lines = _detector(this->input(IN_POINT).data<Point2dVector>());
     }
     if (this->input(IN_CLUSTERED_POINT).numOfConnections() > 0)
     {
-      LogDebug() << this->name() << ": process with " << this->input(IN_CLUSTERED_POINT).data<std::vector<VectorVector2d>>().size()
+      LogDebug() << this->name() << ": process with " << this->input(IN_CLUSTERED_POINT).data<std::vector<Point2dVector>>().size()
                  << " sets of 2d points.";
 
-      for (const auto& cluster : this->input(IN_CLUSTERED_POINT).data<std::vector<VectorVector2d>>())
+      for (const auto& cluster : this->input(IN_CLUSTERED_POINT).data<std::vector<Point2dVector>>())
       {
         base::LineVector lines(_detector(cluster));
         _lines.insert(_lines.end(), lines.begin(), lines.end());
@@ -152,8 +152,8 @@ private:
   }
   bool initializePorts() final
   {
-    this->initializeInputPort<VectorVector2d>(IN_POINT, "2d points");
-    this->initializeInputPort<std::vector<VectorVector2d>>(IN_CLUSTERED_POINT, "clustered 2d points");
+    this->initializeInputPort<Point2dVector>(IN_POINT, "2d points");
+    this->initializeInputPort<std::vector<Point2dVector>>(IN_CLUSTERED_POINT, "clustered 2d points");
 
     this->initializeOutputPort(OUT_LINES, "2d lines", &_lines);
 

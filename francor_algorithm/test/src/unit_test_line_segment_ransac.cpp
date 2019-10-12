@@ -9,7 +9,7 @@
 #include "francor_algorithm/ransac.h"
 
 using francor::base::Vector2d;
-using francor::base::VectorVector2d;
+using francor::base::Point2dVector;
 using francor::base::LineSegment;
 using francor::base::LineSegmentVector;
 using francor::algorithm::RansacLineSegmentModel;
@@ -19,7 +19,7 @@ TEST(RansacLineSegmentModel, EstimateModel)
 {
   RansacLineSegmentModel model;
 
-  std::array<RansacLineSegmentModel::Input::type, RansacLineSegmentModel::Input::count> inputPoints = { Vector2d(2.0, 1.0), Vector2d(2.0, -1.0) };
+  std::array<RansacLineSegmentModel::Input::type, RansacLineSegmentModel::Input::count> inputPoints = {{ { 2.0, 1.0 }, { 2.0, -1.0 } }};
   ASSERT_TRUE(model.estimate(inputPoints));
 
   EXPECT_EQ(model.model().p0().x(), 2.0);
@@ -36,7 +36,7 @@ TEST(LineSegmentRansac, Instancitate)
 TEST(LineSegmentRansac, FindHorizontalLineSegment)
 {
   LineSegmentRansac ransac;
-  const VectorVector2d inputPoints = { Vector2d(-2.0, 1.0), Vector2d(-1.0, 1.0), Vector2d(0.0, 1.0), Vector2d(1.0, 1.0), Vector2d(2.0, 1.0) };
+  const Point2dVector inputPoints = { { -2.0, 1.0 }, { -1.0, 1.0 }, { 0.0, 1.0 }, { 1.0, 1.0 }, { 2.0, 1.0 } };
 
   ransac.setEpsilon(0.1);
   ransac.setMaxIterations(10);
@@ -55,7 +55,7 @@ TEST(LineSegmentRansac, FindHorizontalLineSegment)
 TEST(LineSegmentRansac, FindVerticalLineSegment)
 {
   LineSegmentRansac ransac;
-  const VectorVector2d inputPoints = { Vector2d(-2.0,  1.0), Vector2d(-2.0, -1.0), Vector2d(-2.0,  0.0), Vector2d(-2.0,  2.0), Vector2d(-2.0, -2.0) };
+  const Point2dVector inputPoints = { { -2.0,  1.0 }, { -2.0, -1.0 }, { -2.0,  0.0 }, { -2.0,  2.0 }, { -2.0, -2.0 } };
 
   ransac.setEpsilon(0.2);
   ransac.setMaxIterations(10);
@@ -74,7 +74,7 @@ TEST(LineSegmentRansac, FindVerticalLineSegment)
 TEST(LineSegmentRansac, FindDiagonalLineSegment)
 {
   LineSegmentRansac ransac;
-  const VectorVector2d inputPoints = { Vector2d(-2.0, -2.0), Vector2d(-1.0, -1.0), Vector2d(0.0,  0.0), Vector2d(1.0, 1.0), Vector2d(2.0, 2.0) };
+  const Point2dVector inputPoints = { { -2.0, -2.0 }, { -1.0, -1.0 }, { 0.0,  0.0 }, { 1.0, 1.0 }, { 2.0, 2.0 } };
 
   ransac.setEpsilon(0.1);
   ransac.setMaxIterations(10);
@@ -95,9 +95,9 @@ TEST(LineSegmentRansac, FindDiagonalLineSegment)
 TEST(LineSegmentRansac, FindTwoLineSegments)
 {
   LineSegmentRansac ransac;
-  const VectorVector2d inputPoints = { Vector2d(-2.0,  1.0), Vector2d(-2.0, -1.0), Vector2d(-2.0,  0.0), Vector2d(-2.0,  2.0), Vector2d(-2.0, -2.0),
-                                       Vector2d(12.0, 14.0), Vector2d(12.0, 13.0), Vector2d(12.0, 12.0), Vector2d(12.0, 11.0), Vector2d(12.0, 10.0),
-                                       Vector2d(33.0, 23.0), Vector2d(25.0, 33.0) }; // the last two are outliers
+  const Point2dVector inputPoints = { { -2.0,  1.0 }, { -2.0, -1.0 }, { -2.0,  0.0 }, { -2.0,  2.0 }, { -2.0, -2.0 },
+                                      { 12.0, 14.0 }, { 12.0, 13.0 }, { 12.0, 12.0 }, { 12.0, 11.0 }, { 12.0, 10.0 },
+                                      { 33.0, 23.0 }, { 25.0, 33.0 } }; // the last two are outliers
 
   ransac.setEpsilon(0.2);
   ransac.setMaxIterations(10);

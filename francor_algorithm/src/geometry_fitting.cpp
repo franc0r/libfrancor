@@ -6,14 +6,14 @@ namespace francor {
 
 namespace algorithm {
 
-base::Line fittingLineFromPoints(const base::VectorVector2d& points, const std::vector<std::size_t>& indices)
+base::Line fittingLineFromPoints(const base::Point2dVector& points, const std::vector<std::size_t>& indices)
 {
     // a line needs minium two points
   if (points.size() < 2)
     return { };
 
   // calculate the average point
-  base::Vector2d avg(0.0, 0.0);
+  base::Point2d avg(0.0, 0.0);
 
   if (indices.size() == 0)
   {
@@ -60,7 +60,7 @@ base::Line fittingLineFromPoints(const base::VectorVector2d& points, const std::
   return { std::atan2(sumXY, sumX), avg };
 }
 
-base::LineSegment fittingLineSegmentFromPoints(const base::VectorVector2d& points, const std::vector<std::size_t>& indices)
+base::LineSegment fittingLineSegmentFromPoints(const base::Point2dVector& points, const std::vector<std::size_t>& indices)
 {
   if (points.size() < 2 || indices.size() == 1)
   {
@@ -73,10 +73,10 @@ base::LineSegment fittingLineSegmentFromPoints(const base::VectorVector2d& point
 
   if (indices.size() == 0)
   {
-    const double minY = std::min_element(points.begin(), points.end(), [&] (const base::Vector2d& left, const base::Vector2d& right) { return left.y() < right.y(); })->y();
-    const double maxY = std::max_element(points.begin(), points.end(), [&] (const base::Vector2d& left, const base::Vector2d& right) { return left.y() > right.y(); })->y();
+    const double minY = std::min_element(points.begin(), points.end(), [&] (const base::Point2d& left, const base::Point2d& right) { return left.y() < right.y(); })->y();
+    const double maxY = std::max_element(points.begin(), points.end(), [&] (const base::Point2d& left, const base::Point2d& right) { return left.y() > right.y(); })->y();
 
-    return { base::Vector2d(line.x(minY), minY), base::Vector2d(line.x(maxY), maxY) };
+    return { base::Point2d(line.x(minY), minY), base::Point2d(line.x(maxY), maxY) };
   }
   else
   {
@@ -91,14 +91,14 @@ base::LineSegment fittingLineSegmentFromPoints(const base::VectorVector2d& point
                               ].y();             
 
     // TODO: search for min and max x values, too.
-    base::Vector2d p0(line.x(minY), minY);
-    base::Vector2d p1(line.x(maxY), maxY);
+    base::Point2d p0(line.x(minY), minY);
+    base::Point2d p1(line.x(maxY), maxY);
 
     if (std::isnan(p0.x()) || std::isnan(p1.x()))
     {
       base::LogInfo() << "fittingLineSegmentFromPoints(): estimated p0 and p1 contain a nan value. It seems they are "
                       << "too many possible x values (m == 0).";
-      return { base::Vector2d(-1.0, minY), base::Vector2d(1.0, maxY) };
+      return { base::Point2d(-1.0, minY), base::Point2d(1.0, maxY) };
     }
 
     return { p0, p1 };

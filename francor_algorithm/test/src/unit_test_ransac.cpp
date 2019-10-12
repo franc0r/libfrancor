@@ -40,7 +40,7 @@ public:
     _model_points_candidate = modelData;
     return true;
   }
-  virtual int fitData(const std::vector<int, Eigen::aligned_allocator<int>>& inputData,
+  virtual int fitData(const std::vector<int>& inputData,
                       const std::vector<std::size_t>& indices) const override final
   {
 
@@ -72,7 +72,7 @@ public:
     _model = modelData[0];
     return true;
   }
-  virtual int fitData(const std::vector<int, Eigen::aligned_allocator<int>>& inputData,
+  virtual int fitData(const std::vector<int>& inputData,
                       const std::vector<std::size_t>& indices) const override final
   {
     return _model;
@@ -86,7 +86,7 @@ TEST(Ransac, Instantiate)
 
 TEST(Ransac, ParameterMinNumPoints)
 {
-  const std::vector<int, Eigen::aligned_allocator<int>> inputData = { 0, 0, 0, 0, 0, 5, 5, 5, 5, 5 };
+  const std::vector<int> inputData = { 0, 0, 0, 0, 0, 5, 5, 5, 5, 5 };
   Ransac<RansacSameValueModel> ransac;
 
   ransac.setEpsilon(0.1);
@@ -118,7 +118,7 @@ TEST(Ransac, ParameterMinNumPoints)
 
 TEST(Ransac, ParameterEpsilon)
 {
-  const std::vector<int, Eigen::aligned_allocator<int>> inputData = { 0, 0, 0, 0, 0, 5, 5, 5, 5, 5 };
+  const std::vector<int> inputData = { 0, 0, 0, 0, 0, 5, 5, 5, 5, 5 };
   Ransac<RansacSameValueModel> ransac;
 
   ransac.setMinNumPoints(5);
@@ -149,7 +149,7 @@ TEST(Ransac, ParameterEpsilon)
 
 TEST(Ransac, ParameterMaxIterations)
 {
-  const std::vector<int, Eigen::aligned_allocator<int>> inputData = { 0, 0, 0, 0, 0, 5, 5, 5, 5, 5 };
+  const std::vector<int> inputData = { 0, 0, 0, 0, 0, 5, 5, 5, 5, 5 };
   Ransac<RansacSameValueModel> ransac;
 
   ransac.setMinNumPoints(2);
@@ -171,14 +171,14 @@ TEST(Ransac, ParameterMaxIterations)
 TEST(Ransac, GetRandomIndices)
 {
   // this test requires that each data was found by the ransac --> num of inputData must be even
-  const std::vector<int, Eigen::aligned_allocator<int>> inputData = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
+  const std::vector<int> inputData = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
   Ransac<RansacDummyModel> ransac;
 
   ransac.setMinNumPoints(2);
   ransac.setEpsilon(0.1);
   ransac.setMaxIterations(100);
 
-  const std::vector<int, Eigen::aligned_allocator<int>> foundModels = ransac(inputData);
+  const std::vector<int> foundModels = ransac(inputData);
 
   // check if each index was used once
   std::vector<unsigned int> countIndexUsage(inputData.size(), 0);
@@ -196,14 +196,14 @@ TEST(Ransac, GetRandomIndices)
 
 TEST(Ransac, ToLessInputData)
 {
-  const std::vector<int, Eigen::aligned_allocator<int>> inputData = { 0 };
+  const std::vector<int> inputData = { 0 };
   Ransac<RansacDummyModel> ransac;
 
   ransac.setMinNumPoints(2);
   ransac.setEpsilon(0.1);
   ransac.setMaxIterations(100);
 
-  const std::vector<int, Eigen::aligned_allocator<int>> foundModels = ransac(inputData);
+  const std::vector<int> foundModels = ransac(inputData);
 
   EXPECT_EQ(foundModels.size(), 0);
 }
@@ -211,14 +211,14 @@ TEST(Ransac, ToLessInputData)
 TEST(Ransac, FindThreeModels)
 {
   // ransac should find three models (groups) and ignore two outliers
-  const std::vector<int, Eigen::aligned_allocator<int>> inputData = { 0, 0, 0, 3, 0, 0, 5, 5, 5, 7, 5, 5, 9, 9, 9, 9, 9 };
+  const std::vector<int> inputData = { 0, 0, 0, 3, 0, 0, 5, 5, 5, 7, 5, 5, 9, 9, 9, 9, 9 };
   Ransac<RansacSameValueModel> ransac;
 
   ransac.setMinNumPoints(3);
   ransac.setEpsilon(0.1);
   ransac.setMaxIterations(100);
 
-  const std::vector<int, Eigen::aligned_allocator<int>> foundModels = ransac(inputData);
+  const std::vector<int> foundModels = ransac(inputData);
 
   ASSERT_EQ(foundModels.size(), 3);
 

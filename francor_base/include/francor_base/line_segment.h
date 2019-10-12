@@ -31,7 +31,7 @@ public:
    * \param p0 The begin of the segment.
    * \param p1 The end of the segment.
    */
-  LineSegment(const Vector2d p0, const Vector2d p1)
+  LineSegment(const Point2d p0, const Point2d p1)
     : valid_(true),
       line_(Line::createFromTwoPoints(p0, p1)),
       p0_(p0),
@@ -40,19 +40,19 @@ public:
 
   }
 
-  inline const Vector2d& p0(void) const noexcept { return p0_; }
-  inline const Vector2d& p1(void) const noexcept { return p1_; }
+  inline const Point2d& p0(void) const noexcept { return p0_; }
+  inline const Point2d& p1(void) const noexcept { return p1_; }
   inline const Line& line(void) const noexcept { return line_; }
   inline bool valid(void) const noexcept { return valid_; }
 
 private:
   bool valid_ = false;
   Line line_;
-  Vector2d p0_;
-  Vector2d p1_;
+  Point2d p0_;
+  Point2d p1_;
 };
 
-using LineSegmentVector = std::vector<LineSegment, Eigen::aligned_allocator<LineSegment>>;
+using LineSegmentVector = std::vector<LineSegment>;
 
 } // end namespace base
 
