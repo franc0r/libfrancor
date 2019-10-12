@@ -46,9 +46,9 @@ TEST(LineSegmentRansac, FindHorizontalLineSegment)
 
   ASSERT_EQ(result.size(), 1);
 
-  EXPECT_EQ(result[0].p0().x(),-1.0);
+  EXPECT_EQ(result[0].p0().x(),-2.0);
   EXPECT_EQ(result[0].p0().y(), 1.0);
-  EXPECT_EQ(result[0].p1().x(), 1.0);
+  EXPECT_EQ(result[0].p1().x(), 2.0);
   EXPECT_EQ(result[0].p1().y(), 1.0);
 }
 
@@ -65,9 +65,9 @@ TEST(LineSegmentRansac, FindVerticalLineSegment)
 
   ASSERT_EQ(result.size(), 1);
 
-  EXPECT_NEAR(result[0].p0().x(), -1.0, 1e-6);
+  EXPECT_NEAR(result[0].p0().x(), -2.0, 1e-6);
   EXPECT_NEAR(result[0].p0().y(), -2.0, 1e-6);
-  EXPECT_NEAR(result[0].p1().x(),  1.0, 1e-6);
+  EXPECT_NEAR(result[0].p1().x(), -2.0, 1e-6);
   EXPECT_NEAR(result[0].p1().y(),  2.0, 1e-6);
 }
 

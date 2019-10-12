@@ -34,7 +34,7 @@ base::Line fittingLineFromPoints(const base::Point2dVector& points, const std::v
   // calculate the sum (x - avg.x) * (y - avg.y) and (x - avg.x) * (x - avg.x)
   double sumXY = 0.0;
   double sumX  = 0.0;
-
+  
   if (indices.size() == 0)
   {
     for (const auto point : points)
@@ -57,6 +57,10 @@ base::Line fittingLineFromPoints(const base::Point2dVector& points, const std::v
   // const double t = avg.y() - m * avg.x();
   // use instead phi and average point
 
+  // happens only if x of all points are equal (vertical line)
+  if (sumX == 0.0)
+    return { M_PI_2, avg };
+  
   return { std::atan2(sumXY, sumX), avg };
 }
 
@@ -90,18 +94,35 @@ base::LineSegment fittingLineSegmentFromPoints(const base::Point2dVector& points
                                                  [&] (const std::size_t left, const std::size_t right) { return points[left].y() < points[right].y(); } )
                               ].y();             
 
-    // TODO: search for min and max x values, too.
-    base::Point2d p0(line.x(minY), minY);
-    base::Point2d p1(line.x(maxY), maxY);
-
-    if (std::isnan(p0.x()) || std::isnan(p1.x()))
+    if (minY != maxY)
     {
-      base::LogInfo() << "fittingLineSegmentFromPoints(): estimated p0 and p1 contain a nan value. It seems they are "
-                      << "too many possible x values (m == 0).";
-      return { base::Point2d(-1.0, minY), base::Point2d(1.0, maxY) };
+      if (std::abs(line.phi()) == M_PI_2)
+      {
+        return { base::Point2d(line.x0(), minY), base::Point2d(line.x0(), maxY) };
+      }
+      // else: normal case, expect valid x value
+      // TODO: search for min and max x values, too.
+      base::Point2d p0(line.x(minY), minY);
+      base::Point2d p1(line.x(maxY), maxY);
+      return { p0, p1 };
     }
+    else
+    // horizontal line -> search using x values
+    {
+      const double minX = points[*std::min_element(indices.begin(),
+                                                   indices.end(), 
+                                                   [&] (const std::size_t left, const std::size_t right) { return points[left].x() < points[right].x(); } )
+                                ].x();
 
-    return { p0, p1 };
+      const double maxX = points[*std::max_element(indices.begin(),
+                                                   indices.end(), 
+                                                   [&] (const std::size_t left, const std::size_t right) { return points[left].x() < points[right].x(); } )
+                                ].x();
+
+      base::Point2d p0(minX, line.y(minX));
+      base::Point2d p1(maxX, line.y(maxX));
+      return { p0, p1 };
+    }
   }
 }                                               
 

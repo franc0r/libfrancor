@@ -50,6 +50,7 @@ public:
   inline double x0() const { const double delta_x = _p.y() / std::tan(_phi); return _phi >= 0.0 ? _p.x() - delta_x : _p.x() + delta_x; }
   inline double y0() const { const double delta_y = _p.x() * std::tan(_phi); return _phi >= 0.0 ? _p.y() - delta_y : _p.x() + delta_y; }
   inline Angle phi() const { return _phi; }
+  inline const Point2d p() const noexcept { return _p; }
 
   /**
    * Calculates the y value for the given x value.
@@ -145,7 +146,7 @@ namespace std
 
 inline std::ostream& operator<<(std::ostream& os, const francor::base::Line& line)
 {
-  os << "line [phi = " << line.phi().radian() << ", y0 = " << line.y0() << "]";
+  os << "line [phi = " << line.phi().radian() << ", p = " << line.p() << "]";
 
   return os;
 }
