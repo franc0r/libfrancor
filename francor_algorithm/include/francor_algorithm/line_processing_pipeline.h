@@ -34,7 +34,7 @@ public:
   }
   ~DetectLineSegments(void) = default;
 
-  bool doProcess(const std::shared_ptr<void>&) final
+  bool doProcess() final
   {
     using francor::base::LogDebug;
 
@@ -115,7 +115,7 @@ public:
   }
   ~DetectLines(void) = default;
 
-  bool doProcess(const std::shared_ptr<void>&) final
+  bool doProcess() final
   {
     using francor::base::LogDebug;
 

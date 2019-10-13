@@ -5,12 +5,12 @@ namespace francor {
 namespace algorithm {
 
 Ray2d Ray2d::create(const std::size_t xIdx,
-                const std::size_t yIdx,
-                const base::Point2d cellPosition,
-                const double cellSize,
-                const base::Point2d position,
-                const base::Vector2d direction,
-                const double distance)
+                    const std::size_t yIdx,
+                    const base::Point2d cellPosition,
+                    const double cellSize,
+                    const base::Point2d position,
+                    const base::Vector2d direction,
+                    const double distance)
 {
   Ray2d ray;
 
@@ -24,12 +24,12 @@ Ray2d Ray2d::create(const std::size_t xIdx,
 }                
 
 bool Ray2d::initialize(const std::size_t xIdx,
-                     const std::size_t yIdx,
-                     const base::Point2d cellPosition,
-                     const double cellSize,
-                     const base::Point2d position,
-                     const base::Vector2d direction,
-                     const double distance)
+                       const std::size_t yIdx,
+                       const base::Point2d cellPosition,
+                       const double cellSize,
+                       const base::Point2d position,
+                       const base::Vector2d direction,
+                       const double distance)
 {
   using francor::base::Line;
   using francor::base::Vector2d;

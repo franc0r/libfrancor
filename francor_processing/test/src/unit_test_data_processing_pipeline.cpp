@@ -21,7 +21,7 @@ public:
   ~StageDummyIntToDouble() = default;
 
 private:
-  bool doProcess(const std::shared_ptr<void>&) final
+  bool doProcess() final
   {
     _value = static_cast<double>(this->getInputs()[0].data<int>());
     return true;

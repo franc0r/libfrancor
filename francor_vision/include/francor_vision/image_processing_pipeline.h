@@ -29,7 +29,7 @@ public:
     : processing::ProcessingStage<>("export clustered points from bit mask", 1, 1) {  }
   ~ExportClusteredPointsFromBitMask(void) = default;
 
-  bool doProcess(const std::shared_ptr<void>&) final
+  bool doProcess() final
   {
     // input data type safety check
     if (this->getInputs()[0].data<Image>().colourSpace() != vision::ColourSpace::BIT_MASK)
@@ -90,7 +90,7 @@ public:
     : processing::ProcessingStage<>("coloured image to bit mask", 1, 1) {  }
   ~ColouredImageToBitMask() = default;
 
-  bool doProcess(const std::shared_ptr<void>&) final
+  bool doProcess() final
   {
     // check colour space of input image
     if (this->getInputs()[0].data<Image>().colourSpace() != ColourSpace::BGR

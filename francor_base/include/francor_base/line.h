@@ -33,7 +33,7 @@ public:
    * \param x0 x-value of this line for y == 0. Note: that value is ussely set by this class automatically, but
    *        in case the angle is close to pi/2 or -pi/2 it helps a lot.
    */
-  Line(const Angle& angle = Angle(0.0), const Point2d& point = Point2d(0.0, 0.0))
+  constexpr Line(const Angle& angle = Angle(0.0), const Point2d& point = Point2d(0.0, 0.0))
     : _phi(angle),
       _p(point)
   {
@@ -47,10 +47,10 @@ public:
    */
   inline Vector2d n() const { return { std::cos(_phi + M_PI_2), std::sin(_phi + M_PI_2) }; }
   inline Vector2d v() const { return { std::cos(_phi),  std::sin(_phi) }; }
-  inline double x0() const { const double delta_x = _p.y() / std::tan(_phi); return _phi >= 0.0 ? _p.x() - delta_x : _p.x() + delta_x; }
-  inline double y0() const { const double delta_y = _p.x() * std::tan(_phi); return _phi >= 0.0 ? _p.y() - delta_y : _p.x() + delta_y; }
-  inline Angle phi() const { return _phi; }
-  inline const Point2d p() const noexcept { return _p; }
+  inline constexpr double x0() const { const double delta_x = _p.y() / std::tan(_phi); return _phi >= 0.0 ? _p.x() - delta_x : _p.x() + delta_x; }
+  inline constexpr double y0() const { const double delta_y = _p.x() * std::tan(_phi); return _phi >= 0.0 ? _p.y() - delta_y : _p.x() + delta_y; }
+  inline constexpr Angle phi() const noexcept { return _phi; }
+  inline constexpr const Point2d& p() const noexcept { return _p; }
 
   /**
    * Calculates the y value for the given x value.
@@ -58,7 +58,7 @@ public:
    * \param x The x value.
    * \return y The y value for given x value.
    */
-  inline double y(const double x) const { return std::tan(_phi) * x + _p.y(); }
+  inline constexpr double y(const double x) const { return std::tan(_phi) * x + _p.y(); }
 
   /**
    * Calculates the x value for the given y value.
@@ -66,7 +66,7 @@ public:
    * \param y The y value.
    * \return x The x value for the given y value.
    */
-  inline double x(const double y) const { return y / std::tan(_phi) + _p.x(); }
+  inline constexpr double x(const double y) const { return y / std::tan(_phi) + _p.x(); }
 
   /**
    * Calculates the distance along the normal of this line.

@@ -20,7 +20,7 @@ namespace francor
 namespace processing
 {
 
-template <typename DataStructureType = void>
+template <typename ...DataStructureType>
 class ProcessingPipeline : public DataInputOutput<data::SourcePort, data::DestinationPort>
 {
 public:
@@ -31,7 +31,7 @@ public:
   { }
   ~ProcessingPipeline(void) = default;
 
-  bool addStage(std::unique_ptr<ProcessingStage<DataStructureType>> stage)
+  bool addStage(std::unique_ptr<ProcessingStage<DataStructureType...>> stage)
   {
     using francor::base::LogError;
     using francor::base::LogDebug;
@@ -70,12 +70,12 @@ public:
     return true;
   }
 
-  bool process(const std::shared_ptr<DataStructureType>& data = std::shared_ptr<DataStructureType>())
+  bool process(const std::shared_ptr<DataStructureType>&... data)
   {
     bool ret = true;
 
     for (auto& stage : _stages)
-      ret &= stage->process(data);
+      ret &= stage->process(data...);
 
     return ret;
   }
@@ -90,7 +90,7 @@ private:
   {
     return std::find_if(_stages.begin(),
                         _stages.end(),
-                        [&] (const std::unique_ptr<ProcessingStage<DataStructureType>>& stage) { return stage->name() == stageName; } )
+                        [&] (const std::unique_ptr<ProcessingStage<DataStructureType...>>& stage) { return stage->name() == stageName; } )
            !=
            _stages.end();
   }
@@ -104,7 +104,7 @@ private:
   }
 
   const std::string _name;
-  std::vector<std::unique_ptr<ProcessingStage<DataStructureType>>> _stages;
+  std::vector<std::unique_ptr<ProcessingStage<DataStructureType...>>> _stages;
 };
 
 } // end namespace processing
