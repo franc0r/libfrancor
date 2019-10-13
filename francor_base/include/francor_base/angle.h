@@ -38,6 +38,8 @@ public:
 
   inline constexpr operator double() const noexcept { return _value; }
 
+  static constexpr Angle createFromDegree(const double angle) { return { convertToRadian(angle) }; }
+
 private:
   static constexpr double convertToDegree(const double value) { return value * 180.0 / M_PI; }
   static constexpr double convertToRadian(const double value) { return value * M_PI / 180.0; }

@@ -45,6 +45,36 @@ TEST(Ray, MoveInPositiveX)
   EXPECT_EQ(idxX, 10 + idxXOffset);
 }
 
+TEST(Ray, LoopModeBenchmark)
+{
+  // start von index (5, 0) = [ 1.0, 1.0 ] and walk in positive x-direction 1.0 meter distance.
+  constexpr std::size_t idxY = 0;
+  constexpr std::size_t idxXOffset = 5;
+  std::size_t idxX = idxXOffset;
+  Ray2d ray(Ray2d::create(idxX, idxY, 0.1, { 0.55, 0.05 }, { 1.0, 0.0 }, 10000000.0));
+
+  auto start = std::chrono::system_clock::now();
+  for (const auto& idx : ray) ;
+  auto end = std::chrono::system_clock::now();
+  auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+  std::cout << "elapsed = " << elapsed.count() << " ms" << std::endl;
+}
+
+TEST(Ray, IteratorBenchmark)
+{
+  // start von index (5, 0) = [ 1.0, 1.0 ] and walk in positive x-direction 1.0 meter distance.
+  constexpr std::size_t idxY = 0;
+  constexpr std::size_t idxXOffset = 5;
+  std::size_t idxX = idxXOffset;
+  Ray2d ray(Ray2d::create(idxX, idxY, 0.1, { 0.55, 0.05 }, { 1.0, 0.0 }, 10000000.0));
+
+  auto start = std::chrono::system_clock::now();
+  for (; ray; ++ray) ;
+  auto end = std::chrono::system_clock::now();
+  auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+  std::cout << "elapsed = " << elapsed.count() << " ms" << std::endl;
+}
+
 TEST(Ray, MoveInPositiveY)
 {
   // start von index (5, 0) = [ 1.0, 1.0 ] and walk in positive x-direction 1.0 meter distance.

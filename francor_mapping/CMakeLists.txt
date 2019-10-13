@@ -5,17 +5,20 @@ project(francor-mapping VERSION 0.1
 
 # find_package(Eigen3 REQUIRED NO_MODULE)
 
-add_library(${PROJECT_NAME} INTERFACE
+add_library(${PROJECT_NAME} SHARED
+  src/algorithm/tsd.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
-  INTERFACE $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/francor_mapping/include/>
-            $<INSTALL_INTERFACE:include/francor_mapping>
-            $<BUILD_INTERFACE:${EIGEN3_INCLUDE_DIRS}>
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/francor_mapping/include/>
+         $<INSTALL_INTERFACE:include/francor_mapping>
+         $<BUILD_INTERFACE:${EIGEN3_INCLUDE_DIRS}>
 )
 
 target_link_libraries(${PROJECT_NAME}
-  INTERFACE francor-base
+  PUBLIC
+  francor-base
+  francor-algorithm
 )
 
 add_subdirectory(test)
