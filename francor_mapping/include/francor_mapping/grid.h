@@ -183,6 +183,20 @@ public:
    */
   inline CellType& operator()(const std::size_t x, const std::size_t y) { return _data[y * _num_cells_x + x]; }
   inline const CellType& operator()(const std::size_t x, const std::size_t y) const { return _data[y * _num_cells_x + x]; }
+  /**
+   * \brief Estimates the index to the given x coordinate.
+   * 
+   * \param x x-cooridnate
+   * \return x index for given x-coordinate
+   */
+  inline std::size_t getIndexX(const double x) const { return static_cast<std::size_t>(x / _cell_size); }
+  /**
+   * \brief Estimates the index to the given y coordinate.
+   * 
+   * \param y y-cooridnate
+   * \return y index for given y-coordinate
+   */
+  inline std::size_t getIndexY(const double y) const { return static_cast<std::size_t>(y / _cell_size); }
 
 private:
   std::size_t _num_cells_x = 0; //> number of cells in x dimension

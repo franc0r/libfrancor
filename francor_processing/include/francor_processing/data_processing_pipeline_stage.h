@@ -95,7 +95,7 @@ public:
   virtual ~ProcessingStage() = default;
 
   template <typename ...ArgumentType>
-  bool process(const std::shared_ptr<ArgumentType>&... data)
+  bool process(ArgumentType&... data)
   {
     base::LogDebug() << "ProcessingStage (name = " << _name << "): processing...";
     
@@ -177,12 +177,12 @@ public:
   inline const std::string& name() const noexcept { return _name; }
 
 protected:
-  virtual bool doProcess(const std::shared_ptr<DataStructureType>&... data) = 0;
+  virtual bool doProcess(DataStructureType&... data) = 0;
   virtual bool doInitialization() = 0;
   virtual bool isReady() const = 0;
   virtual bool validateInputData() const { return true; }
   virtual bool validateOutputData() const { return true; }
-  virtual bool isDataConsistant(const std::shared_ptr<DataStructureType>&...) const { return true; }
+  virtual bool isDataConsistant(const DataStructureType&...) const { return true; }
   
 private:
   const std::string _name;

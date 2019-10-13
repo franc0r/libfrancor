@@ -19,10 +19,10 @@ namespace algorithm {
 class Ray2d
 {
 public:
+  Ray2d() = default;
   ~Ray2d() = default;
   static Ray2d create(const std::size_t xIdx,
                       const std::size_t yIdx,
-                      const base::Point2d cellPosition,
                       const double cellSize,
                       const base::Point2d position,
                       const base::Vector2d direction,
@@ -85,11 +85,8 @@ private:
     };
   };
 
-  Ray2d() = default;
-
   bool initialize(const std::size_t xIdx,
                   const std::size_t yIdx,
-                  const base::Point2d cellPosition,
                   const double cellSize,
                   const base::Point2d position,
                   const base::Vector2d direction,
