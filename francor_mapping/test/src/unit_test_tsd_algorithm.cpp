@@ -21,13 +21,21 @@ using francor::base::Angle;
 TEST(PushLaserScanToGrid, BasicFunction)
 {
   TsdGrid grid;
-  const std::vector<double> distances = { 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 }; 
-  constexpr Pose2d pose( { 5.0, 5.0 }, 0.0);
-  constexpr Angle phi_min = 
-  LaserScan scan(distances, pose, Angle().setDegree(-5.0), Angle().setDegree(5.0), Angle().setDegree(1.0));
+  const std::vector<double> distances(360, 12.0);// = { 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4 }; 
+  constexpr Pose2d pose_ego( { 100, 100 }, M_PI);
+  constexpr Pose2d pose_laser( { 0.0, 0.0 }, 0.0);
+  constexpr Angle phi_min  = Angle::createFromDegree(-180.0);
+  constexpr Angle phi_max  = Angle::createFromDegree( 180.0);
+  constexpr Angle phi_step = Angle::createFromDegree(1.0);
+  LaserScan scan(distances, pose_laser, phi_min, phi_max, phi_step);
 
-  ASSERT_TRUE(grid.init(100, 100, 0.1));
-
+  ASSERT_TRUE(grid.init(10000, 10000, 0.02));
+  auto start = std::chrono::system_clock::now();
+  pushLaserScanToGrid(grid, scan, pose_ego);
+  auto end = std::chrono::system_clock::now();
+  auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+  std::cout << "elapsed = " << elapsed.count() << " ms" << std::endl;
+  // std::cout << grid << std::endl;
 }
 
 

@@ -6,6 +6,7 @@
 #pragma once
 
 #include "francor_mapping/tsd_grid.h"
+#include "francor_mapping/algorihm/tsd.h"
 #include "francor_mapping/ego_object.h"
 
 #include <francor_base/laser_scan.h>
@@ -42,20 +43,7 @@ private:
 
     // get laser scan and create for each measurement (distance) an ray
     const auto& laser_scan = this->input(IN_LASER_SCAN).data<base::LaserScan>();
-    Angle current_phi = laser_scan.phiMin();
-    const std::size_t start_index_x = grid.getIndexX(laser_scan.pose().position().x());
-    const std::size_t start_index_y = grid.getIndexY(laser_scan.pose().position().y());
-
-    for (const auto& distance : laser_scan.distances())
-    {
-      const auto direction = Line(current_phi + laser_scan.pose().orientation()).v();
-      Ray2d ray(Ray2d::create(start_index_x, start_index_y, grid.cellSize(), laser_scan.pose().position(), v, distance));
-
-      for (const auto& idx : ray)
-        grid(idx.x(), idx.y()) = { 1.0, 1.0 }; // \todo replace constant value with tsd calculation function
-
-      current_phi += laser_scan.phiStep();
-    }
+    algorithm::tsd::pushLaserScanToGrid(grid, laser_scan, ego.pose());
 
     return true;
   }

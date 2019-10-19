@@ -37,6 +37,7 @@ public:
 
   inline constexpr Vector2<Type> operator-(const Point2dImpl& operant) const { return { operant._x - _x, operant._y - _y }; }
   inline constexpr Point2dImpl operator+(const Vector2<Type>& operant) const { return { _x + operant.x(), _y + operant.y() }; }
+  inline constexpr Point2dImpl operator+(const Point2dImpl& operant) const { return { _x + operant.x(), _y + operant.y() }; }
   inline constexpr Point2dImpl& operator+=(const Point2dImpl& operant) { _x += operant._x; _y += operant._y; return *this; }
   inline constexpr Point2dImpl& operator/=(const double operant) { _x /= operant; _y /= operant; return *this; }
 

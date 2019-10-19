@@ -5,6 +5,8 @@
  */
 #pragma once
 
+#include <francor_base/pose.h>
+
 #include "francor_mapping/tsd_grid.h"
 
 namespace francor {
@@ -20,7 +22,7 @@ namespace algorithm {
 namespace tsd {
 
 
-void pushLaserScanToGrid(TsdGrid& grid, const base::LaserScan& scan);
+void pushLaserScanToGrid(TsdGrid& grid, const base::LaserScan& scan, const base::Pose2d& pose_ego);
 
 
 } // end namespace tsd

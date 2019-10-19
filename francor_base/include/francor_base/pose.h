@@ -25,7 +25,7 @@ public:
 
 private:
   Point2d _position;
-  NormalizedAngle _orientation;
+  Angle _orientation;
 };
 
 } // end namespace base

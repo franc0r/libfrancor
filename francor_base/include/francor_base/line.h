@@ -11,6 +11,8 @@
 #include "francor_base/angle.h"
 #include "francor_base/point.h"
 
+#include "francor_base/algorithm/line.h"
+
 #include <ostream>
 
 namespace francor {
@@ -45,8 +47,8 @@ public:
    * 
    * \return The normal of this line.
    */
-  inline Vector2d n() const { return { std::cos(_phi + M_PI_2), std::sin(_phi + M_PI_2) }; }
-  inline Vector2d v() const { return { std::cos(_phi),  std::sin(_phi) }; }
+  inline Vector2d n() const { return algorithm::line::calculateV(_phi + M_PI_2); }
+  inline Vector2d v() const { return algorithm::line::calculateV(_phi); }
   inline constexpr double x0() const { const double delta_x = _p.y() / std::tan(_phi); return _phi >= 0.0 ? _p.x() - delta_x : _p.x() + delta_x; }
   inline constexpr double y0() const { const double delta_y = _p.x() * std::tan(_phi); return _phi >= 0.0 ? _p.y() - delta_y : _p.x() + delta_y; }
   inline constexpr Angle phi() const noexcept { return _phi; }
