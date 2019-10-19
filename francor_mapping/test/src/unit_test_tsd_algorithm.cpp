@@ -22,14 +22,14 @@ TEST(PushLaserScanToGrid, BasicFunction)
 {
   TsdGrid grid;
   const std::vector<double> distances(360, 12.0);// = { 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4 }; 
-  constexpr Pose2d pose_ego( { 100, 100 }, M_PI);
+  constexpr Pose2d pose_ego( { 10, 10 }, M_PI);
   constexpr Pose2d pose_laser( { 0.0, 0.0 }, 0.0);
   constexpr Angle phi_min  = Angle::createFromDegree(-180.0);
   constexpr Angle phi_max  = Angle::createFromDegree( 180.0);
   constexpr Angle phi_step = Angle::createFromDegree(1.0);
   LaserScan scan(distances, pose_laser, phi_min, phi_max, phi_step);
 
-  ASSERT_TRUE(grid.init(10000, 10000, 0.02));
+  ASSERT_TRUE(grid.init(10000, 100000, 0.02));
   auto start = std::chrono::system_clock::now();
   pushLaserScanToGrid(grid, scan, pose_ego);
   auto end = std::chrono::system_clock::now();

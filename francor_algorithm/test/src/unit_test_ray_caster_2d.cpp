@@ -15,13 +15,13 @@ using francor::base::Vector2d;
 
 TEST(Ray, CreateUsingStaticFunction)
 {
-  Ray2d ray(Ray2d::create(0, 0, 0.1, { 0.0, 0.0 }, { 1.0, 0.0 }, 1.0));
+  Ray2d ray(Ray2d::create(0, 0, 100, 100, 0.1, { 0.0, 0.0 }, { 1.0, 0.0 }, 1.0));
 }
 
 TEST(Ray, BoolOperator)
 {
   // start von index (5, 0) = [ 1.0, 1.0 ] and walk in positive x-direction 1.0 meter distance.
-  Ray2d ray(Ray2d::create(5, 0, 0.1, { 0.5, 0.0 }, { 1.0, 0.0 }, 1.0));
+  Ray2d ray(Ray2d::create(5, 0, 100, 100, 0.1, { 0.5, 0.0 }, { 1.0, 0.0 }, 1.0));
 
   EXPECT_TRUE(ray);
 }
@@ -32,7 +32,7 @@ TEST(Ray, MoveInPositiveX)
   constexpr std::size_t idxY = 0;
   constexpr std::size_t idxXOffset = 5;
   std::size_t idxX = idxXOffset;
-  Ray2d ray(Ray2d::create(idxX, idxY, 0.1, { 0.55, 0.05 }, { 1.0, 0.0 }, 1.0));
+  Ray2d ray(Ray2d::create(idxX, idxY, 100, 100, 0.1, { 0.55, 0.05 }, { 1.0, 0.0 }, 1.0));
 
   for (; ray; ++ray, ++idxX)
   {
@@ -51,7 +51,7 @@ TEST(Ray, LoopModeBenchmark)
   constexpr std::size_t idxY = 0;
   constexpr std::size_t idxXOffset = 5;
   std::size_t idxX = idxXOffset;
-  Ray2d ray(Ray2d::create(idxX, idxY, 0.1, { 0.55, 0.05 }, { 1.0, 0.0 }, 10000000.0));
+  Ray2d ray(Ray2d::create(idxX, idxY, 100, 100, 0.1, { 0.55, 0.05 }, { 1.0, 0.0 }, 10000000.0));
 
   auto start = std::chrono::system_clock::now();
   for (const auto& idx : ray) ;
@@ -66,7 +66,7 @@ TEST(Ray, IteratorBenchmark)
   constexpr std::size_t idxY = 0;
   constexpr std::size_t idxXOffset = 5;
   std::size_t idxX = idxXOffset;
-  Ray2d ray(Ray2d::create(idxX, idxY, 0.1, { 0.55, 0.05 }, { 1.0, 0.0 }, 10000000.0));
+  Ray2d ray(Ray2d::create(idxX, idxY, 100, 100, 0.1, { 0.55, 0.05 }, { 1.0, 0.0 }, 10000000.0));
 
   auto start = std::chrono::system_clock::now();
   for (; ray; ++ray) ;
@@ -81,7 +81,7 @@ TEST(Ray, MoveInPositiveY)
   constexpr std::size_t idxX = 0;
   constexpr std::size_t idxYOffset = 5;
   std::size_t idxY = idxYOffset;
-  Ray2d ray(Ray2d::create(idxX, idxY, 0.1, { 0.0, 0.51 }, { 0.0, 1.0 }, 1.0));
+  Ray2d ray(Ray2d::create(idxX, idxY, 0.1, 100, 100, { 0.0, 0.51 }, { 0.0, 1.0 }, 1.0));
 
   for (; ray; ++ray, ++idxY)
   {
@@ -100,7 +100,7 @@ TEST(Ray, MoveInNegativeX)
   constexpr std::size_t idxY = 0;
   constexpr std::size_t idxXOffset = 15;
   std::size_t idxX = idxXOffset;
-  Ray2d ray(Ray2d::create(idxX, idxY, 0.1, { 1.51, 0.0 }, { -1.0, 0.0 }, 1.0));
+  Ray2d ray(Ray2d::create(idxX, idxY, 100, 100, 0.1, { 1.51, 0.0 }, { -1.0, 0.0 }, 1.0));
 
   for (; ray; ++ray, --idxX)
   {
@@ -119,7 +119,7 @@ TEST(Ray, MoveInNegativeY)
   constexpr std::size_t idxX = 0;
   constexpr std::size_t idxYOffset = 15;
   std::size_t idxY = idxYOffset;
-  Ray2d ray(Ray2d::create(idxX, idxY, 0.1, { 0.0, 1.51 }, { 0.0, -1.0 }, 1.0));
+  Ray2d ray(Ray2d::create(idxX, idxY, 100, 100, 0.1, { 0.0, 1.51 }, { 0.0, -1.0 }, 1.0));
 
   for (; ray; ++ray, --idxY)
   {
@@ -150,7 +150,7 @@ TEST(Ray, MoveDiagonalPositiveXY)
 
   const Vector2d track(Vector2d(idxX + 1, idxY + 3) - Vector2d(idxX, idxY));
   const Vector2d direction(track.normalized());
-  Ray2d ray(Ray2d::create(idxX, idxY, 0.1, { 0.31, 0.41 }, direction, track.norm() * 0.1));
+  Ray2d ray(Ray2d::create(idxX, idxY, grid_size, grid_size, 0.1, { 0.31, 0.41 }, direction, track.norm() * 0.1));
   std::size_t counter = 0;
 
   for (; ray; ++ray, ++counter)
@@ -180,7 +180,7 @@ TEST(Ray, MoveDiagonalNegativeXY)
 
   const Vector2d track(Vector2d(idxX - 1, idxY - 3) - Vector2d(idxX, idxY));
   const Vector2d direction(track.normalized());
-  Ray2d ray(Ray2d::create(idxX, idxY, 0.1, { 0.41, 0.71 }, direction, track.norm() * 0.1));
+  Ray2d ray(Ray2d::create(idxX, idxY, grid_size, grid_size, 0.1, { 0.41, 0.71 }, direction, track.norm() * 0.1));
   std::size_t counter = 0;
 
   for (; ray; ++ray, ++counter)

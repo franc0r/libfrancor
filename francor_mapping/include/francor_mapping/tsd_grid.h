@@ -17,7 +17,15 @@ struct TsdCell
   double weight = 0.0;
 };
 
-using TsdGrid = Grid<TsdCell>;
+class TsdGrid : public Grid<TsdCell>
+{
+public:
+  inline void setMaxTruncation(const double max_truncation) noexcept { _max_truncation = max_truncation; }
+  inline double getMaxTruncation() const noexcept { return _max_truncation; }
+  
+private:
+  double _max_truncation = 100.0;
+};
 
 } // end namespace mapping
 

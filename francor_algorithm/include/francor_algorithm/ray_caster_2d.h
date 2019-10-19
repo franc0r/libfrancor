@@ -33,6 +33,8 @@ public:
   ~Ray2d() = default;
   static Ray2d create(const std::size_t xIdx,
                       const std::size_t yIdx,
+                      const std::size_t numCellsX,
+                      const std::size_t numcellsY,
                       const double cellSize,
                       const base::Point2d position,
                       const base::Vector2d direction,
@@ -78,7 +80,15 @@ public:
 
   bool operator!=(const iterator& operant) const
   {
-    return _side_dist.x() < operant._side_dist.x() || _side_dist.y() < operant._side_dist.y();
+    return (_side_dist.x() < operant._side_dist.x() || _side_dist.y() < operant._side_dist.y())
+           &&
+           _current_idx.x() < operant._current_idx.x()
+           &&
+           _current_idx.x() >= 0
+           &&
+           _current_idx.y() < operant._current_idx.y()
+           &&
+           _current_idx.y() >= 0;
   }
   const base::Vector2i& operator*() const { return _current_idx; }
 
@@ -90,7 +100,7 @@ public:
   };
 
   iterator begin() const { return { _current_idx, _side_dist, _delta_dist, _operation }; }
-  iterator end() const { return { _current_idx, { _max_distance, _max_distance }, _delta_dist, Operation::NONE }; }
+  iterator end() const { return { _max_idx, { _max_distance, _max_distance }, _delta_dist, Operation::NONE }; }
 
   inline operator bool() const
   {
@@ -126,7 +136,15 @@ public:
     }
 
     // if both reached max distance clear operation
-    if (_side_dist.x() >= _max_distance && _side_dist.y() >= _max_distance)
+    if ((_side_dist.x() >= _max_distance && _side_dist.y() >= _max_distance)
+        ||
+        _current_idx.x() >= _max_idx.x()
+        ||
+        _current_idx.y() >= _max_idx.y()
+        ||
+        _current_idx.x() == 0
+        ||
+        _current_idx.y() == 0)
     {
       _operation = Operation::NONE;
     }
@@ -141,6 +159,8 @@ public:
 private:
   bool initialize(const std::size_t xIdx,
                   const std::size_t yIdx,
+                  const std::size_t numCellsX,
+                  const std::size_t numcellsY,
                   const double cellSize,
                   const base::Point2d position,
                   const base::Vector2d direction,
@@ -148,6 +168,7 @@ private:
 
 
   base::Vector2i _current_idx; //> current x and y index on the map/grid
+  base::Vector2i _max_idx;     //> the maximum valid index of the map/grid
   base::Vector2d _side_dist;   //> length of ray from start position to current position
   base::Vector2d _delta_dist;  //> length of ray from one x or y-side to next x or y-side
   double _max_distance; //> the maximum length of the ray. If max is reached the caster will terminate

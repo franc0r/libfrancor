@@ -5,7 +5,8 @@
 
 #include <limits>
 
-#include "francor_base/log.h"
+#include <francor_base/log.h>
+#include <francor_base/point.h>
 
 namespace francor {
 
@@ -197,6 +198,17 @@ public:
    * \return y index for given y-coordinate
    */
   inline std::size_t getIndexY(const double y) const { return static_cast<std::size_t>(y / _cell_size); }
+  /**
+   * \brief Returns the position of the selected cell.
+   * 
+   * \param x The x index of the wanted cell.
+   * \param y The y index of the wanted cell.
+   * \return the position (mid) of the selected cell in meter.
+   */
+  inline base::Point2d getCellPosition(const std::size_t x, const std::size_t y) const
+  {
+    return { x * _cell_size + 0.5 * _cell_size, y * _cell_size + 0.5 * _cell_size };
+  }
 
 private:
   std::size_t _num_cells_x = 0; //> number of cells in x dimension

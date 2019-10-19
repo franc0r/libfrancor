@@ -29,6 +29,7 @@ void pushLaserScanToGrid(TsdGrid& grid, const base::LaserScan& laser_scan, const
   Angle current_phi = laser_scan.phiMin();
   const std::size_t start_index_x = grid.getIndexX(laser_scan.pose().position().x() + pose_ego.position().x());
   const std::size_t start_index_y = grid.getIndexY(laser_scan.pose().position().y() + pose_ego.position().y());
+  const double max_truncation = grid.getMaxTruncation();
 
   for (const auto& distance : laser_scan.distances())
   {
@@ -37,11 +38,12 @@ void pushLaserScanToGrid(TsdGrid& grid, const base::LaserScan& laser_scan, const
     // std::cout << "phi = " << phi << std::endl;
     const auto direction = base::algorithm::line::calculateV(phi);
     // std::cout << "direction:" << std::endl << direction << std::endl;
-    Ray2d ray(Ray2d::create(start_index_x, start_index_y, grid.getCellSize(), position, direction, distance));
+    Ray2d ray(Ray2d::create(start_index_x, start_index_y, grid.getNumCellsX(), grid.getNumCellsY(), grid.getCellSize(), position, direction, distance));
     std::size_t counter = 0;
     for (const auto& idx : ray)
     {
-      grid(idx.x(), idx.y()) = { 1.0, 1.0 }; // \todo replace constant value with tsd calculation function
+      const auto sdf = algorithm::tsd::calculateSdf(grid.getCellPosition(idx.x(), idx.y()), position, distance);
+      algorithm::tsd::updateTsdCell(grid(idx.x(), idx.y()), sdf, max_truncation); // \todo replace constant value with tsd calculation function
       // std::cout << "idx = (" << idx.x() << ", " << idx.y() << std::endl;
       ++counter;
     }

@@ -6,6 +6,8 @@ namespace algorithm {
 
 Ray2d Ray2d::create(const std::size_t xIdx,
                     const std::size_t yIdx,
+                    const std::size_t numCellsX,
+                    const std::size_t numCellsY,                    
                     const double cellSize,
                     const base::Point2d position,
                     const base::Vector2d direction,
@@ -13,7 +15,7 @@ Ray2d Ray2d::create(const std::size_t xIdx,
 {
   Ray2d ray;
 
-  if (!ray.initialize(xIdx, yIdx, cellSize, position, direction, distance))
+  if (!ray.initialize(xIdx, yIdx, numCellsX, numCellsY, cellSize, position, direction, distance))
   {
     base::LogError() << "Ray: error occurred during initialization. Return uninitialized ray.";
     return { };
@@ -24,6 +26,8 @@ Ray2d Ray2d::create(const std::size_t xIdx,
 
 bool Ray2d::initialize(const std::size_t xIdx,
                        const std::size_t yIdx,
+                       const std::size_t numCellsX,
+                       const std::size_t numCellsY,
                        const double cellSize,
                        const base::Point2d position,
                        const base::Vector2d direction,
@@ -46,6 +50,10 @@ bool Ray2d::initialize(const std::size_t xIdx,
   _current_idx.x() = static_cast<int>(xIdx);
   _current_idx.y() = static_cast<int>(yIdx);
   _max_distance = distance;
+  _max_idx.x() = numCellsX;
+  _max_idx.y() = numCellsY;
+
+  // calculate cell position (mid)
   const Point2d cellPosition((static_cast<double>(_current_idx.x()) + 0.5) * cellSize,
                              (static_cast<double>(_current_idx.y()) + 0.5) * cellSize);
 
