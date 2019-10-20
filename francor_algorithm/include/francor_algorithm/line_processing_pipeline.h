@@ -17,16 +17,18 @@ namespace francor {
 
 namespace algorithm {
 
+using francor::processing::NoDataType;
+
 /**
  * \brief This class searches lines in a 2d point set using a line ransac.
  */
-class DetectLineSegments : public processing::ProcessingStage<>
+class DetectLineSegments : public processing::ProcessingStage<NoDataType>
 {
   using Point2dVector = francor::base::Point2dVector;
 
 public:
   DetectLineSegments(const unsigned int maxIterations = 100, const std::size_t minNumPoints = 2, const double epsilon = 0.3)
-    : processing::ProcessingStage<>("detect line segments", 2, 1)
+    : processing::ProcessingStage<NoDataType>("detect line segments", 2, 1)
   {
     _detector.setMaxIterations(maxIterations);
     _detector.setMinNumPoints(minNumPoints);
@@ -34,7 +36,7 @@ public:
   }
   ~DetectLineSegments(void) = default;
 
-  bool doProcess() final
+  bool doProcess(NoDataType&) final
   {
     using francor::base::LogDebug;
 
@@ -90,7 +92,7 @@ private:
 /**
  * \brief This class searches lines in a 2d point set using a line ransac.
  */
-class DetectLines : public processing::ProcessingStage<>
+class DetectLines : public processing::ProcessingStage<NoDataType>
 {
   using Point2dVector = francor::base::Point2dVector;
   using LineVector = francor::base::LineVector;
@@ -107,7 +109,7 @@ public:
   };
 
   DetectLines(const unsigned int maxIterations = 100, const std::size_t minNumPoints = 2, const double epsilon = 0.3)
-    : processing::ProcessingStage<>("detect lines", COUNT_INPUTS, COUNT_OUTPUTS)
+    : processing::ProcessingStage<NoDataType>("detect lines", COUNT_INPUTS, COUNT_OUTPUTS)
   {
     _detector.setMaxIterations(maxIterations);
     _detector.setMinNumPoints(minNumPoints);
@@ -115,7 +117,7 @@ public:
   }
   ~DetectLines(void) = default;
 
-  bool doProcess() final
+  bool doProcess(NoDataType&) final
   {
     using francor::base::LogDebug;
 

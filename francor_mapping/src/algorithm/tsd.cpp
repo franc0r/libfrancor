@@ -35,16 +35,15 @@ void pushLaserScanToGrid(TsdGrid& grid, const base::LaserScan& laser_scan, const
   {
     const Point2d position = laser_scan.pose().position() + pose_ego.position();
     const Angle phi = current_phi + laser_scan.pose().orientation() + pose_ego.orientation();
-    // std::cout << "phi = " << phi << std::endl;
     const auto direction = base::algorithm::line::calculateV(phi);
-    // std::cout << "direction:" << std::endl << direction << std::endl;
+
     Ray2d ray(Ray2d::create(start_index_x, start_index_y, grid.getNumCellsX(), grid.getNumCellsY(), grid.getCellSize(), position, direction, distance));
     std::size_t counter = 0;
+
     for (const auto& idx : ray)
     {
       const auto sdf = algorithm::tsd::calculateSdf(grid.getCellPosition(idx.x(), idx.y()), position, distance);
       algorithm::tsd::updateTsdCell(grid(idx.x(), idx.y()), sdf, max_truncation); // \todo replace constant value with tsd calculation function
-      // std::cout << "idx = (" << idx.x() << ", " << idx.y() << std::endl;
       ++counter;
     }
 

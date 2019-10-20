@@ -82,7 +82,7 @@ private:
   std::vector<OutputType> _output_ports;
 };
 
-template <typename ...DataStructureType>
+template <typename DataStructureType>
 class ProcessingStage : public DataInputOutput<data::InputPort, data::OutputPort>
 {
 protected:
@@ -94,8 +94,7 @@ protected:
 public:
   virtual ~ProcessingStage() = default;
 
-  template <typename ...ArgumentType>
-  bool process(ArgumentType&... data)
+  bool process(DataStructureType& data)
   {
     base::LogDebug() << "ProcessingStage (name = " << _name << "): processing...";
     
@@ -114,7 +113,7 @@ public:
       return false;
     }
     // check if data structure data is valid
-    if (!this->isDataConsistant(data...))
+    if (!this->isDataConsistant(data))
     {
       base::LogError() << "ProcessingStage (name = " << _name << "): data structure is not consistent. Cancel processing.";
       // TODO: throw exception
@@ -122,17 +121,7 @@ public:
     }
 
     // process
-    bool ret_process = false;
-
-    if constexpr (sizeof...(DataStructureType) != 0) {
-      static_assert(std::is_same<ArgumentType..., DataStructureType...>::value, "argument types must be fit to the data structure type");
-      ret_process = this->doProcess(data...);
-    }
-    else {
-      ret_process = this->doProcess();
-    }
-
-    if (!ret_process)
+    if (!this->doProcess(data))
     {
       base::LogError() << "ProcessingStage (name = " << _name << "): error occurred during processing.";
       // TODO: throw exception
@@ -148,7 +137,7 @@ public:
     }
     // TODO: add diagnostic
 
-    if (!this->isDataConsistant(data...))
+    if (!this->isDataConsistant(data))
     {
       base::LogError() << "ProcessingStage (name = " << _name << "): data structure is not consistent. Cancel processing.";
       // TODO: throw exception
@@ -177,17 +166,18 @@ public:
   inline const std::string& name() const noexcept { return _name; }
 
 protected:
-  virtual bool doProcess(DataStructureType&... data) = 0;
+  virtual bool doProcess(DataStructureType& data) = 0;
   virtual bool doInitialization() = 0;
   virtual bool isReady() const = 0;
   virtual bool validateInputData() const { return true; }
   virtual bool validateOutputData() const { return true; }
-  virtual bool isDataConsistant(const DataStructureType&...) const { return true; }
+  virtual bool isDataConsistant(const DataStructureType&) const { return true; }
   
 private:
   const std::string _name;
 };
 
+using NoDataType = bool;
 
 } // end namespace processing
 

@@ -20,9 +20,12 @@ namespace francor
 namespace processing
 {
 
-template <typename ...DataStructureType>
+
+template <typename DataStructureType, class... Stages>
 class ProcessingPipeline : public DataInputOutput<data::SourcePort, data::DestinationPort>
 {
+  static constexpr std::size_t _num_stages = sizeof...(Stages);
+
 public:
   ProcessingPipeline(void) = delete;
   ProcessingPipeline(const std::string& name, const std::size_t numOfInputs, const std::size_t numOfOutputs)
@@ -30,24 +33,6 @@ public:
       _name(name)
   { }
   ~ProcessingPipeline(void) = default;
-
-  bool addStage(std::unique_ptr<ProcessingStage<DataStructureType...>> stage)
-  {
-    using francor::base::LogError;
-    using francor::base::LogDebug;
-    LogDebug() << "DataProcessingPipeline: try to add stage \"" << stage->name() << "\" to pipeline.";
-
-    if (this->containStageByName(stage->name()))
-    {
-      LogError() << "DataProcessingPipeline: stage with same name is already included. Can't add to stage \""
-                 << stage->name() << "\" to pipeline.";
-      return false;
-    }
-
-    LogDebug() << "DataProcessingPipeline: stage \"" << stage->name() << "\" successfully added to pipeline.";
-    _stages.push_back(std::move(stage));
-    return true;
-  }
 
   bool initialize()
   {
@@ -58,6 +43,12 @@ public:
 
     // initialize input and output ports of this pipeline
     this->initializePorts();
+
+    if (!this->initializeStages())
+    {
+      LogError() << "DataProcessingPipeline (name = " << _name << "): error occurred during initialization of stages.";
+      return false;
+    }
 
     // configure all stages.
     if (!this->configureStages())
@@ -70,41 +61,61 @@ public:
     return true;
   }
 
-  bool process(const std::shared_ptr<DataStructureType>&... data)
+  template<typename... ArgumentTypes>
+  bool process(ArgumentTypes&... data)
   {
-    bool ret = true;
+    static_assert(_num_stages > 0, "ProcessingPipeline: no processing stage is added. Minimum one is required to process the pipeline");
+    static_assert(sizeof...(ArgumentTypes) <= 1, "ProcessingPipeline::process() does only support one argument.");
 
-    for (auto& stage : _stages)
-      ret &= stage->process(data...);
-
-    return ret;
+    if constexpr (sizeof...(ArgumentTypes) == 0)
+    {
+      NoDataType dummy;
+      return this->processStage<0>(dummy);
+    }
+    else
+    {
+      return this->processStage<0>(data...);    
+    }
   }
 
   const std::string& name() const noexcept { return _name; }
 
-protected:
+private:
   virtual bool configureStages() = 0;
 
-private:
-  bool containStageByName(const std::string& stageName) const
+  bool initializeStages() { return this->initializeStage<0>(); }
+  template<std::size_t StageIndex, std::enable_if_t<(StageIndex < _num_stages), int> = 0>
+  inline bool initializeStage()
   {
-    return std::find_if(_stages.begin(),
-                        _stages.end(),
-                        [&] (const std::unique_ptr<ProcessingStage<DataStructureType...>>& stage) { return stage->name() == stageName; } )
-           !=
-           _stages.end();
+    return std::get<StageIndex>(_stages).initialize() && this->initializeStage<StageIndex + 1>();
   }
-  std::size_t getStageIndexByName(const std::string& stageName) const
-  {
-    for (std::size_t stageIndex = 0; stageIndex < _stages.size(); ++stageIndex)
-      if (_stages[stageIndex]->name() == stageName)
-        return stageIndex;
+  template<std::size_t StageIndex, std::enable_if_t<(StageIndex >= _num_stages), int> = 0>
+  inline bool initializeStage() { return true; }
 
-    return _stages.size();
+  template<std::size_t StageIndex, std::enable_if_t<(StageIndex < _num_stages), int> = 0>
+  inline bool processStage(DataStructureType& data)
+  {
+    return std::get<StageIndex>(_stages).process(data) && this->processStage<StageIndex + 1>(data);
   }
+  template<std::size_t StageIndex, std::enable_if_t<(StageIndex >= _num_stages), int> = 0>
+  inline bool processStage(DataStructureType&) { return true; }
+
+  template<std::size_t StageIndex, std::enable_if_t<(StageIndex < _num_stages), int> = 0>
+  inline constexpr std::size_t getStageIndexByName(const char* name) const
+  {
+    if constexpr (std::get<StageIndex>(_stages).name() == name)
+      return StageIndex;
+
+    return this->getStageIndexByName(name);
+  }
+  template<std::size_t StageIndex, std::enable_if_t<(StageIndex >= _num_stages), int> = 0>
+  inline constexpr std::size_t getStageIndexByName(const char*) const { return 0; /* \todo do error handling here */ }
+
 
   const std::string _name;
-  std::vector<std::unique_ptr<ProcessingStage<DataStructureType...>>> _stages;
+
+protected:
+  std::tuple<Stages...> _stages;
 };
 
 } // end namespace processing
