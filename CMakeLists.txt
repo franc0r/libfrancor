@@ -4,7 +4,8 @@ project("libfrancor")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
                       /usr/local/share/cmake
-                      /usr/share/cmake)
+                      /usr/share/cmake
+)
 
 add_compile_options(-Wall -O2)
 

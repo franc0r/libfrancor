@@ -3,7 +3,13 @@ cmake_minimum_required (VERSION 3.7.2)
 project(francor-algorithm VERSION 0.1
                      LANGUAGES CXX)
 
-                
+set(CMAKE_MODULE_PATH
+  ${CMAKE_MODULE_PATH}
+  ${CMAKE_CURRENT_SOURCE_DIR}/cmake
+)
+
+find_package(flann REQUIRED)                     
+
 add_library(${PROJECT_NAME} SHARED
   src/geometry_fitting.cpp
   src/ray_caster_2d.cpp
