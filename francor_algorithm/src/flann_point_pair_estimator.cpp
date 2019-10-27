@@ -6,7 +6,7 @@
 
 #include "francor_algorithm/flann_point_pair_estimator.h"
 
-#include <flann/flann.h>
+#include <flann/flann.hpp>
 
 #include <francor_base/log.h>
 
@@ -16,9 +16,14 @@ namespace algorithm {
 
 using francor::base::LogError;
 
+FlannPointPairEstimator::FlannPointPairEstimator()
+{
+
+}
+
 FlannPointPairEstimator::~FlannPointPairEstimator()
 {
-  this->freeFlannIndex();
+
 }
 
 bool FlannPointPairEstimator::setPointDataset(const base::Point2dVector& points)
@@ -35,23 +40,25 @@ bool FlannPointPairEstimator::findPairs(const base::Point2dVector& points, Point
     return false;
   }
 
-  std::vector<float> target_dataset;
+  std::vector<double> target_dataset;
   this->copyPointDataset(points, target_dataset);
 
-  std::vector<int> indicies(points.size());
-  std::vector<float> distances(points.size());
-  FLANNParameters parameter;
+  _indicies.resize(points.size());
+  _distances.resize(points.size());
 
-  // use automatic setup using the target precision  
-  parameter.target_precision = 0.9;
-  
-  flann_find_nearest_neighbors_index(_flann_index, target_dataset.data(), points.size(), indicies.data(), distances.data(), 1, &parameter);
-  this->copyIndexPairs(indicies, pairs);
+  flann::Matrix<int> indices(_indicies.data(), _indicies.size(), 1);
+  flann::Matrix<double> distances(_distances.data(), _distances.size(), 1);
+  flann::Matrix<double> target(target_dataset.data(), _indicies.size(), 2);
+  flann::SearchParams parameter(-1, 1e-2);
+
+  _flann_index->knnSearch(target, indices, distances, 1, parameter);
+
+  this->copyIndexPairs(_indicies, pairs);
 
   return true;
 }
 
-void FlannPointPairEstimator::copyPointDataset(const base::Point2dVector& points, std::vector<float>& dataset) const
+void FlannPointPairEstimator::copyPointDataset(const base::Point2dVector& points, std::vector<double>& dataset) const
 {
   // allocate memory for dataset ((x,y) * num points)
   dataset.resize(points.size() * 2);
@@ -67,38 +74,21 @@ void FlannPointPairEstimator::copyIndexPairs(const std::vector<int>& indices, Po
   pairs.resize(indices.size());
 
   for (std::size_t i = 0; i < pairs.size(); ++i) {
-    pairs[i].first = i;
-    pairs[i].second = indices[i];
+    pairs[i].first = indices[i];
+    pairs[i].second = i;
   }
 }
 
 bool FlannPointPairEstimator::createFlannIndex()
 {
-  // release previous index
-  this->freeFlannIndex();
+  // \todo select good parameter
+  flann::KDTreeSingleIndexParams parameter;
+  const flann::Matrix<double> points(_point_dataset.data(), _point_dataset.size() / 2, 2);
 
-  // use automatic setup using the target precision
-  FLANNParameters parameter;
-  parameter.target_precision = 0.9;
-
-  _flann_index = flann_build_index(_point_dataset.data(), _point_dataset.size() / 2, 2, nullptr, &parameter);
-
-  if (_flann_index == nullptr) {
-    LogError() << "FlannPointPairEstimator::createFlannIndex(): error occurred during flann index build.";
-    return false;
-  }
+  _flann_index = std::make_unique<flann::Index<flann::L2<double>>>(points, parameter); 
+  _flann_index->buildIndex();
   
   return true;
-}
-
-void FlannPointPairEstimator::freeFlannIndex()
-{
-  if (_flann_index == nullptr)
-    return;
-
-  FLANNParameters parameter;
-  flann_free_index(_flann_index, &parameter);
-  _flann_index = nullptr;
 }
 
 } // end namespace algorithm

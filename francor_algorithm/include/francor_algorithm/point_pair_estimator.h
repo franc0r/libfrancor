@@ -12,9 +12,35 @@ namespace francor {
 
 namespace algorithm {
 
-using PointPairIndex = std::pair<std::size_t, std::size_t>;
-using PointPairIndexVector = std::vector<PointPairIndex>;
+struct PointPairIndex
+{
+  std::size_t first;
+  std::size_t second;
+  float distance;
+};
 
+class PointPairIndexVector : public std::vector<PointPairIndex>
+{
+public:
+  PointPairIndexVector() = default;
+
+  inline void setFristPointVector(const base::Point2dVector& vector) { _first_point_vector = &vector; }
+  inline void setSecondPointVector(const base::Point2dVector& vector) { _second_point_vector = &vector; }
+  void clear()
+  {
+    std::vector<PointPairIndex>::clear();
+    _first_point_vector = nullptr;
+    _second_point_vector = nullptr;
+  }
+  inline bool isValid() const noexcept
+  {
+    return _first_point_vector != nullptr && _second_point_vector != nullptr;
+  }
+
+private:
+  const base::Point2dVector* _first_point_vector = nullptr;
+  const base::Point2dVector* _second_point_vector = nullptr;
+};
 class PointPairEstimator
 {
 protected:
