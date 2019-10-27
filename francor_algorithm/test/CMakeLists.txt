@@ -81,3 +81,23 @@ add_test(
   NAME test-ray-caster-2d
   COMMAND unit-test-ray-caster-2d
 )
+
+# Flann Point Pair Estimator
+add_executable(unit-test-flann-point-pair-estimator
+  src/unit_test_flann_point_pair_estimator.cpp
+)
+
+target_include_directories(unit-test-flann-point-pair-estimator
+  PRIVATE ${GTEST_INCLUDE_DIRS}
+)
+
+target_link_libraries(unit-test-flann-point-pair-estimator
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-algorithm
+)
+
+add_test(
+  NAME test-flann-point-pair-estimator
+  COMMAND unit-test-flann-point-pair-estimator
+)

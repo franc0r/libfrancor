@@ -18,15 +18,17 @@ public:
   FlannPointPairEstimator() = default;
   ~FlannPointPairEstimator() final;
 
-  void setPointDataset(const base::Point2dVector& points) final;
-  PointPairIndexVector findPairs(const base::Point2dVector& points) final;
+  bool setPointDataset(const base::Point2dVector& points) final;
+  bool findPairs(const base::Point2dVector& points, PointPairIndexVector& pairs) final;
 
 private:
-  void copyPointDataset(const base::Point2dVector& points);
-  void createFlannIndex();
+  void copyPointDataset(const base::Point2dVector& points, std::vector<float>& dataset) const;
+  void copyIndexPairs(const std::vector<int>& indices, PointPairIndexVector& pairs) const;
+  bool createFlannIndex();
+  void freeFlannIndex();
 
-  float* _point_dataset = nullptr;
-  int _flann_index = -1;
+  std::vector<float> _point_dataset;
+  void* _flann_index = nullptr;
 };
 
 } // end namespace algorithm

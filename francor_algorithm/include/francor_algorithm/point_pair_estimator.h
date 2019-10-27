@@ -23,8 +23,8 @@ protected:
 public:
   virtual ~PointPairEstimator() = default;
 
-  virtual void setPointDataset(const base::Point2dVector& points) = 0;
-  virtual PointPairIndexVector findPairs(const base::Point2dVector& points) = 0;
+  virtual bool setPointDataset(const base::Point2dVector& points) = 0;
+  virtual bool findPairs(const base::Point2dVector& points, PointPairIndexVector& pairs) = 0;
 };
 
 } // end namespace algorithm
