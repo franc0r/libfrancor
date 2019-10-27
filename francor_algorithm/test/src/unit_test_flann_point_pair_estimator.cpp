@@ -96,10 +96,10 @@ TEST(FlannPointPairEstimator, Benchmark)
   for (std::size_t i = 0; i < pairs.size(); ++i)
     EXPECT_EQ(model_points[pairs[i].first], target_points[pairs[i].second]);
 
-  auto elapsed_set = std::chrono::duration_cast<std::chrono::milliseconds>(end_set - start);
-  auto elapsed     = std::chrono::duration_cast<std::chrono::milliseconds>(end     - start);
-  std::cout << "elapsed set point dataset = " << elapsed_set.count() << " ms" << std::endl;  
-  std::cout << "elapsed = " << elapsed.count() << " ms" << std::endl;
+  auto elapsed_set = std::chrono::duration_cast<std::chrono::microseconds>(end_set - start);
+  auto elapsed     = std::chrono::duration_cast<std::chrono::microseconds>(end     - start);
+  std::cout << "elapsed set point dataset = " << elapsed_set.count() << " us" << std::endl;  
+  std::cout << "elapsed = " << elapsed.count() << " us" << std::endl;
 }
 
 int main(int argc, char **argv)

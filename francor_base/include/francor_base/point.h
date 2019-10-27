@@ -71,4 +71,18 @@ inline ostream& operator<<(ostream& os, const francor::base::Point2dImpl<Type>& 
   return os;
 }
 
+template <typename Type>
+inline ostream& operator<<(ostream& os, const vector<francor::base::Point2dImpl<Type>>& points)
+{
+  os << "point vector:" << std::endl;
+  os << "size   = " << points.size() << std::endl;
+  os << "data[] = ";
+
+  for (const auto& point : points) {
+    os << point << ", ";
+  } 
+
+  return os;
+}
+
 } // end namespace std
