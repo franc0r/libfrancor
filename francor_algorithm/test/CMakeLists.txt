@@ -102,7 +102,6 @@ add_test(
   COMMAND unit-test-flann-point-pair-estimator
 )
 
-
 # Transformation Estimation Functions
 add_executable(unit-test-estimate-transform
   src/unit_test_estimate_transform.cpp
@@ -121,4 +120,24 @@ target_link_libraries(unit-test-estimate-transform
 add_test(
   NAME test-estimate-transform
   COMMAND unit-test-estimate-transform
+)
+
+# Transformation Estimation Functions
+add_executable(unit-test-icp
+  src/unit_test_icp.cpp
+)
+
+target_include_directories(unit-test-icp
+  PRIVATE ${GTEST_INCLUDE_DIRS}
+)
+
+target_link_libraries(unit-test-icp
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-algorithm
+)
+
+add_test(
+  NAME test-icp
+  COMMAND unit-test-icp
 )

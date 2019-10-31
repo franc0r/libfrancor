@@ -16,6 +16,7 @@ add_library(${PROJECT_NAME} SHARED
   src/ray_caster_2d.cpp
   src/flann_point_pair_estimator.cpp
   src/estimate_transform.cpp
+  src/icp.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
