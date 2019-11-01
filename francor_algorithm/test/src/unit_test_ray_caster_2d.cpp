@@ -81,7 +81,7 @@ TEST(Ray, MoveInPositiveY)
   constexpr std::size_t idxX = 0;
   constexpr std::size_t idxYOffset = 5;
   std::size_t idxY = idxYOffset;
-  Ray2d ray(Ray2d::create(idxX, idxY, 0.1, 100, 100, { 0.0, 0.51 }, { 0.0, 1.0 }, 1.0));
+  Ray2d ray(Ray2d::create(idxX, idxY, 100, 100, 0.1, { 0.0, 0.51 }, { 0.0, 1.0 }, 1.0));
 
   for (; ray; ++ray, ++idxY)
   {

@@ -142,9 +142,9 @@ public:
         ||
         _current_idx.y() >= _max_idx.y()
         ||
-        _current_idx.x() == 0
+        _current_idx.x() < 0
         ||
-        _current_idx.y() == 0)
+        _current_idx.y() < 0)
     {
       _operation = Operation::NONE;
     }
@@ -179,8 +179,6 @@ class RayCaster2d
 {
 public:
   RayCaster2d() = default;
-
-
 };
 
 } // end namespace algorithm
