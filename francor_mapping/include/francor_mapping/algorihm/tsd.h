@@ -81,11 +81,13 @@ inline void updateTsdCell(TsdCell& cell, const double sdf, const double max_trun
  * \param phi_min Start angle (left).
  * \param phi_step Angle steps between each laser beam.
  * \param num_beams Numbers of laser beams.
+ * \param range Range of the laser sensor.
  * \param points Reconstructed points.
  * \return true if reconstruction was successful.
  */
 bool reconstructPointsFromGrid(const TsdGrid& grid, const base::Pose2d& pose, const base::Angle phi_min,
-                               const base::Angle phi_steps, const std::size_t num_beams, base::Point2dVector& points);
+                               const base::Angle phi_step, const std::size_t num_beams, const double range,
+                               base::Point2dVector& points);
 
 } // end namespace tsd
 

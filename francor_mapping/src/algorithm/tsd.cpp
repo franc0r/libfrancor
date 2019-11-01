@@ -53,7 +53,8 @@ void pushLaserScanToGrid(TsdGrid& grid, const base::LaserScan& laser_scan, const
 }
 
 bool reconstructPointsFromGrid(const TsdGrid& grid, const base::Pose2d& pose, const base::Angle phi_min,
-                               const base::Angle phi_steps, const std::size_t num_beams, base::Point2dVector& points)
+                               const base::Angle phi_step, const std::size_t num_beams, const double range,
+                               base::Point2dVector& points)
 {
   using francor::base::Point2d;
   using francor::base::Point2dVector;
@@ -61,7 +62,7 @@ bool reconstructPointsFromGrid(const TsdGrid& grid, const base::Pose2d& pose, co
   using francor::base::Line;
   using francor::algorithm::Ray2d;
 
-  Angle current_phi = phi_min;
+  Angle current_phi = pose.orientation() + phi_min;
   const std::size_t start_index_x = grid.getIndexX(pose.position().x());
   const std::size_t start_index_y = grid.getIndexY(pose.position().y());
 
@@ -72,7 +73,7 @@ bool reconstructPointsFromGrid(const TsdGrid& grid, const base::Pose2d& pose, co
   {
     const auto direction = base::algorithm::line::calculateV(current_phi);
     Ray2d ray(Ray2d::create(start_index_x, start_index_y, grid.getNumCellsX(),
-                            grid.getNumCellsY(), grid.getCellSize(), pose.position(), direction, 20.0)); // \todo make distance adjustable
+                            grid.getNumCellsY(), grid.getCellSize(), pose.position(), direction, range)); // \todo make distance adjustable
 
     for (const auto& idx : ray)
     {
@@ -83,6 +84,8 @@ bool reconstructPointsFromGrid(const TsdGrid& grid, const base::Pose2d& pose, co
         break;
       }
     }                            
+
+    current_phi += phi_step;
   }
 
   return true;

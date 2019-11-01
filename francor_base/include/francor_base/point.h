@@ -79,7 +79,7 @@ inline ostream& operator<<(ostream& os, const vector<francor::base::Point2dImpl<
   os << "data[] = ";
 
   for (const auto& point : points) {
-    os << point << ", ";
+    os << point << " ";
   } 
 
   return os;

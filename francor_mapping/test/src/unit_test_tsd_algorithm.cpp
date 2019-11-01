@@ -57,15 +57,22 @@ TEST(ReconstructPointsFromGrid, BasicFunctionality)
     grid(x, 90).tsd = 1.0;
   }
 
-  constexpr Pose2d pose( { 10.0, 1.0 }, 0.0);
+  constexpr Pose2d pose( { 10.0, 1.0 }, M_PI_2);
   constexpr Angle phi_min = Angle::createFromDegree(-60.0);
   constexpr Angle phi_step = Angle::createFromDegree(1.0);
   constexpr std::size_t num_beams = 120;
   Point2dVector result;
 
-  ASSERT_TRUE(reconstructPointsFromGrid(grid, pose, phi_min, phi_step, num_beams, result));
+  auto start = std::chrono::system_clock::now();
+  ASSERT_TRUE(reconstructPointsFromGrid(grid, pose, phi_min, phi_step, num_beams, 30.0, result));
+  auto end = std::chrono::system_clock::now();
+  auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+  std::cout << "elapsed = " << elapsed.count() << " us" << std::endl;
 
-  std::cout << "result " << result << std::endl;
+  for (const auto& point : result)
+    EXPECT_EQ(point.y(), 18.0);
+    
+  // std::cout << "result " << result << std::endl;
 }
 
 int main(int argc, char **argv)
