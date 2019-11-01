@@ -14,6 +14,7 @@ namespace francor
 namespace base
 {
 
+using Matrix2d = Eigen::Matrix2d;
 using Matrix3d = Eigen::Matrix3d;
 using Matrix4d = Eigen::Matrix4d;
 

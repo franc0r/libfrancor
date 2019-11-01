@@ -20,7 +20,7 @@ namespace algorithm {
  * 
  * \param dataset_a Dataset A.
  * \param dataset_b Dataset B.
- * \param transform Transformation between the two given datasets (from b to a) will be set.
+ * \param transform Transformation between the two given datasets (from a to b) will be set.
  * \return rms value of estimation of < 0 in case of an error.
  */
 double estimateTransform(const base::Point2dVector& dataset_a,

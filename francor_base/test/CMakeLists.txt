@@ -48,7 +48,6 @@ add_test(
   COMMAND unit-test-angle
 )
 
-
 # Point
 add_executable(unit-test-point
   src/unit_test_point.cpp
@@ -63,4 +62,20 @@ target_link_libraries(unit-test-point PRIVATE
 add_test(
   NAME test-point
   COMMAND unit-test-point
+)
+
+# Transform
+add_executable(unit-test-transform
+  src/unit_test_transform.cpp
+)
+
+target_link_libraries(unit-test-transform PRIVATE
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-base
+)
+
+add_test(
+  NAME test-transform
+  COMMAND unit-test-transform
 )

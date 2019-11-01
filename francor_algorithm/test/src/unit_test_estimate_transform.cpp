@@ -32,9 +32,9 @@ TEST(EstimateTransform, EstimateFromTwoPointSets)
   const auto rms = estimateTransform(origin, transformed, pairs, result);
 
   EXPECT_GE(rms, 0.0);
-  EXPECT_NEAR(result.rotation().phi   , transform.inverse().rotation().phi   , Angle::createFromDegree(0.1));
-  EXPECT_NEAR(result.translation().x(), transform.inverse().translation().x(), 1e-3);
-  EXPECT_NEAR(result.translation().y(), transform.inverse().translation().y(), 1e-3);
+  EXPECT_NEAR(result.rotation().phi() , transform.rotation().phi() , Angle::createFromDegree(0.1));
+  EXPECT_NEAR(result.translation().x(), transform.translation().x(), 1e-3);
+  EXPECT_NEAR(result.translation().y(), transform.translation().y(), 1e-3);
 }
 
 int main(int argc, char **argv)

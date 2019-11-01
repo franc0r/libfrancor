@@ -70,6 +70,7 @@ double estimateTransform(const base::Point2dVector& dataset_a,
   // rotate centroid of dataset b and estimate translation
   centroid_set_b = transform.rotation() * centroid_set_b;
   transform.setTranslation(centroid_set_b - centroid_set_a);
+  transform = transform.inverse();
 
   return rms;
 }
