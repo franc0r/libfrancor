@@ -18,7 +18,7 @@ using francor::base::Point2d;
 using francor::base::Pose2d;
 using francor::base::Angle;
 
-TEST(PushLaserScanToGrid, BasicFunction)
+TEST(PushLaserScanToGrid, BasicFunctionality)
 {
   TsdGrid grid;
   const std::vector<double> distances(360, 12.0);// = { 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4 }; 
@@ -38,6 +38,35 @@ TEST(PushLaserScanToGrid, BasicFunction)
   // std::cout << grid << std::endl;
 }
 
+using francor::mapping::algorithm::tsd::reconstructPointsFromGrid;
+using francor::base::Point2dVector;
+
+TEST(ReconstructPointsFromGrid, BasicFunctionality)
+{
+  TsdGrid grid;
+
+  ASSERT_TRUE(grid.init(100, 100, 0.2));
+
+  for (std::size_t y = 0; y < grid.getNumCellsY(); ++y) {
+    for (std::size_t x = 0; x < grid.getNumCellsX(); ++x) {
+      grid(x, y).tsd = -1.0;
+    }
+  }
+
+  for (std::size_t x = 0; x < grid.getNumCellsX(); ++x) {
+    grid(x, 90).tsd = 1.0;
+  }
+
+  constexpr Pose2d pose( { 10.0, 1.0 }, 0.0);
+  constexpr Angle phi_min = Angle::createFromDegree(-60.0);
+  constexpr Angle phi_step = Angle::createFromDegree(1.0);
+  constexpr std::size_t num_beams = 120;
+  Point2dVector result;
+
+  ASSERT_TRUE(reconstructPointsFromGrid(grid, pose, phi_min, phi_step, num_beams, result));
+
+  std::cout << "result " << result << std::endl;
+}
 
 int main(int argc, char **argv)
 {

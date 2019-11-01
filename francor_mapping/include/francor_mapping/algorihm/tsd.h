@@ -6,6 +6,7 @@
 #pragma once
 
 #include <francor_base/pose.h>
+#include <francor_base/laser_scan.h>
 
 #include "francor_mapping/tsd_grid.h"
 
@@ -71,6 +72,21 @@ inline void updateTsdCell(TsdCell& cell, const double sdf, const double max_trun
     cell.tsd    = (cell.tsd * (cell.weight - 1.0) + tsdf) / cell.weight;
   }
 }
+
+/**
+ * \brief Reconstruct points from grid at given pose.
+ * 
+ * \param grid The tsd grid used to reconstruct.
+ * \param pose Pose the laser sensor.
+ * \param phi_min Start angle (left).
+ * \param phi_step Angle steps between each laser beam.
+ * \param num_beams Numbers of laser beams.
+ * \param points Reconstructed points.
+ * \return true if reconstruction was successful.
+ */
+bool reconstructPointsFromGrid(const TsdGrid& grid, const base::Pose2d& pose, const base::Angle phi_min,
+                               const base::Angle phi_steps, const std::size_t num_beams, base::Point2dVector& points);
+
 } // end namespace tsd
 
 } // end namespace algorithm

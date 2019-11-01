@@ -16,7 +16,7 @@ namespace mapping {
 
 namespace algorithm {
 
-namespace tsd {
+namespace tsd { 
 
 
 void pushLaserScanToGrid(TsdGrid& grid, const base::LaserScan& laser_scan, const base::Pose2d& pose_ego)
@@ -52,6 +52,41 @@ void pushLaserScanToGrid(TsdGrid& grid, const base::LaserScan& laser_scan, const
   }
 }
 
+bool reconstructPointsFromGrid(const TsdGrid& grid, const base::Pose2d& pose, const base::Angle phi_min,
+                               const base::Angle phi_steps, const std::size_t num_beams, base::Point2dVector& points)
+{
+  using francor::base::Point2d;
+  using francor::base::Point2dVector;
+  using francor::base::Angle;
+  using francor::base::Line;
+  using francor::algorithm::Ray2d;
+
+  Angle current_phi = phi_min;
+  const std::size_t start_index_x = grid.getIndexX(pose.position().x());
+  const std::size_t start_index_y = grid.getIndexY(pose.position().y());
+
+  points.resize(0);
+  points.reserve(num_beams);
+
+  for (std::size_t beam = 0; beam < num_beams; ++beam)
+  {
+    const auto direction = base::algorithm::line::calculateV(current_phi);
+    Ray2d ray(Ray2d::create(start_index_x, start_index_y, grid.getNumCellsX(),
+                            grid.getNumCellsY(), grid.getCellSize(), pose.position(), direction, 20.0)); // \todo make distance adjustable
+
+    for (const auto& idx : ray)
+    {
+      if (grid(idx.x(), idx.y()).tsd > 0.0) {
+        points.push_back( { static_cast<double>(idx.x()) * grid.getCellSize() + grid.getOrigin().x(),
+                            static_cast<double>(idx.y()) * grid.getCellSize() + grid.getOrigin().y() } );
+
+        break;
+      }
+    }                            
+  }
+
+  return true;
+}
 
 } // end namespace tsd
 

@@ -209,15 +209,21 @@ public:
   {
     return { x * _cell_size + 0.5 * _cell_size, y * _cell_size + 0.5 * _cell_size };
   }
+  /**
+   * \brief Returns the origin of this grid. The origin is located at cell (0, 0).
+   * \return Origin coordinate in meter.
+   */
+  inline const base::Point2d& getOrigin() const noexcept { return _origin; }
 
 private:
-  std::size_t _num_cells_x = 0; //> number of cells in x dimension
-  std::size_t _num_cells_y = 0; //> number of cells in y dimension
-  double _cell_size = 0.0;      //> size of each cell
-  double _size_x = 0.0;         //> size in m in x dimension
-  double _size_y = 0.0;         //> size in m in y dimension
+  std::size_t _num_cells_x = 0;    //> number of cells in x dimension
+  std::size_t _num_cells_y = 0;    //> number of cells in y dimension
+  double _cell_size = 0.0;         //> size of each cell
+  double _size_x = 0.0;            //> size in m in x dimension
+  double _size_y = 0.0;            //> size in m in y dimension
+  base::Point2d _origin{0.0, 0.0}; //> origin coordinate of this grid in meter
 
-  std::vector<CellType> _data;  //> grid cells
+  std::vector<CellType> _data;     //> grid cells
 };
 
 } // end namespace mapping
