@@ -11,7 +11,7 @@
 #include "francor_base/matrix.h"
 #include "francor_base/angle.h"
 
-#include <iostream>
+#include <ostream>
 
 namespace francor {
 

@@ -56,3 +56,24 @@ public:
 } // end namespace algorithm
 
 } // end namespace francor
+
+namespace std {
+
+inline ostream& operator<<(ostream& os, const francor::algorithm::PointPairIndex& index)
+{
+  os << "[" << index.first << " -> " << index.second << "]";
+  return os;
+}
+
+inline ostream& operator<<(ostream& os, const francor::algorithm::PointPairIndexVector& indices)
+{
+  os << "point pair index:" << endl;
+  os << "pairs[]: ";
+
+  for (const auto& pair : indices)
+    os << pair << " ";
+
+  return os;
+}
+
+} // end namespace std

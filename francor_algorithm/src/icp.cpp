@@ -30,24 +30,40 @@ bool Icp::estimateTransform(const base::Point2dVector& origin, const base::Point
 
   // get a copy the target points
   base::Point2dVector moved_points(target);
-  double rms = 0.0;
+  double rms = std::numeric_limits<double>::max();
+  transform.setRotation(0.0);
+  transform.setTranslation({ 0.0, 0.0 });
 
   // iterate until max iterations is reached or a other criterion is fulfilled
   for (std::size_t iteration = 0; iteration < _max_iterations; ++iteration)
   {
+    base::Transform2d current_transform;
+    double current_rms;
+
     // do iteration and estimate transformation
-    if (!this->doIteration(origin, moved_points, transform, rms)) {
+    if (!this->doIteration(origin, moved_points, current_transform, current_rms)) {
       return false;
     }
-
+    // std::cout << "current rms = " << current_rms << std::endl;
     // check if estimated transformation is good enough
-    if (rms <= _termination_rms) {
+    if (current_rms <= _termination_rms || current_rms >= rms) {
       return true;
     }
 
+    // integrate current iteration results
+    rms = current_rms;
+    // std::cout << "estimated current_transform: " << current_transform << std::endl;
+    transform = transform * current_transform;
+    // std::cout << "rms = " << rms << std::endl;
+    // std::cout << "estimated transform: " << transform << std::endl;
+
     // transform points
+    current_transform = current_transform.inverse();
+
     for (auto& point : moved_points)
-      point = transform * point;
+      point = current_transform * point;
+
+    // std::cout << "moved point " << moved_points << std::endl;
   }
 
   return true;
@@ -65,7 +81,7 @@ bool Icp::doIteration(const base::Point2dVector& origin, const base::Point2dVect
 
   try {
     rms = _transform_estimator(origin, target, pairs, transform);
-
+    // std::cout << pairs << std::endl;
     if (rms >= _max_rms) {
       LogWarn() << "Icp::estimateTransform(): max rms value reached. Cancel estimation process.";
       return false;
