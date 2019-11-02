@@ -7,6 +7,7 @@ find_package(Eigen3 REQUIRED NO_MODULE)
 
 add_library(${PROJECT_NAME} SHARED
   src/log.cpp
+  src/algorithm/point.cpp
 )
 
 target_include_directories(${PROJECT_NAME}

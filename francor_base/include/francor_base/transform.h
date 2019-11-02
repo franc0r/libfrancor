@@ -10,6 +10,7 @@
 #include "francor_base/vector.h"
 #include "francor_base/matrix.h"
 #include "francor_base/angle.h"
+#include "francor_base/pose.h"
 
 #include <ostream>
 
@@ -27,13 +28,15 @@ public:
   }
   inline Point2d operator*(const Point2d& point) const
   {
-    return { _mat(0, 0) * point.x() + _mat(0, 1) * point.y(), _mat(1, 0) * point.x() + _mat(1, 1) * point.y() };
+    return { _mat(0, 0) * point.x() + _mat(0, 1) * point.y(),
+             _mat(1, 0) * point.x() + _mat(1, 1) * point.y() };
   }
   inline Vector2d operator*(const Vector2d& vector) const
   {
     return _mat * vector;
   }
   inline Rotation2d operator*(const Rotation2d& operant) const { return { _phi + operant._phi }; }
+  inline Angle operator*(const Angle& angle) const { return { _phi + angle }; }
   inline Rotation2d& operator=(const Angle& angle) { _phi = angle; this->calculateMat(_phi, _mat); return *this; }
   inline Rotation2d inverse() const { return { _phi * -1.0 }; }
   inline const Matrix2d& mat() const noexcept { return _mat; }
@@ -72,12 +75,19 @@ public:
   }
   inline Transform2d operator*(const Transform2d& operant) const
   {
+    // \todo check if equation is correct
     return { _rotation * operant._rotation, _translation + _rotation * operant._translation };
   }
   inline Point2d operator*(const Point2d& point) const 
   {
-    // first rotate then move
+    // first rotate then move (affine transformation)
     return _rotation * point + _translation;
+  }
+  inline Pose2d operator*(const Pose2d& pose) const
+  {
+    // \todo check if equation is correct
+    return { Point2d(_translation.x(), _translation.y()) + _rotation * pose.position(),
+             _rotation * pose.orientation() };
   }
   operator Matrix3d() const
   {
