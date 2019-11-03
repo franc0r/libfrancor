@@ -83,6 +83,7 @@ public:
 private:
   virtual bool configureStages() = 0;
 
+  // initialize stages
   bool initializeStages() { return this->initializeStage<0>(); }
   template<std::size_t StageIndex, std::enable_if_t<(StageIndex < _num_stages), int> = 0>
   inline bool initializeStage()
@@ -92,14 +93,24 @@ private:
   template<std::size_t StageIndex, std::enable_if_t<(StageIndex >= _num_stages), int> = 0>
   inline bool initializeStage() { return true; }
 
-  template<std::size_t StageIndex, std::enable_if_t<(StageIndex < _num_stages), int> = 0>
-  inline bool processStage(DataStructureType& data)
+  // process stages
+  template<std::size_t StageIndex, typename... TypesA, typename... TypesB>
+  inline bool processStage(TypesA&... argsA,
+                           typename std::tuple_element<StageIndex, std::tuple<Stages...>>::type::data_structure_type& data,
+                           TypesB&... argsB)
   {
-    return std::get<StageIndex>(_stages).process(data) && this->processStage<StageIndex + 1>(data);
-  }
-  template<std::size_t StageIndex, std::enable_if_t<(StageIndex >= _num_stages), int> = 0>
-  inline bool processStage(DataStructureType&) { return true; }
+    if constexpr (StageIndex >= _num_stages)
+      return false;
 
+    bool ret = std::get<StageIndex>(_stages).process(data);
+    
+    if constexpr (StageIndex + 1 < _num_stages)
+      ret &= this->processStage<StageIndex + 1>(argsA..., data, argsB...);
+
+    return ret;
+  }
+  
+  // get stage index by name
   template<std::size_t StageIndex, std::enable_if_t<(StageIndex < _num_stages), int> = 0>
   inline constexpr std::size_t getStageIndexByName(const char* name) const
   {
@@ -112,10 +123,10 @@ private:
   inline constexpr std::size_t getStageIndexByName(const char*) const { return 0; /* \todo do error handling here */ }
 
 
-  const std::string _name;
+  const std::string _name; //> pipeline name
 
 protected:
-  std::tuple<Stages...> _stages;
+  std::tuple<Stages...> _stages; //> stages of this pipeline
 };
 
 } // end namespace processing

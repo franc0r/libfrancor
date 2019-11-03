@@ -92,6 +92,8 @@ protected:
   { }
 
 public:
+  using data_structure_type = DataStructureType;
+
   virtual ~ProcessingStage() = default;
 
   bool process(DataStructureType& data)
