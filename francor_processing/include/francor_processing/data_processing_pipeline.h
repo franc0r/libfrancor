@@ -61,20 +61,22 @@ public:
     return true;
   }
 
+  bool process()
+  {
+    NoDataType dummy;
+    return this->process<>(dummy);
+  }
   template<typename... ArgumentTypes>
-  bool process(ArgumentTypes&... data)
+  bool process(DataStructureType& model, ArgumentTypes&... data)
   {
     static_assert(_num_stages > 0, "ProcessingPipeline: no processing stage is added. Minimum one is required to process the pipeline");
-    static_assert(sizeof...(ArgumentTypes) <= 1, "ProcessingPipeline::process() does only support one argument.");
 
-    if constexpr (sizeof...(ArgumentTypes) == 0)
-    {
+    if constexpr (sizeof...(ArgumentTypes) == 0) {
       NoDataType dummy;
-      return this->processStage<0>(dummy);
+      return this->processStage<0>(model, dummy);
     }
-    else
-    {
-      return this->processStage<0>(data...);    
+    else {
+      return this->processStage<0>(model, data...);
     }
   }
 
@@ -94,18 +96,27 @@ private:
   inline bool initializeStage() { return true; }
 
   // process stages
-  template<std::size_t StageIndex, typename... TypesA, typename... TypesB>
-  inline bool processStage(TypesA&... argsA,
-                           typename std::tuple_element<StageIndex, std::tuple<Stages...>>::type::data_structure_type& data,
-                           TypesB&... argsB)
+  template<std::size_t StageIndex, typename ArgumentType = NoDataType>
+  inline bool processStage(DataStructureType& model, ArgumentType& arg)
   {
     if constexpr (StageIndex >= _num_stages)
       return false;
 
-    bool ret = std::get<StageIndex>(_stages).process(data);
+    bool ret = true;
     
-    if constexpr (StageIndex + 1 < _num_stages)
-      ret &= this->processStage<StageIndex + 1>(argsA..., data, argsB...);
+    if constexpr (std::is_same<typename std::tuple_element_t<StageIndex, std::tuple<Stages...>>::data_structure_type, NoDataType>::value) {
+      NoDataType dummy;
+      ret &= std::get<StageIndex>(_stages).process(dummy);
+    }
+    if constexpr (std::is_same<typename std::tuple_element_t<StageIndex, std::tuple<Stages...>>::data_structure_type, DataStructureType>::value) {
+      ret &= std::get<StageIndex>(_stages).process(model);
+    }
+    if constexpr (std::is_same<typename std::tuple_element_t<StageIndex, std::tuple<Stages...>>::data_structure_type, ArgumentType>::value) {
+      ret &= std::get<StageIndex>(_stages).process(arg);
+    }
+    if constexpr (StageIndex + 1 < _num_stages) {
+      ret &= this->processStage<StageIndex + 1>(model, arg);
+    }
 
     return ret;
   }

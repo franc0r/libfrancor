@@ -279,60 +279,6 @@ private:
 
 
 /**
- * \brief Estimating of laser scanner pose. Note: actually it is to simply for an extra stage, but the
- *        pipeline concept requires such a extra calculation step.
- */
-class EstimateLaserScannerPose : processing::ProcessingStage<EgoObject>
-{
-public:
-  enum Inputs {
-    IN_SCAN = 0,
-    COUNT_INPUTS
-  };
-  enum Outputs {
-    OUT_POSE,
-    COUNT_OUTPUTS
-  };
-
-  EstimateLaserScannerPose()
-    : public processing::ProcessingStage<EgoObject>("estimate laser scanner pose", COUNT_INPUTS, COUNT_OUTPUTS)
-  { }  
-
-private:
-  bool doProcess(EgoObject& ego) final
-  {
-    using francor::base::LogDebug;
-    
-    const auto pose_laser(this->input(IN_SCAN).data<base::LaserScan>().pose());
-
-    base::Transform2d t_laser_ego({ pose_laser.orientation() }, pose_laser.position());
-    _estimated_pose = t_laser_ego * ego.pose();
-    LogDebug() << this->name() << ": estimated " << _estimated_pose;
-
-    return true;
-  }
-  bool doInitialization() final
-  {
-    return true;
-  }
-  bool initializePorts() final
-  {
-    this->initializeInputPort<base::LaserScan>(IN_SCAN, "laser scan");
-
-    this->initializeOutputPort(OUT_POSE, "pose", &_estimated_pose);
-
-    return true;
-  }
-  bool isReady() const final
-  {
-    return this->input(IN_SCAN).numOfConnections() > 0;
-  }
-
-  base::Pose2d _estimated_pose;
-};
-
-
-/**
  * \brief Processing pipeline for localize ego on a tsd grid map.
  */
 using PipeLocalizeOnTsdGridParent = processing::ProcessingPipeline<TsdGrid,                      // model type

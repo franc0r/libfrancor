@@ -14,7 +14,7 @@ namespace mapping {
 class EgoObject
 {
 public:
-  EgoObject(const base::Pose2d& pose)
+  EgoObject(const base::Pose2d& pose = base::Pose2d())
     : _pose(pose) { }
 
   inline constexpr const base::Pose2d& pose() const noexcept { return _pose; }
