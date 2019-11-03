@@ -63,15 +63,17 @@ void drawPointsOnImage(const Point2dVector& points, Image& image)
 
 void drawLaserScanOnImage(const LaserScan& scan, Image& image)
 {
+  const auto index_start_x = _grid.getIndexX(scan.pose().position().x());
+  const auto index_start_y = _grid.getIndexY(scan.pose().position().y());
   Angle current_phi = scan.phiMin();
+
+  cv::circle(image.cvMat(), {index_start_x, index_start_y }, static_cast<int>(20.0 / 0.05), cv::Scalar(0, 0, 240), 2);
 
   for (const auto& distance : scan.distances())
   {
     const Transform2d transform({ scan.pose().orientation() + current_phi },
                                 { scan.pose().position().x(), scan.pose().position().y() });
     Point2d end(transform * Point2d(distance, 0.0));
-    const auto index_start_x = _grid.getIndexX(scan.pose().position().x());
-    const auto index_start_y = _grid.getIndexY(scan.pose().position().y());
     const auto index_end_x = _grid.getIndexX(end.x());
     const auto index_end_y = _grid.getIndexY(end.y());
 
