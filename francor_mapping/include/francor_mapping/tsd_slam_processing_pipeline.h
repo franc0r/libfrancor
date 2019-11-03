@@ -12,6 +12,7 @@
 #include <francor_base/laser_scan.h>
 #include <francor_base/point.h>
 #include <francor_base/algorithm/point.h>
+#include <francor_base/algorithm/transform.h>
 
 #include <francor_algorithm/icp.h>
 #include <francor_algorithm/flann_point_pair_estimator.h>
@@ -224,6 +225,7 @@ class LaserScanToPoints : public processing::ProcessingStage<NoDataType>
 public:
   enum Inputs {
     IN_SCAN = 0,
+    IN_EGO_POSE,
     COUNT_INPUTS
   };
   enum Outputs {
@@ -240,9 +242,15 @@ private:
 
     const auto& scan = this->input(IN_SCAN).data<base::LaserScan>();
 
+    // converts laser scan to points in frame laser sensor
     if (!base::algorithm::point::convertLaserScanToPoints(scan, _converted_points)) {
       LogError() << this->name() << ": error occurred during converting of laser scan to points.";
       return false;
+    }
+    // if ego pose is provided then transform points to the ego frame
+    if (this->input(IN_EGO_POSE).numConnections() > 0) {
+      const auto ego_pose = this->input(IN_EGO_POSE).data<base::Pose2d>();
+      base::algorithm::transform::transformPointVector(ego_pose, _converted_points);
     }
 
     return true;
@@ -253,7 +261,8 @@ private:
   }
   bool initializePorts() final
   {
-    this->initializeInputPort<base::LaserScan>(IN_SCAN, "laser scan");
+    this->initializeInputPort<base::LaserScan>(IN_SCAN    , "laser scan");
+    this->initializeInputPort<base::Pose2d>   (IN_EGO_POSE, "ego pose"  );
 
     this->initializeOutputPort(OUT_POINTS, "points 2d", &_converted_points);
 
@@ -265,6 +274,105 @@ private:
   }
 
   base::Point2dVector _converted_points;
+};
+
+
+
+/**
+ * \brief Estimating of laser scanner pose. Note: actually it is to simply for an extra stage, but the
+ *        pipeline concept requires such a extra calculation step.
+ */
+class EstimateLaserScannerPose : processing::ProcessingStage<EgoObject>
+{
+public:
+  enum Inputs {
+    IN_SCAN = 0,
+    COUNT_INPUTS
+  };
+  enum Outputs {
+    OUT_POSE,
+    COUNT_OUTPUTS
+  };
+
+  EstimateLaserScannerPose()
+    : public processing::ProcessingStage<EgoObject>("estimate laser scanner pose", COUNT_INPUTS, COUNT_OUTPUTS)
+  { }  
+
+private:
+  bool doProcess(EgoObject& ego) final
+  {
+    using francor::base::LogDebug;
+    
+    const auto pose_laser(this->input(IN_SCAN).data<base::LaserScan>().pose());
+
+    base::Transform2d t_laser_ego({ pose_laser.orientation() }, pose_laser.position());
+    _estimated_pose = t_laser_ego * ego.pose();
+    LogDebug() << this->name() << ": estimated " << _estimated_pose;
+
+    return true;
+  }
+  bool doInitialization() final
+  {
+    return true;
+  }
+  bool initializePorts() final
+  {
+    this->initializeInputPort<base::LaserScan>(IN_SCAN, "laser scan");
+
+    this->initializeOutputPort(OUT_POSE, "pose", &_estimated_pose);
+
+    return true;
+  }
+  bool isReady() const final
+  {
+    return this->input(IN_SCAN).numOfConnections() > 0;
+  }
+
+  base::Pose2d _estimated_pose;
+};
+
+
+/**
+ * \brief Processing pipeline for localize ego on a tsd grid map.
+ */
+using PipeLocalizeOnTsdGridParent = processing::ProcessingPipeline<TsdGrid,                      // model type
+                                                                   EstimateLaserScannerPose,     // estimate pose in frame grid stage
+                                                                   LaserScanToPoints,            // laser scan to points stage
+                                                                   ReconstructPointsFromTsdGrid, // reconstruct points stage
+                                                                   EstimatePose                  // estimate pose stage
+                                                                   >;
+
+class PipeLocalizeOnTsdGrid : public PipeLocalizeOnTsdGridParent
+{
+public:
+  PipeLocalizeOnTsdGrid("localize on tsd grid", 1, 0) { }
+
+private:
+  bool configureStages() final
+  {
+    bool ret = true;
+    
+    ret &= std::get<0>(_stages).input(EstimateLaserScannerPose::IN_SCAN).connect(this->input(0));
+
+    ret &= std::get<1>(_stages).input(LaserScanToPoints::IN_SCAN).connect(this->input(0));
+    ret &= std::get<1>(_stages).input(LaserScanToPoints::IN_EGO_POSE)
+                               .connect(std::get<0>(_stages).output(EstimateLaserScannerPose::OUT_POSE));
+
+    ret &= std::get<2>(_stages).input(ReconstructPointsFromTsdGrid::IN_SENSOR_POSE)
+                               .connect(std::get<1>(_stages).output(EstimateLaserScannerPose::OUT_POSE));
+
+    ret &= std::get<3>(_stages).input(EstimatePose::IN_SENSOR_POINTS)
+                               .connect(std::get<1>(_stages).output(LaserScanToPoints::OUT_POINTS));
+    ret &= std::get<3>(_stages).input(EstimatePose::IN_MAP_POINTS)
+                               .connect(std::get<2>(_stages).output(ReconstructPointsFromTsdGrid::OUT_POINTS));
+
+    return true;                                                              
+  }
+  bool initializePorts() final
+  {
+    this->initializeInputPort<base::LaserScan>(0, "laser scan");
+    return true;
+  }
 };
 
 } // end namespace mapping
