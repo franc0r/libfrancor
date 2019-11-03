@@ -80,5 +80,15 @@ int main(int argc, char** argv)
     return 2;
   }
 
+  for (std::size_t step = 0; step < 500; ++step)
+  {
+    const Vector2d step_position(0.0, 0.05);
+
+    if (!processStep(step_position)) {
+      LogError() << "terminate application";
+      return 3;
+    }
+  }
+
   return 0;
 }

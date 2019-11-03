@@ -8,12 +8,14 @@
 #include <francor_processing/data_processing_pipeline.h>
 
 #include "francor_mapping/pipeline_stage_occupancy_grid.h"
+#include "francor_mapping/pipeline_stage_ego_object.h"
 
 namespace francor {
 
 namespace mapping {
 
 using PipeSimulateLaserScanParent = processing::ProcessingPipeline<OccupancyGrid,                           // model type
+                                                                   StageEstimateLaserScannerPose,           // estimate sensor pose stage
                                                                    StageReconstructPointsFromOccupancyGrid  // reconstruct points stage
                                                                    >;
 

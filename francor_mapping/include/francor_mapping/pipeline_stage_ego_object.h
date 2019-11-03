@@ -23,6 +23,7 @@ class StageEstimateLaserScannerPose : public processing::ProcessingStage<EgoObje
 public:
   enum Inputs {
     IN_SCAN = 0,
+    IN_SENSOR_POSE,
     COUNT_INPUTS
   };
   enum Outputs {

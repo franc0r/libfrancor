@@ -63,7 +63,7 @@ bool createGridFromImage(const Image& image, const double cell_size, OccupancyGr
       const auto pixel_value = image(y, x).gray();
 
       if (pixel_value < 100) {
-        grid(x, y).value = pixel_value;
+        grid(x, y).value = 100 - pixel_value;
       }
       else {
         grid(x, y).value = OccupancyCell::UNKOWN;
