@@ -8,6 +8,9 @@ project(francor-mapping VERSION 0.1
 add_library(${PROJECT_NAME} SHARED
   src/algorithm/tsd.cpp
   src/algorithm/occupancy_grid.cpp
+  src/pipeline_stage_ego_object.cpp
+  src/pipeline_stage_occupancy_grid.cpp
+  src/pipeline_occupancy_grid.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -20,6 +23,7 @@ target_link_libraries(${PROJECT_NAME}
   PUBLIC
   francor-base
   francor-algorithm
+  francor-processing
   francor-vision
 )
 

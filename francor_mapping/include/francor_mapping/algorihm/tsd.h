@@ -18,6 +18,8 @@ class LaserScan;
 
 namespace mapping {
 
+class OccupancyGrid;
+
 namespace algorithm {
 
 namespace tsd {
@@ -36,6 +38,7 @@ inline double calculateSdf(const double distance_cell_sensor, const double measu
 {
   return measurement - distance_cell_sensor;
 }
+
 /**
  * \brief Calculates the sdf value for TSD cells.
  * 
@@ -50,6 +53,7 @@ inline double calculateSdf(const base::Point2d& cell_position, const base::Point
                                                      cell_position.y() - sensor_position.y()).norm();
   return calculateSdf(distance_cell_sensor, measurement);
 }
+
 /**
  * \brief Updates a tsd grid cell with given sdf value.
  * 
@@ -88,6 +92,15 @@ inline void updateTsdCell(TsdCell& cell, const double sdf, const double max_trun
 bool reconstructPointsFromGrid(const TsdGrid& grid, const base::Pose2d& pose, const base::Angle phi_min,
                                const base::Angle phi_step, const std::size_t num_beams, const double range,
                                base::Point2dVector& points);
+
+/**
+ * \brief Converts a tsd grid to an occupancy grid. The grid attributes like number of cells and cell size is equal.
+ * 
+ * \param tsd_grid Input tsd grid.
+ * \param occupancy_grid Resulting occupancy grid. The attribute of the input tsd grid will be taken.
+ * \return true if convertion was successful.
+ */
+bool convertTsdToOccupancyGrid(const TsdGrid& tsd_grid, OccupancyGrid& occupancy_grid);
 
 } // end namespace tsd
 
