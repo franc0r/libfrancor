@@ -133,8 +133,8 @@ bool processStep(const Vector2d& delta_position)
   francor::mapping::algorithm::occupancy::convertGridToImage(_grid, out);
   out.transformTo(ColourSpace::BGR);
   drawPoseOnImage(_ego.pose(), out);
-  drawPointsOnImage(pipeline.output(PipeSimulateLaserScan::OUT_POINTS).data<Point2dVector>(), out);
   drawLaserScanOnImage(pipeline.output(PipeSimulateLaserScan::OUT_SCAN).data<LaserScan>(), out);
+  drawPointsOnImage(pipeline.output(PipeSimulateLaserScan::OUT_POINTS).data<Point2dVector>(), out);
   cv::imshow("occupancy grid", out.cvMat());
   cv::waitKey(10);
   francor::vision::saveImageToFile("/tmp/occupancy_grid.png", out);

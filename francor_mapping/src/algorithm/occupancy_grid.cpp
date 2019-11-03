@@ -139,11 +139,12 @@ bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d&
   const std::size_t start_index_y = grid.getIndexY(pose.position().y());
 
   std::vector<double> distances;
-  distances.reserve(num_beams);
+  distances.resize(num_beams);
 
   for (std::size_t beam = 0; beam < num_beams; ++beam)
   {
     const auto direction = base::algorithm::line::calculateV(current_phi);
+    bool found_occupancy = false;
     Ray2d ray(Ray2d::create(start_index_x, start_index_y, grid.getNumCellsX(),
                             grid.getNumCellsY(), grid.getCellSize(), pose.position(), direction, range));
 
@@ -154,10 +155,14 @@ bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d&
       if (cell_value > 0 && cell_value <= 100) {
         Vector2d point{ static_cast<double>(idx.x()) * grid.getCellSize() + grid.getOrigin().x(),
                         static_cast<double>(idx.y()) * grid.getCellSize() + grid.getOrigin().y() };
-        distances.push_back((Vector2d(pose.position().x(), pose.position().y()) - point).norm());
+        distances[beam] = (Vector2d(pose.position().x(), pose.position().y()) - point).norm();
+        found_occupancy = true;
         break;
       }
     }                            
+
+    if (!found_occupancy)
+      distances[beam] = std::numeric_limits<double>::quiet_NaN();
 
     current_phi += phi_step;
   }
