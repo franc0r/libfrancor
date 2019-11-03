@@ -14,6 +14,7 @@ namespace francor {
 namespace base {
 class Pose2d;
 class Angle;
+class LaserScan;
 }
 
 namespace vision {
@@ -69,6 +70,22 @@ bool createGridFromImage(const vision::Image& image, const double cell_size, Occ
 bool reconstructPointsFromGrid(const OccupancyGrid& grid, const base::Pose2d& pose, const base::Angle phi_min,
                                const base::Angle phi_step, const std::size_t num_beams, const double range,
                                base::Point2dVector& points);
+
+/**
+ * \brief Reconstruct a laser scan from grid at given pose.
+ * 
+ * \param grid The occupancy grid used to reconstruct.
+ * \param pose Pose the laser sensor.
+ * \param phi_min Start angle (left).
+ * \param phi_step Angle steps between each laser beam.
+ * \param num_beams Numbers of laser beams.
+ * \param range Range of the laser sensor.
+ * \param scan Reconstructed laser scan.
+ * \return true if reconstruction was successful.
+ */
+bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d& pose, const base::Angle phi_min,
+                                  const base::Angle phi_step, const std::size_t num_beams, const double range,
+                                  base::LaserScan& scan);
 
 } // end namespace occupancy
 

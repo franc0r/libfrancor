@@ -16,21 +16,25 @@ namespace mapping {
 bool StageReconstructPointsFromOccupancyGrid::doProcess(OccupancyGrid& grid)
 {
   using francor::base::LogError;
+  using francor::base::LogDebug;
 
   const auto& sensor_pose = this->input(IN_SENSOR_POSE).data<base::Pose2d>();
+  LogDebug() << this->name() << ": start processing.";
+  LogDebug() << this->name() << ": uses sensor pose = " << sensor_pose;
 
   if (!algorithm::occupancy::reconstructPointsFromGrid(grid,
-                                                        sensor_pose,
-                                                        _parameter.phi_min,
-                                                        _parameter.phi_step,
-                                                        _parameter.num_laser_beams,
-                                                        _parameter.max_range,
-                                                        _reconstructed_points))
+                                                       sensor_pose,
+                                                       _parameter.phi_min,
+                                                       _parameter.phi_step,
+                                                       _parameter.num_laser_beams,
+                                                       _parameter.max_range,
+                                                       _reconstructed_points))
   {
     LogError() << this->name() << ": reconstruct points from tsd grid failed.";
     return false;
   }              
 
+  LogDebug() << this->name() << ": end processing.";
   return true;                                    
 }
 

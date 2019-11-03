@@ -86,8 +86,7 @@ public:
   inline Pose2d operator*(const Pose2d& pose) const
   {
     // \todo check if equation is correct
-    return { Point2d(_translation.x(), _translation.y()) + _rotation * pose.position(),
-             _rotation * pose.orientation() };
+    return { pose.position() + _translation, _rotation * pose.orientation() };
   }
   operator Matrix3d() const
   {

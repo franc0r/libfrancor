@@ -20,12 +20,13 @@ using francor::base::Point2dVector;
 using francor::base::Transform2d;
 using francor::base::LogError;
 using francor::base::LogInfo;
+using francor::base::LogDebug;
 using francor::base::Vector2d;
 using francor::base::Angle;
 
 OccupancyGrid _grid;
 EgoObject _ego;
-const Pose2d _sensor_pose({ 0.0, 0.0 }, Angle::createFromDegree(0.0));
+const Pose2d _sensor_pose({ 0.0, 0.0 }, Angle::createFromDegree(90.0));
 
 PipeSimulateLaserScan pipeline;
 
@@ -90,15 +91,21 @@ bool initialize(const std::string& file_name)
 
 bool processStep(const Vector2d& delta_position)
 {
-  const Transform2d transform({ 0.0 }, delta_position);
+  const Transform2d transform({ Angle::createFromDegree(-2.0) }, delta_position);
 
   _ego.setPose(transform * _ego.pose());
+  
+  auto start = std::chrono::system_clock::now();
   pipeline.input(PipeSimulateLaserScan::IN_SENSOR_POSE).assign(&_sensor_pose);
 
   if (!pipeline.process(_grid, _ego)) {
     LogError() << "Error occurred during processing of pipeline \"" << pipeline.name() << "\".";
     return false;
   }
+
+  auto end = std::chrono::system_clock::now();
+  auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);  
+  LogDebug() << "processing time elapsed = " << elapsed.count() << " us";
 
   Image out;
   francor::mapping::algorithm::occupancy::convertGridToImage(_grid, out);
