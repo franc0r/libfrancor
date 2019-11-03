@@ -32,10 +32,10 @@ public:
   {
     Parameter() { }
 
-    base::Angle phi_min         = 0.0;
-    base::Angle phi_step        = 0.0;
-    std::size_t num_laser_beams = 0;
-    double      max_range       = 0.0;
+    base::Angle phi_min         = base::Angle::createFromDegree(-120.0);
+    base::Angle phi_step        = base::Angle::createFromDegree(1.0);
+    std::size_t num_laser_beams = 241;
+    double      max_range       = 20.0;
   };
 
   StageReconstructPointsFromOccupancyGrid(const Parameter& parameter = Parameter())

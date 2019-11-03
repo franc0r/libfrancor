@@ -41,8 +41,11 @@ bool convertGridToImage(const OccupancyGrid& grid, vision::Image& image)
       if (cell_value == OccupancyCell::UNKOWN) {
         image(row, col).gray() = pixel_value_unkown;
       }
+      else if (cell_value == 0) {
+        image(row, col).gray() = 255;
+      }
       else {
-        image(row, col).gray() = cell_value;
+        image(row, col).gray() = 100 - cell_value;
       }
     }
   }
@@ -62,7 +65,10 @@ bool createGridFromImage(const Image& image, const double cell_size, OccupancyGr
     for (std::size_t y = 0; y < grid.getNumCellsY(); ++y) {
       const auto pixel_value = image(y, x).gray();
 
-      if (pixel_value < 100) {
+      if (pixel_value == 255) {
+        grid(x, y).value = 0;
+      }
+      else if (pixel_value < 100) {
         grid(x, y).value = 100 - pixel_value;
       }
       else {

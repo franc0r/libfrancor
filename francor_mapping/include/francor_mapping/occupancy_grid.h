@@ -33,7 +33,12 @@ namespace std {
 inline ostream& operator<<(ostream& os, const francor::mapping::OccupancyCell& cell)
 {
   os << "(" << setw(3);
-  if (cell.value == francor::mapping::OccupancyCell::UNKOWN) os << "nan"; else os << cell.value;
+  if (cell.value == francor::mapping::OccupancyCell::UNKOWN) {
+    os << "nan";
+  }
+  else {
+    os << static_cast<int>(cell.value);
+  }
   os << ")";
 
   return os;

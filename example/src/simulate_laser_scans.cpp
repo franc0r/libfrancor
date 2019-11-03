@@ -8,6 +8,8 @@
 #include <francor_mapping/algorihm/occupancy_grid.h>
 #include <francor_mapping/pipeline_stage_ego_object.h>
 
+#include <thread>
+
 using francor::mapping::PipeSimulateLaserScan;
 using francor::mapping::OccupancyGrid;
 using francor::mapping::EgoObject;
@@ -25,6 +27,18 @@ const Pose2d _sensor_pose({ 0.0, 0.0 }, 0.0);
 
 PipeSimulateLaserScan pipeline;
 
+void drawPoseOnImage(const Pose2d& pose, Image& image)
+{
+  const auto index_x = _grid.getIndexX(pose.position().x());
+  const auto index_y = _grid.getIndexY(pose.position().y());
+  constexpr std::size_t axis_length = 20;
+
+  for (std::size_t i = 0; i < axis_length; ++i) {
+    image(index_y, index_x + i).gray() = 0;
+    image(index_y + i, index_x).gray() = 0;
+  }
+}
+
 bool loadGridFromFile(const std::string& file_name, OccupancyGrid& grid)
 {
   const Image image(francor::vision::loadImageFromFile(file_name, francor::vision::ColourSpace::GRAY));
@@ -40,6 +54,11 @@ bool initialize(const std::string& file_name)
     LogError() << "Can't load occupancy grid from file.";
     return false;
   }
+  // std::cout << _grid << std::endl;
+  Image out;
+  francor::mapping::algorithm::occupancy::convertGridToImage(_grid, out);
+  drawPoseOnImage(_ego.pose(), out);
+  francor::vision::saveImageToFile("/tmp/occupancy_grid.png", out);
 
   if (!pipeline.initialize()) {
     LogError() << "Can't initialize \"" << pipeline.name() << "\" pipeline.";
@@ -61,6 +80,10 @@ bool processStep(const Vector2d& delta_position)
     return false;
   }
 
+  Image out;
+  francor::mapping::algorithm::occupancy::convertGridToImage(_grid, out);
+  drawPoseOnImage(_ego.pose(), out);
+  francor::vision::saveImageToFile("/tmp/occupancy_grid.png", out);
   std::cout << "result:" << std::endl << pipeline.output(PipeSimulateLaserScan::OUT_POINTS).data<Point2dVector>() << std::endl;
   return true;
 }
@@ -80,7 +103,7 @@ int main(int argc, char** argv)
     return 2;
   }
 
-  for (std::size_t step = 0; step < 500; ++step)
+  for (std::size_t step = 0; step < 10; ++step)
   {
     const Vector2d step_position(0.0, 0.05);
 
@@ -88,6 +111,8 @@ int main(int argc, char** argv)
       LogError() << "terminate application";
       return 3;
     }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(250));
   }
 
   return 0;

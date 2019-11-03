@@ -190,14 +190,14 @@ public:
    * \param x x-cooridnate
    * \return x index for given x-coordinate
    */
-  inline std::size_t getIndexX(const double x) const { return static_cast<std::size_t>(x / _cell_size); }
+  inline std::size_t getIndexX(const double x) const { return static_cast<std::size_t>((x + _origin.x()) / _cell_size); }
   /**
    * \brief Estimates the index to the given y coordinate.
    * 
    * \param y y-cooridnate
    * \return y index for given y-coordinate
    */
-  inline std::size_t getIndexY(const double y) const { return static_cast<std::size_t>(y / _cell_size); }
+  inline std::size_t getIndexY(const double y) const { return static_cast<std::size_t>((y + _origin.y()) / _cell_size); }
   /**
    * \brief Returns the position of the selected cell.
    * 

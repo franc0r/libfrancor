@@ -36,6 +36,11 @@ Image loadImageFromFile(const std::string& fileName, const ColourSpace space)
   return { mat, space };
 }
 
+void saveImageToFile(const std::string& file_name, const Image& image)
+{
+  cv::imwrite(file_name, image.cvMat());
+}
+
 } // end namespace vision
 
 } // end namespace francor
