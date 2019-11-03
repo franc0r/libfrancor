@@ -16,6 +16,7 @@ using francor::mapping::EgoObject;
 using francor::vision::Image;
 using francor::vision::ColourSpace;
 using francor::base::Pose2d;
+using francor::base::Point2d;
 using francor::base::Point2dVector;
 using francor::base::Transform2d;
 using francor::base::LogError;
@@ -23,6 +24,7 @@ using francor::base::LogInfo;
 using francor::base::LogDebug;
 using francor::base::Vector2d;
 using francor::base::Angle;
+using francor::base::LaserScan;
 
 OccupancyGrid _grid;
 EgoObject _ego;
@@ -56,6 +58,26 @@ void drawPointsOnImage(const Point2dVector& points, Image& image)
     const auto index_y = _grid.getIndexY(point.y());
 
     cv::circle(image.cvMat(), { index_x, index_y }, 7, cv::Scalar(0, 0, 255), 3);
+  }
+}
+
+void drawLaserScanOnImage(const LaserScan& scan, Image& image)
+{
+  Angle current_phi = scan.phiMin();
+
+  for (const auto& distance : scan.distances())
+  {
+    const Transform2d transform({ scan.pose().orientation() + current_phi },
+                                { scan.pose().position().x(), scan.pose().position().y() });
+    Point2d end(transform * Point2d(distance, 0.0));
+    const auto index_start_x = _grid.getIndexX(scan.pose().position().x());
+    const auto index_start_y = _grid.getIndexY(scan.pose().position().y());
+    const auto index_end_x = _grid.getIndexX(end.x());
+    const auto index_end_y = _grid.getIndexY(end.y());
+
+    cv::line(image.cvMat(), { index_start_x, index_start_y }, { index_end_x, index_end_y }, cv::Scalar(0, 255, 0), 3);
+
+    current_phi += scan.phiStep();
   }
 }
 
@@ -112,6 +134,7 @@ bool processStep(const Vector2d& delta_position)
   out.transformTo(ColourSpace::BGR);
   drawPoseOnImage(_ego.pose(), out);
   drawPointsOnImage(pipeline.output(PipeSimulateLaserScan::OUT_POINTS).data<Point2dVector>(), out);
+  drawLaserScanOnImage(pipeline.output(PipeSimulateLaserScan::OUT_SCAN).data<LaserScan>(), out);
   cv::imshow("occupancy grid", out.cvMat());
   cv::waitKey(10);
   francor::vision::saveImageToFile("/tmp/occupancy_grid.png", out);

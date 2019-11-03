@@ -57,6 +57,51 @@ bool StageReconstructPointsFromOccupancyGrid::isReady() const
   return this->input(IN_SENSOR_POSE).numOfConnections() > 0;
 }
 
+
+bool StageReconstructLaserScanFromOccupancyGrid::doProcess(OccupancyGrid& grid)
+{
+  using francor::base::LogError;
+  using francor::base::LogDebug;
+
+  const auto& sensor_pose = this->input(IN_SENSOR_POSE).data<base::Pose2d>();
+  LogDebug() << this->name() << ": start processing.";
+  LogDebug() << this->name() << ": uses sensor pose = " << sensor_pose;
+
+  if (!algorithm::occupancy::reconstructLaserScanFromGrid(grid,
+                                                          sensor_pose,
+                                                          _parameter.phi_min,
+                                                          _parameter.phi_step,
+                                                          _parameter.num_laser_beams,
+                                                          _parameter.max_range,
+                                                          _reconstructed_scan))
+  {
+    LogError() << this->name() << ": reconstruct points from tsd grid failed.";
+    return false;
+  }              
+
+  LogDebug() << this->name() << ": end processing.";
+  return true;                                    
+}
+
+bool StageReconstructLaserScanFromOccupancyGrid::doInitialization()
+{
+  return true;
+}
+
+bool StageReconstructLaserScanFromOccupancyGrid::initializePorts()
+{
+  this->initializeInputPort<base::Pose2d>(IN_SENSOR_POSE, "sensor pose");
+
+  this->initializeOutputPort(OUT_SCAN, "laser scan", &_reconstructed_scan);
+
+  return true;
+}
+
+bool StageReconstructLaserScanFromOccupancyGrid::isReady() const
+{
+  return this->input(IN_SENSOR_POSE).numOfConnections() > 0;
+}
+
 } // end namespace mapping
 
 } // end namespace francor

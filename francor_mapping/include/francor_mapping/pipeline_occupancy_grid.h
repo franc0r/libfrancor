@@ -14,9 +14,10 @@ namespace francor {
 
 namespace mapping {
 
-using PipeSimulateLaserScanParent = processing::ProcessingPipeline<OccupancyGrid,                           // model type
-                                                                   StageEstimateLaserScannerPose,           // estimate sensor pose stage
-                                                                   StageReconstructPointsFromOccupancyGrid  // reconstruct points stage
+using PipeSimulateLaserScanParent = processing::ProcessingPipeline<OccupancyGrid,                              // model type
+                                                                   StageEstimateLaserScannerPose,              // estimate sensor pose stage
+                                                                   StageReconstructLaserScanFromOccupancyGrid, // reconstruct scan stage
+                                                                   StageReconstructPointsFromOccupancyGrid     // reconstruct points stage
                                                                    >;
 
 class PipeSimulateLaserScan final : public PipeSimulateLaserScanParent
@@ -28,6 +29,7 @@ public:
   };
   enum Outputs {
     OUT_POINTS = 0,
+    OUT_SCAN,
     COUNT_OUTPUTS
   };
 
