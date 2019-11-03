@@ -8,6 +8,7 @@
 
 #include <francor_algorithm/ray_caster_2d.h>
 
+#include "francor_mapping/occupancy_grid.h"
 #include "francor_mapping/algorihm/tsd.h"
 
 namespace francor {
@@ -86,6 +87,29 @@ bool reconstructPointsFromGrid(const TsdGrid& grid, const base::Pose2d& pose, co
     }                            
 
     current_phi += phi_step;
+  }
+
+  return true;
+}
+
+bool convertTsdToOccupancyGrid(const TsdGrid& tsd_grid, OccupancyGrid& occupancy_grid)
+{
+  occupancy_grid.init(tsd_grid.getNumCellsX(), tsd_grid.getNumCellsY(), tsd_grid.getCellSize());
+
+  assert(tsd_grid.getNumCellsX() == occupancy_grid.getNumCellsX());
+  assert(tsd_grid.getNumCellsY() == occupancy_grid.getNumCellsY());
+  assert(tsd_grid.getCellSize() == occupancy_grid.getCellSize());
+
+  for (std::size_t y = 0; y < occupancy_grid.getNumCellsY(); ++y) {
+    for (std::size_t x = 0; x < occupancy_grid.getNumCellsX(); ++x) {
+      // \todo replace it with a proper formula
+      if (tsd_grid(x, y).tsd > 0.0) {
+        occupancy_grid(x, y).value = 100;
+      }
+      else {
+        occupancy_grid(x, y).value = 0;
+      }
+    }
   }
 
   return true;
