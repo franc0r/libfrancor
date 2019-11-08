@@ -61,24 +61,38 @@ void drawPointsOnImage(const Point2dVector& points, Image& image)
   }
 }
 
+void drawLaserBeamOnImage(const Point2d& start_point, const Angle phi, const double length,
+                          const cv::Scalar& colour, Image& image)
+{
+  const Transform2d transform({ phi },
+                              { start_point.x(), start_point.y() });
+  const Point2d end(transform * Point2d(length, 0.0));
+
+  const auto index_start_x = _grid.getIndexX(start_point.x());
+  const auto index_start_y = _grid.getIndexY(start_point.y());
+  const auto index_end_x = _grid.getIndexX(end.x());
+  const auto index_end_y = _grid.getIndexY(end.y());
+
+  cv::line(image.cvMat(), { index_start_x, index_start_y }, { index_end_x, index_end_y }, colour, 3);
+}
+
 void drawLaserScanOnImage(const LaserScan& scan, Image& image)
 {
   const auto index_start_x = _grid.getIndexX(scan.pose().position().x());
   const auto index_start_y = _grid.getIndexY(scan.pose().position().y());
   Angle current_phi = scan.phiMin();
+  const int radius_px = static_cast<int>(20.0 / 0.05);
 
-  cv::circle(image.cvMat(), {index_start_x, index_start_y }, static_cast<int>(20.0 / 0.05), cv::Scalar(0, 0, 240), 2);
+  drawLaserBeamOnImage(scan.pose().position(), scan.pose().orientation() + scan.phiMin(), 20,
+                       cv::Scalar(0, 0, 240), image);
+  drawLaserBeamOnImage(scan.pose().position(), scan.pose().orientation() + scan.phiMax(), 20,
+                       cv::Scalar(0, 0, 240), image);
+  cv::circle(image.cvMat(), {index_start_x, index_start_y }, radius_px, cv::Scalar(0, 0, 240), 2);
 
   for (const auto& distance : scan.distances())
   {
-    const Transform2d transform({ scan.pose().orientation() + current_phi },
-                                { scan.pose().position().x(), scan.pose().position().y() });
-    Point2d end(transform * Point2d(distance, 0.0));
-    const auto index_end_x = _grid.getIndexX(end.x());
-    const auto index_end_y = _grid.getIndexY(end.y());
-
-    cv::line(image.cvMat(), { index_start_x, index_start_y }, { index_end_x, index_end_y }, cv::Scalar(0, 255, 0), 3);
-
+    drawLaserBeamOnImage(scan.pose().position(), scan.pose().orientation() + current_phi, distance,
+                         cv::Scalar(0, 240, 0), image);
     current_phi += scan.phiStep();
   }
 }
