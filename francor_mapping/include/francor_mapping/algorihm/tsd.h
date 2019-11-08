@@ -24,7 +24,13 @@ namespace algorithm {
 
 namespace tsd {
 
-
+/**
+ * \brief Pushes a laser scan into a tsd grid using the update grid cell function.
+ * 
+ * \param grid Tsd grid.
+ * \param scan Input laser scan. To the ego pose will be added to the scan pose.
+ * \param pose_ego Input ego pose.
+ */
 void pushLaserScanToGrid(TsdGrid& grid, const base::LaserScan& scan, const base::Pose2d& pose_ego);
 
 /**

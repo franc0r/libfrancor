@@ -42,6 +42,31 @@ bool PipeSimulateLaserScan::initializePorts()
   return true;
 }
 
+
+
+bool PipeUpdateOccupancyGrid::configureStages()
+{
+  bool ret = true;
+
+  ret &= std::get<0>(_stages).input(StageEstimateLaserScannerPose::IN_SCAN)
+                             .connect(this->input(IN_SCAN));
+
+  ret &= std::get<1>(_stages).input(StagePushLaserScanToOccupancyGrid::IN_EGO_POSE)
+                             .connect(std::get<0>(_stages).output(StageEstimateLaserScannerPose::OUT_EGO_POSE));
+  ret &= std::get<1>(_stages).input(StagePushLaserScanToOccupancyGrid::IN_SCAN)
+                             .connect(this->input(IN_SCAN));
+
+  return ret;                             
+}
+
+bool PipeUpdateOccupancyGrid::initializePorts()
+{
+  this->initializeInputPort<base::LaserScan>(IN_SCAN, "laser scan");
+
+  return true;
+}
+
+
 } // end namespace mapping
 
 } // end namespace francor

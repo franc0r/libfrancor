@@ -102,6 +102,38 @@ bool StageReconstructLaserScanFromOccupancyGrid::isReady() const
   return this->input(IN_SENSOR_POSE).numOfConnections() > 0;
 }
 
+
+
+bool StagePushLaserScanToOccupancyGrid::doProcess(OccupancyGrid& grid)
+{
+  const auto& pose_ego = this->input(IN_EGO_POSE).data<base::Pose2d   >();
+  const auto& scan     = this->input(IN_SCAN    ).data<base::LaserScan>();
+
+  algorithm::occupancy::pushLaserScanToGrid(grid, scan, pose_ego);
+
+  return true;
+}
+
+bool StagePushLaserScanToOccupancyGrid::doInitialization()
+{
+  return true;
+}
+
+bool StagePushLaserScanToOccupancyGrid::initializePorts()
+{
+  this->initializeInputPort<base::Point2d>(IN_EGO_POSE, "ego pose");
+  this->initializeInputPort<base::LaserScan>(IN_SCAN, "laser scan");
+
+  return true;
+}
+
+bool StagePushLaserScanToOccupancyGrid::isReady() const
+{
+  return this->input(IN_EGO_POSE).numOfConnections() > 0
+         &&
+         this->input(IN_SCAN).numOfConnections() > 0;
+}
+
 } // end namespace mapping
 
 } // end namespace francor

@@ -28,6 +28,7 @@ public:
   };
   enum Outputs {
     OUT_POSE,
+    OUT_EGO_POSE,
     COUNT_OUTPUTS
   };
 
@@ -42,6 +43,7 @@ private:
   bool isReady() const final;
 
   base::Pose2d _estimated_pose; //> estimated pose by this stage
+  base::Pose2d _ego_pose;       //> pose of ego object
 };
 
 } // end namespace mapping

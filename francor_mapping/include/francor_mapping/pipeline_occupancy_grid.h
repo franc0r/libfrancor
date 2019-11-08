@@ -40,6 +40,31 @@ private:
   bool initializePorts() final;
 };
 
+
+
+using PipeUpdateOccupancyGridParent = processing::ProcessingPipeline<OccupancyGrid,                    // model type
+                                                                     StageEstimateLaserScannerPose,    // estimate ego pose stage
+                                                                     StagePushLaserScanToOccupancyGrid // update grid stage
+                                                                     >;
+
+class PipeUpdateOccupancyGrid final : public PipeUpdateOccupancyGridParent
+{
+public:
+  enum Inputs {
+    IN_SCAN = 0,
+    COUNT_INPUTS
+  };
+  enum Outputs {
+    COUNT_OUTPUTS = 0
+  };
+
+  PipeUpdateOccupancyGrid() : PipeUpdateOccupancyGridParent("update occupancy grid", COUNT_INPUTS, COUNT_OUTPUTS) { }
+
+private:
+  bool configureStages() final;
+  bool initializePorts() final;
+};                                                                    
+
 } // end namespace mapping
 
 } // end namespace francor

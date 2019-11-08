@@ -91,6 +91,32 @@ private:
   const Parameter _parameter;
   base::LaserScan _reconstructed_scan;
 };
+
+
+
+class StagePushLaserScanToOccupancyGrid final : public processing::ProcessingStage<OccupancyGrid>
+{
+public:
+  enum Inputs {
+    IN_EGO_POSE = 0,
+    IN_SCAN,
+    COUNT_INPUTS
+  };
+  enum Outputs {
+    COUNT_OUTPUTS = 0
+  };
+
+  StagePushLaserScanToOccupancyGrid()
+    : processing::ProcessingStage<OccupancyGrid>("push laser scan to occupancy grid", COUNT_INPUTS, COUNT_OUTPUTS)
+  { }
+
+private:
+  bool doProcess(OccupancyGrid& grid) final;
+  bool doInitialization() final;
+  bool initializePorts() final;
+  bool isReady() const final;  
+};
+
 } // end namespace mapping
 
 } // end namespace francor

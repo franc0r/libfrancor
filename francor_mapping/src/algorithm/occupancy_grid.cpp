@@ -172,6 +172,50 @@ bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d&
   return true;
 }                                  
 
+
+
+void updateGridCell(OccupancyCell& cell, const double distance, const double current_distance)
+{
+  if (current_distance < distance)
+    cell.value = 0;
+  else
+    cell.value = 100;
+}
+
+
+
+void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan, const base::Pose2d& pose_ego)
+{
+  using francor::base::Point2d;
+  using francor::base::Angle;
+  using francor::base::Line;
+  using francor::algorithm::Ray2d;
+
+  Angle current_phi = laser_scan.phiMin();
+  const std::size_t start_index_x = grid.getIndexX(laser_scan.pose().position().x() + pose_ego.position().x());
+  const std::size_t start_index_y = grid.getIndexY(laser_scan.pose().position().y() + pose_ego.position().y());
+
+  for (const auto& distance : laser_scan.distances())
+  {
+    const Point2d position = laser_scan.pose().position() + pose_ego.position();
+    const Angle phi = current_phi + laser_scan.pose().orientation() + pose_ego.orientation();
+    const auto direction = base::algorithm::line::calculateV(phi);
+
+    Ray2d ray(Ray2d::create(start_index_x, start_index_y, grid.getNumCellsX(), grid.getNumCellsY(), grid.getCellSize(), position, direction, distance));
+    std::size_t counter = 0;
+
+    for (const auto& idx : ray)
+    {
+      const double current_distance = (grid.getCellPosition(idx.x(), idx.y()) - position).norm();
+      updateGridCell(grid(idx.x(), idx.y()), distance, current_distance); // \todo replace constant value with tsd calculation function
+      ++counter;
+    }
+
+    std::cout << "counter = " << counter << std::endl;
+    current_phi += laser_scan.phiStep();
+  }
+}
+
 } // end namespace occupancy
 
 } // end namespace algorithm

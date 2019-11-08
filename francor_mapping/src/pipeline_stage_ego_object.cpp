@@ -23,6 +23,7 @@ bool StageEstimateLaserScannerPose::doProcess(EgoObject& ego)
 
   base::Transform2d t_laser_ego({ pose.orientation() }, { pose.position().x(), pose.position().y() });
   _estimated_pose = t_laser_ego * ego.pose();
+  _ego_pose       = ego.pose();
   LogDebug() << this->name() << ": estimated " << _estimated_pose;
 
   return true;
@@ -39,6 +40,7 @@ bool StageEstimateLaserScannerPose::initializePorts()
   this->initializeInputPort<base::Pose2d>   (IN_SENSOR_POSE, "sensor pose");
 
   this->initializeOutputPort(OUT_POSE, "pose", &_estimated_pose);
+  this->initializeOutputPort(OUT_EGO_POSE, "ego pose", &_ego_pose);
 
   return true;
 }

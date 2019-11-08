@@ -24,6 +24,7 @@ class Image;
 namespace mapping {
 
 class OccupancyGrid;
+struct OccupancyCell;
 
 namespace algorithm {
 
@@ -86,6 +87,24 @@ bool reconstructPointsFromGrid(const OccupancyGrid& grid, const base::Pose2d& po
 bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d& pose, const base::Angle phi_min,
                                   const base::Angle phi_step, const std::size_t num_beams, const double range,
                                   base::LaserScan& scan);
+
+/**
+ * \brief Updates a occupancy grid cell. NOTE: POC!
+ * 
+ * \param cell Occupancy grid cell.
+ * \param distance Final distance of the ray.
+ * \param current_distance Current distance of the ray.
+ */
+void updateGridCell(OccupancyCell& cell, const double distance, const double current_distance);
+
+/**
+ * \brief Pushes a laser scan into a occupancy grid using the update grid cell function.
+ * 
+ * \param grid Occupancy grid.
+ * \param scan Input laser scan. To the ego pose will be added to the scan pose.
+ * \param pose_ego Input ego pose.
+ */
+void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& scan, const base::Pose2d& pose_ego);
 
 } // end namespace occupancy
 
