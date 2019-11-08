@@ -20,3 +20,12 @@ add_executable(simulate-laser-scans
 target_link_libraries(simulate-laser-scans
   PRIVATE francor-mapping
 )
+
+# updating occupancy grid example
+add_executable(updating-occupancy-grid
+  src/updating_occupancy_grid.cpp
+)
+
+target_link_libraries(updating-occupancy-grid
+  PRIVATE francor-mapping
+)

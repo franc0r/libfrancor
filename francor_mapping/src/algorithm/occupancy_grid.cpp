@@ -173,7 +173,7 @@ bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d&
     current_phi += phi_step;
   }
 
-  scan = LaserScan(distances, pose, phi_min, phi_min + phi_step * num_beams, phi_step);
+  scan = LaserScan(distances, pose_sensor, phi_min, phi_min + phi_step * num_beams, phi_step);
 
   return true;
 }                                  
