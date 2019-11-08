@@ -20,7 +20,9 @@ bool PipeSimulateLaserScan::configureStages()
                              .connect(this->input(IN_SENSOR_POSE));
 
   ret &= std::get<1>(_stages).input(StageReconstructLaserScanFromOccupancyGrid::IN_SENSOR_POSE)
-                             .connect(std::get<0>(_stages).output(StageEstimateLaserScannerPose::OUT_POSE));
+                             .connect(this->input(IN_SENSOR_POSE));
+  ret &= std::get<1>(_stages).input(StageReconstructLaserScanFromOccupancyGrid::IN_EGO_POSE)
+                             .connect(std::get<0>(_stages).output(StageEstimateLaserScannerPose::OUT_EGO_POSE));                             
   ret &= std::get<1>(_stages).output(StageReconstructLaserScanFromOccupancyGrid::OUT_SCAN)
                              .connect(this->output(OUT_SCAN));                             
 

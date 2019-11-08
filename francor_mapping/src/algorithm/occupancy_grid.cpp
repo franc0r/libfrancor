@@ -13,6 +13,7 @@
 #include <francor_base/line.h>
 #include <francor_base/laser_scan.h>
 #include <francor_base/vector.h>
+#include <francor_base/transform.h>
 
 #include <francor_algorithm/ray_caster_2d.h>
 
@@ -124,15 +125,20 @@ bool reconstructPointsFromGrid(const OccupancyGrid& grid, const base::Pose2d& po
 }
 
 
-bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d& pose, const base::Angle phi_min,
-                                  const base::Angle phi_step, const std::size_t num_beams, const double range,
-                                  base::LaserScan& scan)
+bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d& pose_ego, const base::Pose2d& pose_sensor,
+                                  const base::Angle phi_min, const base::Angle phi_step, const std::size_t num_beams,
+                                  const double range, base::LaserScan& scan)
 {
   using francor::base::Angle;
   using francor::base::Line;
   using francor::algorithm::Ray2d;
   using francor::base::LaserScan;
   using francor::base::Vector2d;
+  using francor::base::Pose2d;
+  using francor::base::Transform2d;
+
+  const Transform2d transform({ pose_ego.orientation() }, { pose_ego.position().x(), pose_ego.position().y() });
+  const Pose2d pose(transform * pose_sensor);
 
   Angle current_phi = pose.orientation() + phi_min;
   const std::size_t start_index_x = grid.getIndexX(pose.position().x());

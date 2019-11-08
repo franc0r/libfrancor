@@ -60,6 +60,7 @@ class StageReconstructLaserScanFromOccupancyGrid final : public processing::Proc
 public:
   enum Inputs {
     IN_SENSOR_POSE = 0,
+    IN_EGO_POSE,
     COUNT_INPUTS
   };
   enum Outputs {

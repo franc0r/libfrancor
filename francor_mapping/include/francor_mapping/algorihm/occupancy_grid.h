@@ -76,7 +76,8 @@ bool reconstructPointsFromGrid(const OccupancyGrid& grid, const base::Pose2d& po
  * \brief Reconstruct a laser scan from grid at given pose.
  * 
  * \param grid The occupancy grid used to reconstruct.
- * \param pose Pose the laser sensor.
+ * \param pose_ego Pose the ego object.
+ * \param pose_sensor Pose of the sensor in ego frame.
  * \param phi_min Start angle (left).
  * \param phi_step Angle steps between each laser beam.
  * \param num_beams Numbers of laser beams.
@@ -84,9 +85,9 @@ bool reconstructPointsFromGrid(const OccupancyGrid& grid, const base::Pose2d& po
  * \param scan Reconstructed laser scan.
  * \return true if reconstruction was successful.
  */
-bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d& pose, const base::Angle phi_min,
-                                  const base::Angle phi_step, const std::size_t num_beams, const double range,
-                                  base::LaserScan& scan);
+bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d& pose_ego, const base::Pose2d& pose_sensor,
+                                  const base::Angle phi_min, const base::Angle phi_step, const std::size_t num_beams,
+                                  const double range, base::LaserScan& scan);
 
 /**
  * \brief Updates a occupancy grid cell. NOTE: POC!
