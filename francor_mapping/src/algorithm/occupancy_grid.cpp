@@ -202,18 +202,20 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
   const std::size_t start_index_y = grid.getIndexY(laser_scan.pose().position().y() + pose_ego.position().y());
   const Point2d position = laser_scan.pose().position() + pose_ego.position();
 
-  for (const auto& distance : laser_scan.distances())
+  for (const auto distance : laser_scan.distances())
   {
     const Angle phi = current_phi + laser_scan.pose().orientation() + pose_ego.orientation();
     const auto direction = base::algorithm::line::calculateV(phi);
+    const auto distance_corrected = (std::isnan(distance) || std::isinf(distance) ? laser_scan.range() : distance);
 
-    Ray2d ray(Ray2d::create(start_index_x, start_index_y, grid.getNumCellsX(), grid.getNumCellsY(), grid.getCellSize(), position, direction, distance));
+    Ray2d ray(Ray2d::create(start_index_x, start_index_y, grid.getNumCellsX(),
+              grid.getNumCellsY(), grid.getCellSize(), position, direction, distance_corrected));
     std::size_t counter = 0;
 
     for (const auto& idx : ray)
     {
       const double current_distance = (grid.getCellPosition(idx.x(), idx.y()) - position).norm();
-      updateGridCell(grid(idx.x(), idx.y()), distance, current_distance); // \todo replace constant value with tsd calculation function
+      updateGridCell(grid(idx.x(), idx.y()), distance_corrected, current_distance); // \todo replace constant value with tsd calculation function
       ++counter;
     }
 
@@ -225,7 +227,7 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
       const std::size_t end_index_y = grid.getIndexY(end_position.y());
       grid(end_index_x, end_index_y).value = 100;
     }
-    
+
     current_phi += laser_scan.phiStep();
   }
 }
