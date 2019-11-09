@@ -27,7 +27,7 @@ TEST(PushLaserScanToGrid, BasicFunctionality)
   constexpr Angle phi_min  = Angle::createFromDegree(-180.0);
   constexpr Angle phi_max  = Angle::createFromDegree( 180.0);
   constexpr Angle phi_step = Angle::createFromDegree(1.0);
-  LaserScan scan(distances, pose_laser, phi_min, phi_max, phi_step);
+  LaserScan scan(distances, pose_laser, phi_min, phi_max, phi_step, 12.0);
 
   ASSERT_TRUE(grid.init(10000, 100000, 0.02));
   auto start = std::chrono::system_clock::now();

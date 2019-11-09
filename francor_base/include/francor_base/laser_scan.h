@@ -24,12 +24,14 @@ public:
             const Angle phiMin,
             const Angle phiMax,
             const Angle phiStep,
+            const double range,
             const Angle divergence = 0.0)
     : _distances(distances),
       _pose(pose),
       _phi_step(phiStep),
       _phi_min(phiMin),
       _phi_max(phiMax),
+      _range(range),
       _divergence(divergence)
   { }
 
@@ -39,6 +41,7 @@ public:
   inline Angle divergence() const noexcept { return _divergence; }
   inline const std::vector<double> distances() const noexcept { return _distances; }
   inline const Pose2d& pose() const noexcept { return _pose; }
+  inline double range() const noexcept { return _range; }
 
 private:
   std::vector<double> _distances;
@@ -46,6 +49,7 @@ private:
   Angle _phi_step{0.0};
   Angle _phi_min{0.0};
   Angle _phi_max{0.0};
+  double _range{0.0};
   Angle _divergence{0.0};
 };
 

@@ -173,7 +173,7 @@ bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d&
     current_phi += phi_step;
   }
 
-  scan = LaserScan(distances, pose_sensor, phi_min, phi_min + phi_step * num_beams, phi_step);
+  scan = LaserScan(distances, pose_sensor, phi_min, phi_min + phi_step * num_beams, phi_step, range);
 
   return true;
 }                                  
@@ -200,10 +200,10 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
   Angle current_phi = laser_scan.phiMin();
   const std::size_t start_index_x = grid.getIndexX(laser_scan.pose().position().x() + pose_ego.position().x());
   const std::size_t start_index_y = grid.getIndexY(laser_scan.pose().position().y() + pose_ego.position().y());
+  const Point2d position = laser_scan.pose().position() + pose_ego.position();
 
   for (const auto& distance : laser_scan.distances())
   {
-    const Point2d position = laser_scan.pose().position() + pose_ego.position();
     const Angle phi = current_phi + laser_scan.pose().orientation() + pose_ego.orientation();
     const auto direction = base::algorithm::line::calculateV(phi);
 
@@ -218,6 +218,14 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
     }
 
     std::cout << "counter = " << counter << std::endl;
+    if (!(std::isnan(distance) || std::isinf(distance)))
+    {
+      const auto end_position(position + direction * distance);
+      const std::size_t end_index_x = grid.getIndexX(end_position.x());
+      const std::size_t end_index_y = grid.getIndexY(end_position.y());
+      grid(end_index_x, end_index_y).value = 100;
+    }
+    
     current_phi += laser_scan.phiStep();
   }
 }
