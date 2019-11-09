@@ -99,6 +99,14 @@ bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d&
 void updateGridCell(OccupancyCell& cell, const double distance, const double current_distance);
 
 /**
+ * \brief Reduces the value of a occupancy grid cell by given value.
+ * 
+ * \param cell Occupancy grid cell.
+ * \param value Value used to reduces the cell value.
+ */
+void freeGridCell(OccupancyCell& cell, const std::uint8_t value);
+
+/**
  * \brief Pushes a laser scan into a occupancy grid using the update grid cell function.
  * 
  * \param grid Occupancy grid.

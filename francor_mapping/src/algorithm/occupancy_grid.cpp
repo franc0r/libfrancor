@@ -188,7 +188,18 @@ void updateGridCell(OccupancyCell& cell, const double distance, const double cur
     cell.value = 100;
 }
 
-
+void freeGridCell(OccupancyCell& cell, const std::uint8_t value)
+{
+  if (cell.value == OccupancyCell::UNKOWN) {
+    cell.value = 0;
+  }
+  else if (cell.value < value) {
+    cell.value = 0;
+  }
+  else {
+    cell.value -= value;
+  }
+}
 
 void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan, const base::Pose2d& pose_ego)
 {
@@ -214,8 +225,7 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
 
     for (const auto& idx : ray)
     {
-      const double current_distance = (grid.getCellPosition(idx.x(), idx.y()) - position).norm();
-      updateGridCell(grid(idx.x(), idx.y()), distance_corrected, current_distance); // \todo replace constant value with tsd calculation function
+      freeGridCell(grid(idx.x(), idx.y()), 30);
       ++counter;
     }
 
@@ -225,7 +235,11 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
       const auto end_position(position + direction * distance);
       const std::size_t end_index_x = grid.getIndexX(end_position.x());
       const std::size_t end_index_y = grid.getIndexY(end_position.y());
-      grid(end_index_x, end_index_y).value = 100;
+      grid(end_index_x, end_index_y).value += 30;
+
+      if (grid(end_index_x, end_index_y).value > 100) {
+        grid(end_index_x, end_index_y).value = 100;
+      }
     }
 
     current_phi += laser_scan.phiStep();
