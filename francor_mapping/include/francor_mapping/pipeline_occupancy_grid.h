@@ -7,6 +7,8 @@
 
 #include <francor_processing/data_processing_pipeline.h>
 
+#include <francor_algorithm/pipeline_stage_estimate_transform.h>
+
 #include "francor_mapping/pipeline_stage_occupancy_grid.h"
 #include "francor_mapping/pipeline_stage_ego_object.h"
 
@@ -64,6 +66,35 @@ private:
   bool configureStages() final;
   bool initializePorts() final;
 };                                                                    
+
+
+
+using PipeLocalizeAndUpdateEgoParent = processing::ProcessingPipeline<EgoObject,                                      // model type
+                                                                      StageEstimateLaserScannerPose,                  // estimate poses stage
+                                                                      algorithm::StageConvertLaserScanToPoints,       // convert scan stage
+                                                                      StageReconstructPointsFromOccupancyGrid,        // reconstruct points stage
+                                                                      algorithm::StageEstimateTransformBetweenPoints, // estimate transform stage
+                                                                      StageUpdateEgo                                  // update ego stage
+                                                                      >;
+
+class PipeLocalizeAndUpdateEgo final : public PipeLocalizeAndUpdateEgoParent
+{
+  enum Inputs {
+    IN_SCAN = 0,
+    COUNT_INPUTS
+  };
+  enum Outputs {
+    COUNT_OUTPUTS = 0
+  };
+
+  PipeLocalizeAndUpdateEgo() : PipeLocalizeAndUpdateEgoParent("localize and update ego", COUNT_INPUTS, COUNT_OUTPUTS) { }
+
+private:
+  bool configureStages() final;
+  bool initializePorts() final;
+};
+
+
 
 } // end namespace mapping
 

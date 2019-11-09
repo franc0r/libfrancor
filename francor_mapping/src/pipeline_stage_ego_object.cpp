@@ -52,6 +52,40 @@ bool StageEstimateLaserScannerPose::isReady() const
          this->input(IN_SENSOR_POSE).numOfConnections() > 0;
 }
 
+
+
+bool StageUpdateEgo::doProcess(EgoObject& ego)
+{
+  using francor::base::LogDebug;
+
+  base::Transform2d transform = this->input(IN_TRANSFORM).data<base::Transform2d>();
+
+  // \todo fix me! respect the sensor pose
+  LogDebug() << this->name() << ": update ego pose = " << ego.pose();
+  ego.setPose(transform * ego.pose());
+  LogDebug() << this->name() << ": new ego pose = " << ego.pose();
+
+  return true;
+}
+
+bool StageUpdateEgo::doInitialization()
+{
+  return true;
+}
+
+bool StageUpdateEgo::initializePorts()
+{
+  this->initializeInputPort<base::Pose2d>     (IN_SENSOR_POSE, "sensor pose");
+  this->initializeInputPort<base::Transform2d>(IN_TRANSFORM  , "transform"  );
+
+  return true;
+}
+
+bool StageUpdateEgo::isReady() const
+{
+  return this->input(IN_TRANSFORM).numOfConnections() > 0;
+}
+
 } // end namespace mapping
 
 } // end namespace francor

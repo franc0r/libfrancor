@@ -10,6 +10,8 @@ add_executable(find-blue-lines-in-image
 
 target_link_libraries(find-blue-lines-in-image
   PRIVATE francor-processing
+  PRIVATE francor-algorithm
+  PRIVATE francor-vision
 )
 
 # simulate laser scans example

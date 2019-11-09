@@ -18,7 +18,7 @@ namespace mapping {
  *        pipeline concept requires such a extra calculation step.
  */
 // \todo invent a base class for all sensor data classes so this stage can be more generic usable
-class StageEstimateLaserScannerPose : public processing::ProcessingStage<EgoObject>
+class StageEstimateLaserScannerPose final : public processing::ProcessingStage<EgoObject>
 {
 public:
   enum Inputs {
@@ -45,6 +45,34 @@ private:
   base::Pose2d _estimated_pose; //> estimated pose by this stage
   base::Pose2d _ego_pose;       //> pose of ego object
 };
+
+
+/**
+ * \brief Updates Ego using connected inputs.
+ */
+class StageUpdateEgo final : public processing::ProcessingStage<EgoObject>
+{
+public:
+  enum Inputs {
+    IN_SENSOR_POSE = 0,
+    IN_TRANSFORM,
+    COUNT_INPUTS
+  };
+  enum Outputs {
+    COUNT_OUTPUTS = 0
+  };
+
+  StageUpdateEgo()
+    : processing::ProcessingStage<EgoObject>("update ego object", COUNT_INPUTS, COUNT_OUTPUTS)
+  { }
+
+private:
+  bool doProcess(EgoObject& ego) final;
+  bool doInitialization() final;
+  bool initializePorts() final;
+  bool isReady() const final;
+};
+
 
 } // end namespace mapping
 

@@ -17,6 +17,7 @@ add_library(${PROJECT_NAME} SHARED
   src/flann_point_pair_estimator.cpp
   src/estimate_transform.cpp
   src/icp.cpp
+  src/pipeline_stage_estimate_transform.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -27,6 +28,7 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
   PUBLIC francor-base
+         francor-processing
          ${FLANN_LIBRARIES}
          ${LIBLZ4_LIBRARIES}
 )

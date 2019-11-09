@@ -69,6 +69,42 @@ bool PipeUpdateOccupancyGrid::initializePorts()
 }
 
 
+
+bool PipeLocalizeAndUpdateEgo::configureStages()
+{
+  bool ret = true;
+
+  ret &= std::get<0>(_stages).input(StageEstimateLaserScannerPose::IN_SCAN)
+                             .connect(this->input(IN_SCAN));
+
+  ret &= std::get<1>(_stages).input(algorithm::StageConvertLaserScanToPoints::IN_SCAN)
+                             .connect(this->input(IN_SCAN));
+
+  ret &= std::get<2>(_stages).input(StageReconstructPointsFromOccupancyGrid::IN_SENSOR_POSE)
+                             .connect(std::get<0>(_stages).output(StageEstimateLaserScannerPose::OUT_POSE));                              
+  ret &= std::get<2>(_stages).input(StageReconstructLaserScanFromOccupancyGrid::IN_EGO_POSE)
+                             .connect(std::get<0>(_stages).output(StageEstimateLaserScannerPose::OUT_EGO_POSE));
+
+  ret &= std::get<3>(_stages).input(algorithm::StageEstimateTransformBetweenPoints::IN_POINTS_A)
+                             .connect(std::get<2>(_stages).output(StageReconstructPointsFromOccupancyGrid::OUT_POINTS));
+  ret &= std::get<3>(_stages).input(algorithm::StageEstimateTransformBetweenPoints::IN_POINTS_B)
+                             .connect(std::get<1>(_stages).output(algorithm::StageConvertLaserScanToPoints::OUT_POINTS));
+
+  ret &= std::get<4>(_stages).input(StageUpdateEgo::IN_TRANSFORM)
+                             .connect(std::get<3>(_stages).output(algorithm::StageEstimateTransformBetweenPoints::OUT_TRANSFORM));
+
+  return ret;
+}
+
+bool PipeLocalizeAndUpdateEgo::initializePorts()
+{
+  this->initializeInputPort<base::LaserScan>(IN_SCAN, "laser scan");
+
+  return true;
+}
+
+
+
 } // end namespace mapping
 
 } // end namespace francor
