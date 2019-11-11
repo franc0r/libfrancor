@@ -21,7 +21,9 @@ bool StageEstimateTransformBetweenPoints::doProcess(processing::NoDataType&)
 
   const auto& point_set_a = this->input(IN_POINTS_A).data<base::Point2dVector>();
   const auto& point_set_b = this->input(IN_POINTS_B).data<base::Point2dVector>();
-
+  LogDebug() << this->name() << ": input points";
+  LogDebug() << point_set_a;
+  LogDebug() << point_set_b;
   if (!_icp.estimateTransform(point_set_a, point_set_b, _estimated_transform)) {
     LogError() << this->name() << ": error occurred during estimation. Can't estimate transformatin.";
     return false;
@@ -64,9 +66,13 @@ bool StageConvertLaserScanToPoints::doProcess(processing::NoDataType&)
   using francor::base::LogDebug;
   using francor::base::LogError;
 
-  const auto& scan = this->input(IN_SCAN).data<base::LaserScan>();
+  const auto& scan     = this->input(IN_SCAN).data    <base::LaserScan>();
+  const auto& ego_pose = this->input(IN_EGO_POSE).data<base::Pose2d   >();
 
-  if (!base::algorithm::point::convertLaserScanToPoints(scan, _resulted_points)) {
+  LogDebug() << "uses scan pose " << scan.pose();
+  LogDebug() << "uses ego pose " << ego_pose;
+
+  if (!base::algorithm::point::convertLaserScanToPoints(scan, ego_pose, _resulted_points)) {
     LogError() << this->name() << ": error occurred during convertion. Can't convert laser scan.";
     return false;
   }
@@ -82,7 +88,8 @@ bool StageConvertLaserScanToPoints::doInitialization()
 
 bool StageConvertLaserScanToPoints::initializePorts()
 {
-  this->initializeInputPort<base::LaserScan>(IN_SCAN, "laser scan");
+  this->initializeInputPort<base::LaserScan>(IN_SCAN    , "laser scan");
+  this->initializeInputPort<base::Pose2d   >(IN_EGO_POSE, "ego pose"  );
 
   this->initializeOutputPort(OUT_POINTS, "points 2d", &_resulted_points);
 
@@ -91,7 +98,9 @@ bool StageConvertLaserScanToPoints::initializePorts()
 
 bool StageConvertLaserScanToPoints::isReady() const
 {
-  return this->input(IN_SCAN).numOfConnections() > 0;
+  return this->input(IN_SCAN).numOfConnections() > 0
+         &&
+         this->input(IN_EGO_POSE).maxNumOfConnections() > 0;
 }
 
 

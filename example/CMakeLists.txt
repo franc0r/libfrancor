@@ -31,3 +31,12 @@ add_executable(updating-occupancy-grid
 target_link_libraries(updating-occupancy-grid
   PRIVATE francor-mapping
 )
+
+# localize and update ego example
+add_executable(localize-ego-on-occupancy-grid
+  src/localize_ego_on_occupancy_grid.cpp
+)
+
+target_link_libraries(localize-ego-on-occupancy-grid
+  PRIVATE francor-mapping
+)

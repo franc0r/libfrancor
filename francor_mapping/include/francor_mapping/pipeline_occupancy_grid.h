@@ -79,6 +79,7 @@ using PipeLocalizeAndUpdateEgoParent = processing::ProcessingPipeline<EgoObject,
 
 class PipeLocalizeAndUpdateEgo final : public PipeLocalizeAndUpdateEgoParent
 {
+public:
   enum Inputs {
     IN_SCAN = 0,
     COUNT_INPUTS

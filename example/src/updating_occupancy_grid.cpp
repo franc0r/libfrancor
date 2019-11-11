@@ -9,6 +9,7 @@
 #include <francor_mapping/pipeline_stage_ego_object.h>
 
 #include <thread>
+#include <random>
 
 using francor::mapping::PipeSimulateLaserScan;
 using francor::mapping::PipeUpdateOccupancyGrid;
@@ -80,6 +81,21 @@ bool loadGridFromFile(const std::string& file_name, OccupancyGrid& grid)
   return francor::mapping::algorithm::occupancy::createGridFromImage(image, 0.05, _grid_source);
 }
 
+void applyGaussianNoise(LaserScan& scan)
+{
+  std::default_random_engine generator;
+  std::normal_distribution<double> distribution(0.0, 0.1);
+  std::vector<double> modified_distances;
+
+  modified_distances.reserve(scan.distances().size());
+
+  for (const auto distance : scan.distances()) {
+    modified_distances.push_back(distance + distribution(generator));
+  }
+
+  scan = LaserScan(modified_distances, scan.pose(), scan.phiMin(), scan.phiMax(), scan.phiStep(), scan.range());
+}
+
 bool initialize(const std::string& file_name)
 {
   if (!loadGridFromFile(file_name, _grid_source)) {
@@ -127,6 +143,7 @@ bool processStep(const Vector2d& delta_position)
 
 
   LaserScan scan(_pipe_simulator.output(PipeSimulateLaserScan::OUT_SCAN).data<LaserScan>());
+  applyGaussianNoise(scan);
   _pipe_update_grid.input(PipeUpdateOccupancyGrid::IN_SCAN).assign(&scan);
   start = std::chrono::system_clock::now();
 

@@ -64,6 +64,7 @@ class StageConvertLaserScanToPoints final : public processing::ProcessingStage<p
 public:
   enum Inputs {
     IN_SCAN = 0,
+    IN_EGO_POSE,
     COUNT_INPUTS
   };
   enum Outputs {
