@@ -31,13 +31,13 @@ template <LogLevel Level>
 class Log
 {
 public:
-  Log(void)
+  Log()
   {
     this->printWarnLevel(Level);
   }
   Log(const Log<Level>&) = delete;
   Log(Log<Level>&&) = delete;
-  ~Log(void)
+  ~Log()
   {
     if (Level >= getLogLevel())
       std::clog << std::endl;

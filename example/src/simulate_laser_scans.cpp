@@ -78,21 +78,26 @@ void drawLaserBeamOnImage(const Point2d& start_point, const Angle phi, const dou
 
 void drawLaserScanOnImage(const LaserScan& scan, Image& image)
 {
-  const auto index_start_x = _grid.getIndexX(scan.pose().position().x());
-  const auto index_start_y = _grid.getIndexY(scan.pose().position().y());
+  const Transform2d tranform({ _ego.pose().orientation() }, { _ego.pose().position().x(), _ego.pose().position().y() });
+  const Pose2d pose(tranform * scan.pose());
+  const auto index_start_x = _grid.getIndexX(pose.position().x());
+  const auto index_start_y = _grid.getIndexY(pose.position().y());
   Angle current_phi = scan.phiMin();
   const int radius_px = static_cast<int>(20.0 / 0.05);
 
-  drawLaserBeamOnImage(scan.pose().position(), scan.pose().orientation() + scan.phiMin(), 20,
+  drawLaserBeamOnImage(pose.position(), pose.orientation() + scan.phiMin(), 20,
                        cv::Scalar(0, 0, 240), image);
-  drawLaserBeamOnImage(scan.pose().position(), scan.pose().orientation() + scan.phiMax(), 20,
+  drawLaserBeamOnImage(pose.position(), pose.orientation() + scan.phiMax(), 20,
                        cv::Scalar(0, 0, 240), image);
   cv::circle(image.cvMat(), {index_start_x, index_start_y }, radius_px, cv::Scalar(0, 0, 240), 2);
 
   for (const auto& distance : scan.distances())
   {
-    drawLaserBeamOnImage(scan.pose().position(), scan.pose().orientation() + current_phi, distance,
-                         cv::Scalar(0, 240, 0), image);
+    if (!(std::isnan(distance) || std::isinf(distance))) {
+      drawLaserBeamOnImage(pose.position(), pose.orientation() + current_phi, distance,
+                          cv::Scalar(0, 240, 0), image);
+    }
+                             
     current_phi += scan.phiStep();
   }
 }
