@@ -8,6 +8,8 @@
 #include "francor_base/laser_scan.h"
 #include "francor_base/transform.h"
 
+#include <iostream>
+
 namespace francor {
 
 namespace base {
@@ -23,7 +25,10 @@ bool convertLaserScanToPoints(const LaserScan& scan, const Pose2d& ego_pose, Poi
   const Transform2d transform( { ego_pose.orientation() }, { ego_pose.position().x(), ego_pose.position().y() } );
   const Pose2d start(transform * scan.pose());
   Angle current_phi = scan.phiMin() + start.orientation();
-std::cout << "start " << start << std::endl;
+  
+  std::cout << "start " << start << std::endl;
+  std::cout << "laser scan = " << scan << std::endl;
+  
   for (const auto distance : scan.distances()) {
     if (std::isnan(distance) || std::isinf(distance))
       continue;

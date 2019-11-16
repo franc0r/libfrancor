@@ -51,6 +51,48 @@ void drawPose(const Pose2d& pose, Image& image)
   cv::line(image.cvMat(), { index_start_x, index_start_y }, { end_y.x(), end_y.y() }, cv::Scalar(0, 240, 0), 3);
 }
 
+void drawLaserBeamOnImage(const Point2d& start_point, const Angle phi, const double length,
+                          const cv::Scalar& colour, Image& image)
+{
+  const Transform2d transform({ phi },
+                              { start_point.x(), start_point.y() });
+  const Point2d end(transform * Point2d(length, 0.0));
+
+  const auto index_start_x = _grid.getIndexX(start_point.x());
+  const auto index_start_y = _grid.getIndexY(start_point.y());
+  const auto index_end_x = _grid.getIndexX(end.x());
+  const auto index_end_y = _grid.getIndexY(end.y());
+
+  cv::line(image.cvMat(), { index_start_x, index_start_y }, { index_end_x, index_end_y }, colour, 3);
+}
+
+void drawLaserScanOnImage(const LaserScan& scan, Image& image)
+{
+  const Transform2d tranform({ _ego_ground_truth.pose().orientation() },
+                             { _ego_ground_truth.pose().position().x(), _ego_ground_truth.pose().position().y() });
+  const Pose2d pose(tranform * scan.pose());
+  const auto index_start_x = _grid.getIndexX(pose.position().x());
+  const auto index_start_y = _grid.getIndexY(pose.position().y());
+  Angle current_phi = scan.phiMin();
+  const int radius_px = static_cast<int>(20.0 / 0.05);
+
+  drawLaserBeamOnImage(pose.position(), pose.orientation() + scan.phiMin(), 20,
+                       cv::Scalar(0, 0, 240), image);
+  drawLaserBeamOnImage(pose.position(), pose.orientation() + scan.phiMax(), 20,
+                       cv::Scalar(0, 0, 240), image);
+  cv::circle(image.cvMat(), {index_start_x, index_start_y }, radius_px, cv::Scalar(0, 0, 240), 2);
+
+  for (const auto& distance : scan.distances())
+  {
+    if (!(std::isnan(distance) || std::isinf(distance))) {
+      drawLaserBeamOnImage(pose.position(), pose.orientation() + current_phi, distance,
+                          cv::Scalar(0, 240, 0), image);
+    }
+                             
+    current_phi += scan.phiStep();
+  }
+}
+
 bool loadGridFromFile(const std::string& file_name, OccupancyGrid& grid)
 {
   const Image image(francor::vision::loadImageFromFile(file_name, francor::vision::ColourSpace::GRAY));
@@ -99,12 +141,13 @@ bool processStep(const Vector2d& delta_position)
   LogDebug() << "reconstruct laser scan processing time = " << elapsed.count() << " us";
 
   LaserScan scan(_pipe_simulator.output(PipeSimulateLaserScan::OUT_SCAN).data<LaserScan>());
+  std::cout << "output " << scan << std::endl;
   _pipe_update_ego.input(PipeLocalizeAndUpdateEgo::IN_SCAN).assign(&scan);
   start = std::chrono::system_clock::now();
 
   if (!_pipe_update_ego.process(_ego, _grid)) {
     LogError() << "Error occurred during processing of pipeline \"" << _pipe_update_ego.name() << "\".";
-    return false;
+    // return false;
   }      
 
   end = std::chrono::system_clock::now();
@@ -115,6 +158,7 @@ bool processStep(const Vector2d& delta_position)
   francor::mapping::algorithm::occupancy::convertGridToImage(_grid, out_grid);
   out_grid.transformTo(ColourSpace::BGR);
   drawPose(_ego.pose(), out_grid);
+  drawLaserScanOnImage(scan, out_grid);
   cv::imshow("occupancy grid", out_grid.cvMat());
   cv::waitKey(10);
 
@@ -145,7 +189,7 @@ int main(int argc, char** argv)
       return 3;
     }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   }
 
   return 0;

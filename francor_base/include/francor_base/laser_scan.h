@@ -7,6 +7,7 @@
 #pragma once
 
 #include <vector>
+#include <ostream>
 
 #include "francor_base/angle.h"
 #include "francor_base/pose.h"
@@ -56,3 +57,24 @@ private:
 } // end namespace base
 
 } // end namespace francor
+
+
+namespace std {
+
+inline ostream& operator<<(ostream& os, const francor::base::LaserScan& scan)
+{
+  os << "### laser scan ###" << std::endl;
+  os << "pose       : " << scan.pose() << std::endl;
+  os << "phi min    : " << scan.phiMin() << std::endl;
+  os << "phi max    : " << scan.phiMax() << std::endl;
+  os << "phi step   : " << scan.phiStep() << std::endl;
+  os << "range      : " << scan.range() << std::endl;
+  os << "distances[]: ";
+  
+  for (const auto& distance : scan.distances())
+    os << "[" << distance << "] ";
+
+  return os;
+}
+
+} // end namespace std
