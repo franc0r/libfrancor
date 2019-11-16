@@ -1,6 +1,7 @@
 #include <francor_base/log.h>
 #include <francor_base/transform.h>
 #include <francor_base/algorithm/line.h>
+#include <francor_base/algorithm/point.h>
 
 #include <francor_vision/image.h>
 #include <francor_vision/io.h>
@@ -93,6 +94,17 @@ void drawLaserScanOnImage(const LaserScan& scan, Image& image)
   }
 }
 
+void drawPointsOnImage(const Point2dVector& points, Image& image)
+{
+  for (const auto& point : points)
+  {
+    const auto index_x = _grid.getIndexX(point.x());
+    const auto index_y = _grid.getIndexY(point.y());
+
+    cv::circle(image.cvMat(), { index_x, index_y }, 7, cv::Scalar(0, 0, 255), 3);
+  }
+}
+
 bool loadGridFromFile(const std::string& file_name, OccupancyGrid& grid)
 {
   const Image image(francor::vision::loadImageFromFile(file_name, francor::vision::ColourSpace::GRAY));
@@ -125,12 +137,14 @@ bool initialize(const std::string& file_name)
 
 bool processStep(const Vector2d& delta_position)
 {
-  const Transform2d transform({ Angle::createFromDegree(-2.0) }, delta_position);
+  const Transform2d transform({ Angle::createFromDegree(-0.1) }, delta_position);
 
   _ego_ground_truth.setPose(transform * _ego_ground_truth.pose());
+  std::cout << "ego ground truth " << _ego_ground_truth.pose() << std::endl;
   _pipe_simulator.input(PipeSimulateLaserScan::IN_SENSOR_POSE).assign(&_sensor_pose);
   auto start = std::chrono::system_clock::now();
 
+  // generate new laser scan
   if (!_pipe_simulator.process(_grid, _ego_ground_truth)) {
     LogError() << "Error occurred during processing of pipeline \"" << _pipe_simulator.name() << "\".";
     return false;
@@ -140,14 +154,14 @@ bool processStep(const Vector2d& delta_position)
   auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);  
   LogDebug() << "reconstruct laser scan processing time = " << elapsed.count() << " us";
 
+  // estimate pose using generated laser scan
   LaserScan scan(_pipe_simulator.output(PipeSimulateLaserScan::OUT_SCAN).data<LaserScan>());
-  std::cout << "output " << scan << std::endl;
   _pipe_update_ego.input(PipeLocalizeAndUpdateEgo::IN_SCAN).assign(&scan);
   start = std::chrono::system_clock::now();
 
   if (!_pipe_update_ego.process(_ego, _grid)) {
     LogError() << "Error occurred during processing of pipeline \"" << _pipe_update_ego.name() << "\".";
-    // return false;
+    return false;
   }      
 
   end = std::chrono::system_clock::now();
@@ -159,6 +173,9 @@ bool processStep(const Vector2d& delta_position)
   out_grid.transformTo(ColourSpace::BGR);
   drawPose(_ego.pose(), out_grid);
   drawLaserScanOnImage(scan, out_grid);
+  Point2dVector points;
+  francor::base::algorithm::point::convertLaserScanToPoints(scan, _ego_ground_truth.pose(), points);
+  drawPointsOnImage(points, out_grid);
   cv::imshow("occupancy grid", out_grid.cvMat());
   cv::waitKey(10);
 
@@ -182,14 +199,14 @@ int main(int argc, char** argv)
 
   for (std::size_t step = 0; step < 500; ++step)
   {
-    const Vector2d step_position(0.0, 0.05);
+    const Vector2d step_position(0.0, 0.02);
 
     if (!processStep(step_position)) {
       LogError() << "terminate application";
       return 3;
     }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 
   return 0;

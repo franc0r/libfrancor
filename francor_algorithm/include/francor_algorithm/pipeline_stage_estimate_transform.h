@@ -37,7 +37,7 @@ public:
 
     std::size_t max_iterations = 100;
     double max_rms = 10.0;
-    double termination_rms = 0.05;
+    double termination_rms = 0.005;
   };
 
   StageEstimateTransformBetweenPoints(const Parameter& parameter = Parameter())

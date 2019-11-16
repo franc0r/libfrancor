@@ -28,13 +28,15 @@ bool convertLaserScanToPoints(const LaserScan& scan, const Pose2d& ego_pose, Poi
   
   std::cout << "start " << start << std::endl;
   std::cout << "laser scan = " << scan << std::endl;
-  
-  for (const auto distance : scan.distances()) {
-    if (std::isnan(distance) || std::isinf(distance))
-      continue;
 
-    const Point2d point(distance * std::cos(current_phi), distance * std::sin(current_phi));
-    points.push_back(point + start.position());
+  for (const auto distance : scan.distances())
+  {
+    if (!(std::isnan(distance) || std::isinf(distance))) {
+      const Point2d point(distance * std::cos(current_phi), distance * std::sin(current_phi));
+      points.push_back(point + start.position());
+    }
+
+    current_phi += scan.phiStep();
   }
 
   return true;

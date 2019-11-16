@@ -67,8 +67,9 @@ inline ostream& operator<<(ostream& os, const francor::algorithm::PointPairIndex
 
 inline ostream& operator<<(ostream& os, const francor::algorithm::PointPairIndexVector& indices)
 {
-  os << "point pair index:" << endl;
-  os << "pairs[]: ";
+  os << "### point pair index ###" << endl;
+  os << "num pairs: " << indices.size() << endl;
+  os << "pairs[]  : ";
 
   for (const auto& pair : indices)
     os << pair << " ";
