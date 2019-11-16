@@ -80,7 +80,7 @@ bool Icp::doIteration(const base::Point2dVector& origin, const base::Point2dVect
   }  
 
   try {
-    rms = _transform_estimator(origin, target, pairs, transform);
+    rms = _transform_estimator(origin, target, pairs, pairs.avgDistance() * 2.0, transform);
     // std::cout << pairs << std::endl;
     if (rms >= _max_rms) {
       LogWarn() << "Icp::estimateTransform(): max rms value reached. Cancel estimation process.";

@@ -36,10 +36,32 @@ public:
   {
     return _first_point_vector != nullptr && _second_point_vector != nullptr;
   }
+  inline void update()
+  {
+    calculateAvgDistance();
+  }
+  inline double avgDistance() const noexcept { return _avg_distance; }
 
 private:
+  void calculateAvgDistance()
+  {
+    if (this->empty()) {
+      _avg_distance = 0.0;
+      return;
+    }
+
+    double sum = 0.0;
+
+    for (const auto pair : *this) {
+      sum += pair.distance;
+    }
+
+    _avg_distance = sum / static_cast<double>(this->size());
+  }
+
   const base::Point2dVector* _first_point_vector = nullptr;
   const base::Point2dVector* _second_point_vector = nullptr;
+  double _avg_distance = 0.0;
 };
 class PointPairEstimator
 {
@@ -61,7 +83,7 @@ namespace std {
 
 inline ostream& operator<<(ostream& os, const francor::algorithm::PointPairIndex& index)
 {
-  os << "[" << index.first << " -> " << index.second << "]";
+  os << "[" << index.first << " -> " << index.second << ", distance = " << index.distance << "]";
   return os;
 }
 

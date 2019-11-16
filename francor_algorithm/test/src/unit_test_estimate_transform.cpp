@@ -29,7 +29,7 @@ TEST(EstimateTransform, EstimateFromTwoPointSets)
   }
 
   Transform2d result;
-  const auto rms = estimateTransform(origin, transformed, pairs, result);
+  const auto rms = estimateTransform(origin, transformed, pairs, std::numeric_limits<double>::max(), result);
 
   EXPECT_GE(rms, 0.0);
   EXPECT_NEAR(result.rotation().phi() , transform.rotation().phi() , Angle::createFromDegree(0.1));

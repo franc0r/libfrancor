@@ -53,7 +53,7 @@ bool FlannPointPairEstimator::findPairs(const base::Point2dVector& points, Point
 
   _flann_index->knnSearch(target, indices, distances, 1, parameter);
 
-  this->copyIndexPairs(_indicies, pairs);
+  this->copyIndexPairs(_indicies, _distances, pairs);
 
   return true;
 }
@@ -69,14 +69,19 @@ void FlannPointPairEstimator::copyPointDataset(const base::Point2dVector& points
   }
 }
 
-void FlannPointPairEstimator::copyIndexPairs(const std::vector<int>& indices, PointPairIndexVector& pairs) const
+void FlannPointPairEstimator::copyIndexPairs(const std::vector<int>& indices,
+                                             const std::vector<double>& distances,
+                                             PointPairIndexVector& pairs) const
 {
   pairs.resize(indices.size());
 
   for (std::size_t i = 0; i < pairs.size(); ++i) {
     pairs[i].first = indices[i];
     pairs[i].second = i;
+    pairs[i].distance = distances[i];
   }
+
+  pairs.update();
 }
 
 bool FlannPointPairEstimator::createFlannIndex()

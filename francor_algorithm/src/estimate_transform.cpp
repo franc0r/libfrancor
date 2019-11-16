@@ -18,6 +18,7 @@ using francor::base::LogError;
 double estimateTransform(const base::Point2dVector& dataset_a,
                          const base::Point2dVector& dataset_b,
                          const PointPairIndexVector& pair_indices,
+                         const double max_distance,
                          base::Transform2d& transform)
 {
   if (dataset_a.empty() || dataset_b.empty())
@@ -38,19 +39,26 @@ double estimateTransform(const base::Point2dVector& dataset_a,
   Point2d centroid_set_a(0.0, 0.0);
   Point2d centroid_set_b(0.0, 0.0);
   double rms = 0.0;
+  std::size_t used_pairs = 0;
 
   for (const auto& pair : pair_indices)
   {
+    if (pair.distance >= max_distance) {
+      continue;
+    }
+
     const auto& point_a = dataset_a[pair.first ];
     const auto& point_b = dataset_b[pair.second];
     centroid_set_a += point_a;
     centroid_set_b += point_b;
-    rms += (point_b - point_a).norm();
+    // rms += (point_b - point_a).norm();
+    rms += pair.distance;
+    ++used_pairs;
   }
 
-  centroid_set_a /= static_cast<double>(pair_indices.size());
-  centroid_set_b /= static_cast<double>(pair_indices.size());
-  rms            /= static_cast<double>(pair_indices.size());
+  centroid_set_a /= static_cast<double>(used_pairs);
+  centroid_set_b /= static_cast<double>(used_pairs);
+  rms            /= static_cast<double>(used_pairs);
 
   // calculate nominator and denominator
   double d_nominator = 0.0;

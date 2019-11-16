@@ -38,7 +38,9 @@ public:
 
 private:
   void copyPointDataset(const base::Point2dVector& points, std::vector<double>& dataset) const;
-  void copyIndexPairs(const std::vector<int>& indices, PointPairIndexVector& pairs) const;
+  void copyIndexPairs(const std::vector<int>& indices,
+                      const std::vector<double>& distances,
+                      PointPairIndexVector& pairs) const;
   bool createFlannIndex();
 
   std::unique_ptr<flann::Index<flann::L2<double>>> _flann_index;

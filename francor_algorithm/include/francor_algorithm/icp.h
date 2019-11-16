@@ -20,6 +20,7 @@ namespace algorithm {
 using TransformEstimationFunction = std::function<double(const base::Point2dVector& dataset_a,
                                                          const base::Point2dVector& dataset_b,
                                                          const PointPairIndexVector& pair_indices,
+                                                         const double max_distance,
                                                          base::Transform2d& transform)>;
 
 // \todo make icp more generic

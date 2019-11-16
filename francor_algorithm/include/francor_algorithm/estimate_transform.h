@@ -20,12 +20,15 @@ namespace algorithm {
  * 
  * \param dataset_a Dataset A.
  * \param dataset_b Dataset B.
+ * \param pair_indices Valid paris of both datasets.
+ * \param max_distance Maximal distance between a point pair. If the distance is greather the pair will be ignored.
  * \param transform Transformation between the two given datasets (from a to b) will be set.
  * \return rms value of estimation of < 0 in case of an error.
  */
 double estimateTransform(const base::Point2dVector& dataset_a,
                          const base::Point2dVector& dataset_b,
                          const PointPairIndexVector& pair_indices,
+                         const double max_distance,
                          base::Transform2d& transform);
 
 } // end namespace algorithm
