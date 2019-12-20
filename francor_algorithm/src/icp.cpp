@@ -14,6 +14,7 @@ namespace algorithm {
 
 using francor::base::LogError;
 using francor::base::LogWarn;
+using francor::base::LogDebug;
 
 bool Icp::estimateTransform(const base::Point2dVector& origin, const base::Point2dVector& target, base::Transform2d& transform) const
 {
@@ -80,7 +81,7 @@ bool Icp::doIteration(const base::Point2dVector& origin, const base::Point2dVect
   }  
 
   try {
-    rms = _transform_estimator(origin, target, pairs, pairs.avgDistance() * 2.0, transform);
+    rms = _transform_estimator(origin, target, pairs, pairs.avgDistance() * 1.1, transform);
     // std::cout << pairs << std::endl;
     if (rms >= _max_rms) {
       LogWarn() << "Icp::estimateTransform(): max rms value reached. Cancel estimation process.";

@@ -119,7 +119,7 @@ bool initialize(const std::string& file_name)
     return false;
   }
 
-  _ego.setPose({ { 25.0, 0.0 }, 0.0 });
+  _ego.setPose({ { 25.0, 2.0 }, 0.0 });
   _ego_ground_truth.setPose(_ego.pose());
 
   if (!_pipe_simulator.initialize()) {

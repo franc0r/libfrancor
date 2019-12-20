@@ -66,6 +66,10 @@ double estimateTransform(const base::Point2dVector& dataset_a,
 
   for (const auto& pair : pair_indices)
   {
+    if (pair.distance >= max_distance) {
+      continue;
+    }
+
     const Vector2d dFC_a(dataset_a[pair.first ] - centroid_set_a);
     const Vector2d dFC_b(dataset_b[pair.second] - centroid_set_b);
     d_nominator   += dFC_a.y() * dFC_b.x() - dFC_a.x() * dFC_b.y();
