@@ -38,9 +38,11 @@ public:
   }
   inline void update()
   {
-    calculateAvgDistance();
+    this->calculateAvgDistance();
+    this->calculateMedianDistance();
   }
   inline double avgDistance() const noexcept { return _avg_distance; }
+  inline double medianDistance() const noexcept { return _median_distance; }
 
 private:
   void calculateAvgDistance()
@@ -58,10 +60,28 @@ private:
 
     _avg_distance = sum / static_cast<double>(this->size());
   }
+  void calculateMedianDistance()
+  {
+    if (this->empty()) {
+      _median_distance = 0.0;
+      return;
+    }
+
+    std::vector<float> distances;
+    distances.reserve(this->size());
+
+    for (const auto& pair : *this) {
+      distances.push_back(pair.distance);
+    }
+
+    std::sort(distances.begin(), distances.end());
+    _median_distance = distances[distances.size() / 2];
+  }
 
   const base::Point2dVector* _first_point_vector = nullptr;
   const base::Point2dVector* _second_point_vector = nullptr;
-  double _avg_distance = 0.0;
+  double _avg_distance = 0.0; //> average distance of all pairs
+  double _median_distance = 0.0; //> median distance of all pairs
 };
 class PointPairEstimator
 {
