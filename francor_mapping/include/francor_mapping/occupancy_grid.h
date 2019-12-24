@@ -13,8 +13,7 @@ namespace mapping {
 
 struct OccupancyCell
 {
-  std::uint8_t value = UNKOWN;
-  static constexpr std::uint8_t UNKOWN{255}; //> constant used for unkown cells
+  float value = std::numeric_limits<float>::quiet_NaN();
 };
 
 class OccupancyGrid : public Grid<OccupancyCell>
@@ -33,11 +32,11 @@ namespace std {
 inline ostream& operator<<(ostream& os, const francor::mapping::OccupancyCell& cell)
 {
   os << "(" << setw(3);
-  if (cell.value == francor::mapping::OccupancyCell::UNKOWN) {
+  if (std::isnan(cell.value)) {
     os << "nan";
   }
   else {
-    os << static_cast<int>(cell.value);
+    os << cell.value;
   }
   os << ")";
 

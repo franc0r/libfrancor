@@ -19,6 +19,8 @@
 
 #include <francor_vision/image.h>
 
+#include <algorithm>
+
 namespace francor {
 
 namespace mapping {
@@ -41,14 +43,14 @@ bool convertGridToImage(const OccupancyGrid& grid, vision::Image& image)
     for (std::size_t row = 0; row < image.rows(); ++row) {
       const auto cell_value = grid(col, row).value;
 
-      if (cell_value == OccupancyCell::UNKOWN) {
+      if (std::isnan(cell_value)) {
         image(row, col).gray() = pixel_value_unkown;
       }
-      else if (cell_value == 0) {
+      else if (cell_value <= 0.1f) {
         image(row, col).gray() = 255;
       }
       else {
-        image(row, col).gray() = 100 - cell_value;
+        image(row, col).gray() = 100 - static_cast<std::uint8_t>(cell_value * 100.0f);
       }
     }
   }
@@ -69,13 +71,13 @@ bool createGridFromImage(const Image& image, const double cell_size, OccupancyGr
       const auto pixel_value = image(y, x).gray();
 
       if (pixel_value == 255) {
-        grid(x, y).value = 0;
+        grid(x, y).value = 0.01f;
       }
       else if (pixel_value < 100) {
-        grid(x, y).value = 100 - pixel_value;
+        grid(x, y).value = static_cast<float>(100 - pixel_value) / 100.0f;
       }
       else {
-        grid(x, y).value = OccupancyCell::UNKOWN;
+        grid(x, y).value = std::numeric_limits<float>::quiet_NaN();
       }
     }
   }
@@ -110,7 +112,7 @@ bool reconstructPointsFromGrid(const OccupancyGrid& grid, const base::Pose2d& po
     {
       const auto cell_value = grid(idx.x(), idx.y()).value;
 
-      if (cell_value > 0 && cell_value <= 100) {
+      if (cell_value > 0.9 && cell_value <= 1.0) {
         points.push_back( { static_cast<double>(idx.x()) * grid.getCellSize() + grid.getOrigin().x(),
                             static_cast<double>(idx.y()) * grid.getCellSize() + grid.getOrigin().y() } );
 
@@ -158,7 +160,7 @@ bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d&
     {
       const auto cell_value = grid(idx.x(), idx.y()).value;
 
-      if (cell_value > 0 && cell_value <= 100) {
+      if (cell_value > 0.9 && cell_value <= 1.0) {
         Vector2d point{ static_cast<double>(idx.x()) * grid.getCellSize() + grid.getOrigin().x(),
                         static_cast<double>(idx.y()) * grid.getCellSize() + grid.getOrigin().y() };
         distances[beam] = (Vector2d(pose.position().x(), pose.position().y()) - point).norm();
@@ -178,29 +180,6 @@ bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d&
   return true;
 }                                  
 
-
-
-void updateGridCell(OccupancyCell& cell, const double distance, const double current_distance)
-{
-  if (current_distance < distance)
-    cell.value = 0;
-  else
-    cell.value = 100;
-}
-
-void freeGridCell(OccupancyCell& cell, const std::uint8_t value)
-{
-  if (cell.value == OccupancyCell::UNKOWN) {
-    cell.value = 0;
-  }
-  else if (cell.value < value) {
-    cell.value = 0;
-  }
-  else {
-    cell.value -= value;
-  }
-}
-
 void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan, const base::Pose2d& pose_ego)
 {
   using francor::base::Point2d;
@@ -213,38 +192,63 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
   const std::size_t start_index_y = grid.getIndexY(laser_scan.pose().position().y() + pose_ego.position().y());
   const Point2d position = laser_scan.pose().position() + pose_ego.position();
 
-  for (const auto distance : laser_scan.distances())
+  // process each distance measurement. start from phi min
+  for (std::size_t i = 0; i < laser_scan.distances().size(); ++i)
   {
+    // assert for consitent laser scan
+    assert(laser_scan.distances().size() == laser_scan.pointExpansions().size());
+
+    const double point_expansion = laser_scan.pointExpansions()[i];
+    const double distance = laser_scan.distances()[i];
     const Angle phi = current_phi + laser_scan.pose().orientation() + pose_ego.orientation();
     const auto direction = base::algorithm::line::calculateV(phi);
-    const auto distance_corrected = (std::isnan(distance) || std::isinf(distance) ? laser_scan.range() : distance);
+    const auto distance_corrected = (std::isnan(distance) || std::isinf(distance) ?
+                                    laser_scan.range() :
+                                    distance - point_expansion * 0.5);
 
     Ray2d ray(Ray2d::create(start_index_x, start_index_y, grid.getNumCellsX(),
               grid.getNumCellsY(), grid.getCellSize(), position, direction, distance_corrected));
     std::size_t counter = 0;
 
+    // free every grid cell that is intersected by the ray by 30%
     for (const auto& idx : ray)
     {
-      freeGridCell(grid(idx.x(), idx.y()), 30);
+      updateGridCell(grid(idx.x(), idx.y()), 0.01);
       ++counter;
     }
 
     std::cout << "counter = " << counter << std::endl;
+    // do only if distance measurement is valid
     if (!(std::isnan(distance) || std::isinf(distance)))
     {
+      // add a special propability for the ray end point (actually the measurement)
       const auto end_position(position + direction * distance);
       const std::size_t end_index_x = grid.getIndexX(end_position.x());
       const std::size_t end_index_y = grid.getIndexY(end_position.y());
-      grid(end_index_x, end_index_y).value += 30;
+      updateGridCell(grid(end_index_x, end_index_y), 0.95);
 
-      if (grid(end_index_x, end_index_y).value > 100) {
-        grid(end_index_x, end_index_y).value = 100;
+
+      // minium one cell is needed
+      const std::size_t cells = static_cast<std::size_t>(std::max(1.0, point_expansion / grid.getCellSize())); 
+      std::cout << "point expansion = " << point_expansion << std::endl;
+      std::cout << "cells = " << cells << std::endl;
+      std::cout << "cells side = " << cells / 2 - 1 << std::endl;
+
+      // \todo check can be too late depends on update value and grid cell data type
+      if (grid(end_index_x, end_index_y).value > 1.0) {
+        grid(end_index_x, end_index_y).value = 1.0;
       }
     }
 
     current_phi += laser_scan.phiStep();
   }
 }
+
+void pushLaserPointToGrid(OccupancyGrid& grid, const std::size_t x, const std::size_t y, const std::size_t point_size)
+{
+
+}
+
 
 } // end namespace occupancy
 

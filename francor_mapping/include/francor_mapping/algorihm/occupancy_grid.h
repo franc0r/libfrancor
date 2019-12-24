@@ -8,7 +8,7 @@
 #include <cstddef>
 
 #include <francor_base/point.h>
-
+#include "francor_mapping/occupancy_grid.h"
 namespace francor {
 
 namespace base {
@@ -90,21 +90,20 @@ bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d&
                                   const double range, base::LaserScan& scan);
 
 /**
- * \brief Updates a occupancy grid cell. NOTE: POC!
+ * \brief Updates a occupancy grid cell using formula cell = (value / (1 - value)) * old.value. NOTE: POC!
  * 
  * \param cell Occupancy grid cell.
- * \param distance Final distance of the ray.
- * \param current_distance Current distance of the ray.
+ * \param value New input value.
  */
-void updateGridCell(OccupancyCell& cell, const double distance, const double current_distance);
-
-/**
- * \brief Reduces the value of a occupancy grid cell by given value.
- * 
- * \param cell Occupancy grid cell.
- * \param value Value used to reduces the cell value.
- */
-void freeGridCell(OccupancyCell& cell, const std::uint8_t value);
+inline void updateGridCell(OccupancyCell& cell, const float value)
+{
+  if (std::isnan(cell.value)) {
+    cell.value = value;
+  }
+  else {
+    cell.value = (value / (1.0 - value)) * cell.value;
+  }
+}
 
 /**
  * \brief Pushes a laser scan into a occupancy grid using the update grid cell function.
@@ -114,6 +113,17 @@ void freeGridCell(OccupancyCell& cell, const std::uint8_t value);
  * \param pose_ego Input ego pose.
  */
 void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& scan, const base::Pose2d& pose_ego);
+
+/**
+ * \brief Pushes a laser point (endpoint of the laser beam) into a occupancy grid. The shape of the point is
+ *        according gaussian distribution.
+ * 
+ * \param grid Occupancy grid.
+ * \param x X coordinate on grid.
+ * \param y y coordinate on grid.
+ * \param point_size Size of the laser point in grid cells.
+ */
+void pushLaserPointToGrid(OccupancyGrid& grid, const std::size_t x, const std::size_t y, const std::size_t point_size);
 
 } // end namespace occupancy
 

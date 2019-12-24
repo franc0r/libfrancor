@@ -93,7 +93,8 @@ void applyGaussianNoise(LaserScan& scan)
     modified_distances.push_back(distance + distribution(generator));
   }
 
-  scan = LaserScan(modified_distances, scan.pose(), scan.phiMin(), scan.phiMax(), scan.phiStep(), scan.range());
+  scan = LaserScan(modified_distances, scan.pose(), scan.phiMin(),
+                   scan.phiMax(), scan.phiStep(), scan.range(), Angle::createFromDegree(1.0));
 }
 
 bool initialize(const std::string& file_name)
