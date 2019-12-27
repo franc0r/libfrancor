@@ -101,7 +101,10 @@ inline void updateGridCell(OccupancyCell& cell, const float value)
     cell.value = value;
   }
   else {
-    cell.value = (value / (1.0 - value)) * cell.value;
+    //                  P(B|A) * P(A)
+    // P(A|B) = -------------------------------
+    //          P(B|A) * P(A) + P(B|~A) * P(~A)
+    cell.value = (value * cell.value) / (value * cell.value + (1.0f - value) * (1.0f - cell.value));
   }
 }
 

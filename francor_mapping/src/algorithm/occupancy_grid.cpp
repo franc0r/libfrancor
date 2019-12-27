@@ -46,7 +46,7 @@ bool convertGridToImage(const OccupancyGrid& grid, vision::Image& image)
       if (std::isnan(cell_value)) {
         image(row, col).gray() = pixel_value_unkown;
       }
-      else if (cell_value <= 0.1f) {
+      else if (cell_value <= 0.5f) {
         image(row, col).gray() = 255;
       }
       else {
@@ -213,7 +213,7 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
     // free every grid cell that is intersected by the ray by 30%
     for (const auto& idx : ray)
     {
-      updateGridCell(grid(idx.x(), idx.y()), 0.01);
+      updateGridCell(grid(idx.x(), idx.y()), 0.35f);
       ++counter;
     }
 
@@ -225,7 +225,7 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
       const auto end_position(position + direction * distance);
       const std::size_t end_index_x = grid.getIndexX(end_position.x());
       const std::size_t end_index_y = grid.getIndexY(end_position.y());
-      updateGridCell(grid(end_index_x, end_index_y), 0.95);
+      updateGridCell(grid(end_index_x, end_index_y), 0.8f);
 
 
       // minium one cell is needed
