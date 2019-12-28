@@ -15,13 +15,13 @@ namespace algorithm {
 
 namespace math {
 
-template <typename Type, std::size_t... K>
-inline Type fak(std::index_sequence<K...>)
+template <typename Type, Type... K>
+inline Type fak(std::integer_sequence<Type, K...>)
 {
   return ((K + 1) * ...);
 }
 
-template <std::size_t N, typename Type, typename Indices = std::make_index_sequence<N>>
+template <std::size_t N, typename Type, typename Indices = std::make_integer_sequence<Type, N>>
 inline Type fak()
 {
   return fak<Type>(Indices{});
