@@ -79,3 +79,20 @@ add_test(
   NAME test-transform
   COMMAND unit-test-transform
 )
+
+
+# Math
+add_executable(unit-test-math
+  src/unit_test_math.cpp
+)
+
+target_link_libraries(unit-test-math PRIVATE
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-base
+)
+
+add_test(
+  NAME test-math
+  COMMAND unit-test-math
+)
