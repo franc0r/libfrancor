@@ -5,7 +5,7 @@
 #include <francor_vision/io.h>
 
 #include <francor_mapping/pipeline_occupancy_grid.h>
-#include <francor_mapping/algorihm/occupancy_grid.h>
+#include <francor_mapping/algorithm/occupancy_grid.h>
 #include <francor_mapping/pipeline_stage_ego_object.h>
 
 #include <thread>

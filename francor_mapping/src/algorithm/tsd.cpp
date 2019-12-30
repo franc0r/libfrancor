@@ -9,7 +9,7 @@
 #include <francor_algorithm/ray_caster_2d.h>
 
 #include "francor_mapping/occupancy_grid.h"
-#include "francor_mapping/algorihm/tsd.h"
+#include "francor_mapping/algorithm/tsd.h"
 
 namespace francor {
 

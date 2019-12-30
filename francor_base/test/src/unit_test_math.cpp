@@ -10,12 +10,8 @@
 
 TEST(Fak, Functionality)
 {
-  EXPECT_EQ(francor::base::algorithm::math::fak(4), 24);
-  EXPECT_EQ((francor::base::algorithm::math::fak<4, int>()), 24);
-
-  EXPECT_EQ(francor::base::algorithm::math::fak(10), 3628800);
-  EXPECT_EQ((francor::base::algorithm::math::fak<10, int>()), 3628800);
-
+  EXPECT_EQ((francor::base::algorithm::math::fak< 4, int>::value),      24);
+  EXPECT_EQ((francor::base::algorithm::math::fak<10, int>::value), 3628800);
 }
 
 TEST(Pow, Functionality)
@@ -25,7 +21,8 @@ TEST(Pow, Functionality)
 
 TEST(BinomialDistribution, Functionality)
 {
-  using distribution = francor::base::algorithm::math::binomial_distribution<10, 5, float>;
+  using francor::base::algorithm::math::floating_number;
+  using distribution = francor::base::algorithm::math::binomial_distribution<10, floating_number<5, -1, float>, float>;
 
   EXPECT_EQ(distribution::n, 10);
   EXPECT_NEAR(distribution::p, 0.5f, 1e-6);
@@ -33,19 +30,20 @@ TEST(BinomialDistribution, Functionality)
   EXPECT_NEAR(distribution::variance, 2.5, 1e-6);
   EXPECT_NEAR(distribution::mean, 5.0f, 1e-6);
 
-  EXPECT_NEAR(distribution::pmf<0>::value, 0.000976, 1e-6);
-  EXPECT_NEAR(distribution::pmf<1>::value, 0.009765, 1e-6);
-  EXPECT_NEAR(distribution::pmf<2>::value, 0.043945, 1e-6);
-  EXPECT_NEAR(distribution::pmf<3>::value, 0.117188, 1e-6);
-  EXPECT_NEAR(distribution::pmf<4>::value, 0.205078, 1e-6);
+  EXPECT_NEAR(distribution::pm<0>::value, 0.000976, 1e-6);
+  EXPECT_NEAR(distribution::pm<1>::value, 0.009765, 1e-6);
+  EXPECT_NEAR(distribution::pm<2>::value, 0.043945, 1e-6);
+  EXPECT_NEAR(distribution::pm<3>::value, 0.117188, 1e-6);
+  EXPECT_NEAR(distribution::pm<4>::value, 0.205078, 1e-6);
 
-  EXPECT_NEAR(distribution::pmf<5>::value, 0.246094, 1e-6);
+  EXPECT_NEAR(distribution::pm<5>::value, 0.246094, 1e-6);
 
-  EXPECT_NEAR(distribution::pmf<4>::value, distribution::pmf< 6>::value, 1e-6);
-  EXPECT_NEAR(distribution::pmf<3>::value, distribution::pmf< 7>::value, 1e-6);
-  EXPECT_NEAR(distribution::pmf<2>::value, distribution::pmf< 8>::value, 1e-6);
-  EXPECT_NEAR(distribution::pmf<1>::value, distribution::pmf< 9>::value, 1e-6);
-  EXPECT_NEAR(distribution::pmf<0>::value, distribution::pmf<10>::value, 1e-6);
+  EXPECT_NEAR(distribution::pm<4>::value, distribution::pm< 6>::value, 1e-6);
+  EXPECT_NEAR(distribution::pm<3>::value, distribution::pm< 7>::value, 1e-6);
+  EXPECT_NEAR(distribution::pm<2>::value, distribution::pm< 8>::value, 1e-6);
+  EXPECT_NEAR(distribution::pm<1>::value, distribution::pm< 9>::value, 1e-6);
+  EXPECT_NEAR(distribution::pm<0>::value, distribution::pm<10>::value, 1e-6);
+
 }
 
 int main(int argc, char **argv)

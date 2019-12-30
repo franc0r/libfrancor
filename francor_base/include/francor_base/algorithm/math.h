@@ -15,13 +15,17 @@ namespace algorithm {
 
 namespace math {
 
-template <unsigned int EXP, typename Type = float>
+
+
+template <int EXP, typename Type = float>
 struct pow
 {
   pow() = delete;
-  constexpr pow(const Type base) : value(calculate(base, std::make_integer_sequence<std::size_t, EXP>{})) { }
-  const Type value;
+  constexpr pow(const Type base) : value(calculate(base, std::make_integer_sequence<std::size_t, std::abs(EXP)>{})) { }
   inline constexpr operator Type() const { return value; }
+
+  const Type value;
+  using type = Type;
 
 private:
   template <std::size_t... I>
@@ -30,69 +34,77 @@ private:
     if constexpr (EXP == 0) {
       return static_cast<Type>(1);
     }
+    else if constexpr (EXP < 0) {
+      return ((I * 0 + 1 / base) * ...);
+    }
     else {
       return ((I * 0 + base) * ...);
     }
   }
 };
 
-template <typename Type, unsigned int... K>
-inline constexpr Type fak(std::integer_sequence<unsigned int, K...>)
+template <int Significant, int Exp, typename Type = float>
+struct floating_number
 {
-  if constexpr (sizeof...(K) == 0) {
-    return static_cast<Type>(1);
-  }
-  else {
-    return (static_cast<Type>(K + 1) * ...);
-  }
-}
+  static constexpr Type value = static_cast<Type>(Significant) * pow<Exp, Type>(10);
+};
 
-template <std::size_t N, typename Type, typename Indices = std::make_integer_sequence<unsigned int, N>>
-inline constexpr Type fak()
+template <unsigned int N, typename Type>
+struct fak
 {
-  return fak<Type>(Indices{});
-}
+  static constexpr Type value = fak<N, Type>::calculate(std::make_integer_sequence<unsigned int, N>{});
 
-template <typename Type>
-inline constexpr Type fak(const Type value)
-{
-  Type result = 1;
-
-  for (Type k = 1; k <= value; ++k) {
-    result *= k;
+private:
+  template <unsigned int... K>
+  static constexpr Type calculate(std::integer_sequence<unsigned int, K...>)
+  {
+    if constexpr (sizeof...(K) == 0) {
+      return static_cast<Type>(1);
+    }
+    else {
+      return (static_cast<Type>(K + 1) * ...);
+    }
   }
-
-  return result;
-}
+};
 
 template <unsigned int N, unsigned int K, typename Type = float>
 struct binomial_coefficient
 {
   static_assert(K <= N, "Support parameter K must be smaller equal N.");
 
-  static constexpr Type value = fak<N, Type>() / (fak<K, Type>() * fak<N - K, Type>());
+  static constexpr Type value = fak<N, Type>::value / (fak<K, Type>::value * fak<N - K, Type>::value);
 };
 
-template <unsigned int N, unsigned int P, typename Type = float>
+template <unsigned int N, class P, typename Type = float>
 struct binomial_distribution
 {
-  static_assert(P <= N, "Template parameter P must be in range 0 .. N.");
+  static_assert(P::value >= 0.0 && P::value <= 1.0, "Template parameter P must be in range 0 .. 1.");
+  static_assert(std::is_floating_point<Type>::value, "Template argument Type should be an floating point.");
 
   using type = Type;
 
-  static constexpr Type p = static_cast<Type>(P) / static_cast<Type>(N);
+  static constexpr Type p = P::value;
   static constexpr Type q = static_cast<Type>(1) - p;
   static constexpr unsigned int n = N;
   static constexpr Type variance = static_cast<Type>(n) * p * q;
   static constexpr Type mean = n * p;
   
   template <unsigned int K>
-  struct pmf
+  struct pm
   {
     static_assert(K <= N, "Template parameter K must be smaller equal N.");
 
     static constexpr Type value = binomial_coefficient<N, K, Type>::value * pow<K, Type>(p) * pow<N - K, Type>(q);
   };
+
+  // template <unsigned int A, unsigned int B>
+  // struct cd
+  // {
+  //   static_assert(A <= B, "Template parameter A must be smaller equal B.");
+  //   static_assert(B <= N, "Template parameter A and B must be smaller equal N.");
+
+  //   static constexpr Type value = 
+  // };
 };
 
 } // end namespace point

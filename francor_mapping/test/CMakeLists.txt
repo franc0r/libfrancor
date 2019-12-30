@@ -34,3 +34,20 @@ add_test(
   NAME test-tsd-algorithm
   COMMAND unit-test-tsd-algorithm
 )
+
+
+# grid algortihm
+add_executable(unit-test-grid-algorithm
+  src/unit_test_grid_algorithm.cpp
+)
+
+target_link_libraries(unit-test-grid-algorithm
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-mapping
+)
+
+add_test(
+  NAME test-grid-algorithm
+  COMMAND unit-test-grid-algorithm
+)

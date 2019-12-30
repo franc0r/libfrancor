@@ -4,7 +4,8 @@
  * \date 4. November 2019
  */
 
-#include "francor_mapping/algorihm/occupancy_grid.h"
+#include "francor_mapping/algorithm/grid.h"
+#include "francor_mapping/algorithm/occupancy_grid.h"
 #include "francor_mapping/occupancy_grid.h"
 
 #include <francor_base/log.h>
@@ -225,19 +226,19 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
       const auto end_position(position + direction * distance);
       const std::size_t end_index_x = grid.getIndexX(end_position.x());
       const std::size_t end_index_y = grid.getIndexY(end_position.y());
-      updateGridCell(grid(end_index_x, end_index_y), 0.8f);
-
-
       // minium one cell is needed
       const std::size_t cells = static_cast<std::size_t>(std::max(1.0, point_expansion / grid.getCellSize())); 
+      // updateGridCell(grid(end_index_x, end_index_y), 0.65f);
+      pushLaserPointToGrid(grid, end_index_x, end_index_y, (cells % 2 == 0 ? cells + 1 : cells));
+
       std::cout << "point expansion = " << point_expansion << std::endl;
       std::cout << "cells = " << cells << std::endl;
       std::cout << "cells side = " << cells / 2 - 1 << std::endl;
 
       // \todo check can be too late depends on update value and grid cell data type
-      if (grid(end_index_x, end_index_y).value > 1.0) {
-        grid(end_index_x, end_index_y).value = 1.0;
-      }
+      // if (grid(end_index_x, end_index_y).value > 1.0) {
+      //   grid(end_index_x, end_index_y).value = 1.0;
+      // }
     }
 
     current_phi += laser_scan.phiStep();
@@ -246,7 +247,7 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
 
 void pushLaserPointToGrid(OccupancyGrid& grid, const std::size_t x, const std::size_t y, const std::size_t point_size)
 {
-
+  grid::pushPoint<OccupancyGrid, updateGridCell>(grid, x, y, point_size);
 }
 
 

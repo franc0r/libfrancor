@@ -95,18 +95,21 @@ bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d&
  * \param cell Occupancy grid cell.
  * \param value New input value.
  */
-inline void updateGridCell(OccupancyCell& cell, const float value)
+struct updateGridCell
 {
-  if (std::isnan(cell.value)) {
-    cell.value = value;
+  constexpr updateGridCell(OccupancyCell& cell, const float value)
+  {
+    if (std::isnan(cell.value)) {
+      cell.value = value;
+    }
+    else {
+      //                  P(B|A) * P(A)
+      // P(A|B) = -------------------------------
+      //          P(B|A) * P(A) + P(B|~A) * P(~A)
+      cell.value = (value * cell.value) / (value * cell.value + (1.0f - value) * (1.0f - cell.value));
+    }
   }
-  else {
-    //                  P(B|A) * P(A)
-    // P(A|B) = -------------------------------
-    //          P(B|A) * P(A) + P(B|~A) * P(~A)
-    cell.value = (value * cell.value) / (value * cell.value + (1.0f - value) * (1.0f - cell.value));
-  }
-}
+};
 
 /**
  * \brief Pushes a laser scan into a occupancy grid using the update grid cell function.

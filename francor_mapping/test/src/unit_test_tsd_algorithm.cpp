@@ -6,7 +6,7 @@
  */
 #include <gtest/gtest.h>
 
-#include "francor_mapping/algorihm/tsd.h"
+#include "francor_mapping/algorithm/tsd.h"
 #include "francor_mapping/tsd_grid.h"
 
 #include <francor_base/laser_scan.h>
