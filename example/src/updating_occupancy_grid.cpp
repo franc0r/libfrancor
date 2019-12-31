@@ -84,7 +84,7 @@ bool loadGridFromFile(const std::string& file_name, OccupancyGrid& grid)
 void applyGaussianNoise(LaserScan& scan)
 {
   std::default_random_engine generator;
-  std::normal_distribution<double> distribution(0.0, 0.1);
+  std::normal_distribution<double> distribution(0.0, 0.2);
   std::vector<double> modified_distances;
 
   modified_distances.reserve(scan.distances().size());

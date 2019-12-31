@@ -51,7 +51,7 @@ bool convertGridToImage(const OccupancyGrid& grid, vision::Image& image)
         image(row, col).gray() = 255;
       }
       else {
-        image(row, col).gray() = 100 - static_cast<std::uint8_t>(cell_value * 100.0f);
+        image(row, col).gray() = (100 - static_cast<std::uint8_t>(cell_value * 100.0f)) * 2;
       }
     }
   }
@@ -218,8 +218,9 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
       ++counter;
     }
 
-    std::cout << "counter = " << counter << std::endl;
+    // std::cout << "counter = " << counter << std::endl;
     // do only if distance measurement is valid
+
     if (!(std::isnan(distance) || std::isinf(distance)))
     {
       // add a special propability for the ray end point (actually the measurement)
@@ -231,9 +232,9 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
       // updateGridCell(grid(end_index_x, end_index_y), 0.65f);
       pushLaserPointToGrid(grid, end_index_x, end_index_y, (cells % 2 == 0 ? cells + 1 : cells));
 
-      std::cout << "point expansion = " << point_expansion << std::endl;
-      std::cout << "cells = " << cells << std::endl;
-      std::cout << "cells side = " << cells / 2 - 1 << std::endl;
+      // std::cout << "point expansion = " << point_expansion << std::endl;
+      // std::cout << "cells = " << cells << std::endl;
+      // std::cout << "cells side = " << cells / 2 - 1 << std::endl;
 
       // \todo check can be too late depends on update value and grid cell data type
       // if (grid(end_index_x, end_index_y).value > 1.0) {

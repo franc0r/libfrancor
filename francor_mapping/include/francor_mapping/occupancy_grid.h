@@ -31,12 +31,12 @@ namespace std {
 
 inline ostream& operator<<(ostream& os, const francor::mapping::OccupancyCell& cell)
 {
-  os << "(" << setw(3);
+  os << "(" ;
   if (std::isnan(cell.value)) {
-    os << "nan";
+    os << " nan ";
   }
   else {
-    os << cell.value;
+    os << setprecision(3) << cell.value;
   }
   os << ")";
 

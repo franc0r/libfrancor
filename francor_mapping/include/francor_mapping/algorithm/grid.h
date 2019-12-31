@@ -34,7 +34,7 @@ public:
 
     for (std::size_t x = 0; x < SizeX; ++x) {
       for (std::size_t y = 0; y < SizeY; ++y) {
-        _data[x][y] = distribution_x.pm(x) * distribution_y.pm(y);
+        _data[x][y] = distribution_x.pm(x) * distribution_y.pm(y) + static_cast<Type>(0.5);
       }
     }
   }
@@ -79,54 +79,64 @@ void pushPoint(GridType& grid, const std::size_t center_x, const std::size_t cen
   const int side_size = point_size / 2;
 
   // do nothing if point is out of range including point size
-  if (static_cast<int>(center_x) - side_size < 0 || static_cast<int>(center_x) + side_size >= grid.getNumCellsX()) {
+  if (static_cast<int>(center_x) - static_cast<int>(side_size) < 0 || center_x + side_size >= grid.getNumCellsX()) {
     return;
   }
-  if (static_cast<int>(center_y) - side_size < 0 || static_cast<int>(center_y) + side_size >= grid.getNumCellsY()) {
+  if (static_cast<int>(center_y) - static_cast<int>(side_size) < 0 || center_y + side_size >= grid.getNumCellsY()) {
     return;
   }
 
   switch (point_size)
   {
-  // case 1:
-  //   {
-  //     constexpr UpdateMatrix<1, 1, float, PointDistribution<1, 1, float>> update_matrix;
-  //     UpdateFunction(grid(center_x, center_y), update_matrix(0, 0));
-  //   }
-  //   break;
+  case 1:
+    {
+      UpdateFunction(grid(center_x, center_y), 0.95);
+    }
+    break;
   
-  // case 3:
-  //   {
-  //     constexpr UpdateMatrix<3, 3, float, PointDistribution<3, 3, float>> update_matrix;      
-  //     for (std::size_t x = 0; x < point_size; ++x) {
-  //       for (std::size_t y = 0; y < point_size; ++y) {
-  //         UpdateFunction(grid(center_x, center_y), update_matrix(y, x));
-  //       }
-  //     }
-  // }
-  // break;
+  case 3:
+    {
+      constexpr PointDistribution<3, 3, float> update_matrix;      
+      for (std::size_t x = 0; x < point_size; ++x) {
+        for (std::size_t y = 0; y < point_size; ++y) {
+          UpdateFunction(grid(center_x - 1 + x, center_y - 1 + y), update_matrix(y, x));
+        }
+      }
+  }
+  break;
 
-  // case 5:
-  //   {
-  //     constexpr UpdateMatrix<5, 5, float, PointDistribution<5, 5, float>> update_matrix;      
-  //     for (std::size_t x = 0; x < point_size; ++x) {
-  //       for (std::size_t y = 0; y < point_size; ++y) {
-  //         UpdateFunction(grid(center_x, center_y), update_matrix(y, x));
-  //       }
-  //     }
-  //   }
-  //   break;
+  case 5:
+    {
+      constexpr PointDistribution<5, 5, float> update_matrix;      
+      for (std::size_t x = 0; x < point_size; ++x) {
+        for (std::size_t y = 0; y < point_size; ++y) {
+          UpdateFunction(grid(center_x - 2 + x, center_y - 2 + y), update_matrix(y, x));
+        }
+      }
+    }
+    break;
 
-  // case 7:
-  //   {
-  //     constexpr UpdateMatrix<7, 7, float, PointDistribution<7, 7, float>> update_matrix;      
-  //     for (std::size_t x = 0; x < point_size; ++x) {
-  //       for (std::size_t y = 0; y < point_size; ++y) {
-  //         UpdateFunction(grid(center_x, center_y), update_matrix(y, x));
-  //       }
-  //     }
-  //   }
-  //   break;
+  case 7:
+    {
+      constexpr PointDistribution<7, 7, float> update_matrix;      
+      for (std::size_t x = 0; x < point_size; ++x) {
+        for (std::size_t y = 0; y < point_size; ++y) {
+          UpdateFunction(grid(center_x - 3 + x, center_y - 3 + y), update_matrix(y, x));
+        }
+      }
+    }
+    break;
+
+    case 9:
+    {
+      constexpr PointDistribution<9, 9, float> update_matrix;      
+      for (std::size_t x = 0; x < point_size; ++x) {
+        for (std::size_t y = 0; y < point_size; ++y) {
+          UpdateFunction(grid(center_x - 4 + x, center_y - 4 + y), update_matrix(y, x));
+        }
+      }
+    }
+    break;
 
   default:
     francor::base::LogError() << "pushPoint(): point size = " << point_size << " isn't supported.";

@@ -51,3 +51,20 @@ add_test(
   NAME test-grid-algorithm
   COMMAND unit-test-grid-algorithm
 )
+
+
+# occupancy grid algortihm
+add_executable(unit-test-occupancy-grid-algorithm
+  src/unit_test_occupancy_grid_algorithm.cpp
+)
+
+target_link_libraries(unit-test-occupancy-grid-algorithm
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-mapping
+)
+
+add_test(
+  NAME test-occupancy-grid-algorithm
+  COMMAND unit-test-occupancy-grid-algorithm
+)
