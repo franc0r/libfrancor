@@ -137,11 +137,11 @@ public:
   inline constexpr unsigned int n() const { return _n; }
 
 private:
-  Type _p;
-  Type _q;
+  const Type _p;
+  const Type _q;
   const unsigned int _n = N;
-  Type _variance;
-  Type _mean;
+  const Type _variance;
+  const Type _mean;
   Type _pm[N + 1] = { };
   Type _cd[N + 1] = { };
 };

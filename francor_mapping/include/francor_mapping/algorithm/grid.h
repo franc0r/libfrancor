@@ -22,53 +22,43 @@ namespace algorithm {
 
 namespace grid {
 
-template <std::size_t SizeX, std::size_t SizeY, typename Type>
-struct point_distribution
+template <std::size_t SizeX, std::size_t SizeY, typename Type = float>
+class PointDistribution
 {
-  using p = base::algorithm::math::floating_number<5, -1, Type>;
-  template <std::size_t N>
-  using distribution = base::algorithm::math::binomial_distribution<N, p, Type>;
-
-  template <std::size_t X>
-  struct x
+public:
+  constexpr PointDistribution()
   {
-    static constexpr Type value = distribution<SizeX>::template pm<X>::value;
-  };
+    using base::algorithm::math::BinomialDistribution;
+    constexpr BinomialDistribution<SizeX - 1, Type> distribution_x(0.5);
+    constexpr BinomialDistribution<SizeY - 1, Type> distribution_y(0.5);
 
-  template <std::size_t Y>
-  struct y
-  {
-    static constexpr Type value = distribution<SizeY>::template pm<Y>::value;
-  };
+    for (std::size_t x = 0; x < SizeX; ++x) {
+      for (std::size_t y = 0; y < SizeY; ++y) {
+        _data[x][y] = distribution_x.pm(x) * distribution_y.pm(y);
+      }
+    }
+  }
 
-  template <std::size_t X, std::size_t Y>
-  struct cell
-  {
-    static constexpr Type value = x<X>::value * y<Y>::value;
-  };
+  inline constexpr Type operator()(const std::size_t x, const std::size_t y) const noexcept { return _data[x][y]; }
+
+private:
+  Type _data[SizeX][SizeY] = { };
 };
 
-template<std::size_t SizeX, std::size_t SizeY, typename ValueType, class... DistributionFunction>
+template<std::size_t SizeX, std::size_t SizeY, typename ValueType, class Distributions>
 class UpdateMatrix
 {
 public:
   constexpr UpdateMatrix()
   { 
-    // for (std::size_t row = 0; row < Rows; ++row) {
-    //   for (std::size_t col = 0; col < Cols; ++col) {
-    //     _data[row][col] = DistributionFunction(col, row);
-    //   }
-    // }
+
   }
 
-   ValueType operator()(const std::size_t row, const std::size_t col) const
+  constexpr ValueType operator()(const std::size_t row, const std::size_t col) const
   {
             // std::cout << "data[" << row << ", " << col << "] = " << _data[row][col] << " ";
-    return _data[row][col];
+    return { };
   }
-
-private:
-  ValueType _data[SizeX][SizeY] = { };
 };
 
 /**
