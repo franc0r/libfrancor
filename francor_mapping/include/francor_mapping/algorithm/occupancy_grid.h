@@ -129,7 +129,7 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& scan, const
  * \param y y coordinate on grid.
  * \param point_size Size of the laser point in grid cells.
  */
-void pushLaserPointToGrid(OccupancyGrid& grid, const std::size_t x, const std::size_t y, const std::size_t point_size);
+void pushLaserPointToGrid(OccupancyGrid& grid, const std::size_t x, const std::size_t y, const std::size_t point_size, const base::Angle point_yaw);
 
 } // end namespace occupancy
 

@@ -84,7 +84,7 @@ bool loadGridFromFile(const std::string& file_name, OccupancyGrid& grid)
 void applyGaussianNoise(LaserScan& scan)
 {
   std::default_random_engine generator;
-  std::normal_distribution<double> distribution(0.0, 0.2);
+  std::normal_distribution<double> distribution(0.0, 0.1);
   std::vector<double> modified_distances;
 
   modified_distances.reserve(scan.distances().size());
@@ -126,7 +126,7 @@ bool initialize(const std::string& file_name)
 
 bool processStep(const Vector2d& delta_position)
 {
-  const Transform2d transform({ Angle::createFromDegree(-2.0) }, delta_position);
+  const Transform2d transform({ Angle::createFromDegree(-2.33) }, delta_position);
 
   _ego.setPose(transform * _ego.pose());
 
@@ -162,7 +162,7 @@ bool processStep(const Vector2d& delta_position)
   francor::mapping::algorithm::occupancy::convertGridToImage(_grid_source, out_grid_source);
   out_grid.transformTo(ColourSpace::BGR);
   out_grid_source.transformTo(ColourSpace::BGR);
-  drawLaserScanOnImage(scan, out_grid);
+  // drawLaserScanOnImage(scan, out_grid);
 
   cv::imshow("occupancy grid", out_grid.cvMat());
   cv::imshow("occupancy grid source", out_grid_source.cvMat());
@@ -186,7 +186,7 @@ int main(int argc, char** argv)
     return 2;
   }
 
-  for (std::size_t step = 0; step < 500; ++step)
+  for (std::size_t step = 0; step < 800; ++step)
   {
     const Vector2d step_position(0.0, 0.05);
 

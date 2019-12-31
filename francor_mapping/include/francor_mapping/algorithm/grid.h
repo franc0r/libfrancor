@@ -32,7 +32,13 @@ public:
     constexpr BinomialDistribution<SizeX - 1, Type> distribution_x(0.5);
     constexpr BinomialDistribution<SizeY - 1, Type> distribution_y(0.5);
 
-    for (std::size_t x = 0; x < SizeX; ++x) {
+    for (std::size_t x = 0; x < SizeX / 2; ++x) {
+      for (std::size_t y = 0; y < SizeY; ++y) {
+        _data[x][y] = distribution_x.pm(x) * distribution_y.pm(y) + static_cast<Type>(0.5);
+      }
+    }
+
+    for (std::size_t x = SizeX / 2; x < SizeX; ++x) {
       for (std::size_t y = 0; y < SizeY; ++y) {
         _data[x][y] = distribution_x.pm(x) * distribution_y.pm(y) + static_cast<Type>(0.5);
       }
@@ -45,20 +51,40 @@ private:
   Type _data[SizeX][SizeY] = { };
 };
 
-template<std::size_t SizeX, std::size_t SizeY, typename ValueType, class Distributions>
+
+
+template<std::size_t SizeX, std::size_t SizeY, typename Type, template <std::size_t, std::size_t, typename> class Distribution>
 class UpdateMatrix
 {
 public:
-  constexpr UpdateMatrix()
+  constexpr UpdateMatrix(const base::Angle yaw = base::Angle::createFromDegree(0.0))
+    : _sin_yaw(std::sin(yaw)),
+      _cos_yaw(std::cos(yaw))
   { 
 
   }
 
-  constexpr ValueType operator()(const std::size_t row, const std::size_t col) const
+  template <class GridType, typename UpdateFunction>
+  constexpr void update(GridType& grid, const int center_x, const int center_y) const
   {
-            // std::cout << "data[" << row << ", " << col << "] = " << _data[row][col] << " ";
-    return { };
+    for (int x = 0; x < static_cast<int>(SizeX); ++x) {
+      for (int y = 0; y < static_cast<int>(SizeY); ++y) {
+        const std::size_t current_x = static_cast<std::size_t>(center_x
+                                                               + _cos_yaw * (static_cast<float>(x) - static_cast<float>(SizeX) * 0.5f) + 0.5f 
+                                                               - _sin_yaw * (static_cast<float>(y) - static_cast<float>(SizeY) * 0.5f) + 0.5f);
+        const std::size_t current_y = static_cast<std::size_t>(center_y 
+                                                               + _sin_yaw * (static_cast<float>(x) - static_cast<float>(SizeX) * 0.5f) + 0.5f
+                                                               + _cos_yaw * (static_cast<float>(y) - static_cast<float>(SizeY) * 0.5f) + 0.5f);
+        UpdateFunction(grid(current_x, current_y), _distribution(x, y));
+      }
+    }
   }
+
+private:
+  const float _sin_yaw;
+  const float _cos_yaw;
+
+  static constexpr Distribution<SizeX, SizeY, Type> _distribution{};
 };
 
 /**
@@ -73,7 +99,8 @@ public:
  * \tparam UpdateFunction The function used to update each grid cell.
  */
 template <typename GridType, typename UpdateFunction>
-void pushPoint(GridType& grid, const std::size_t center_x, const std::size_t center_y, const std::size_t point_size)
+void pushPoint(GridType& grid, const std::size_t center_x, const std::size_t center_y,
+               const std::size_t point_size, const base::Angle point_yaw = base::Angle::createFromDegree(0.0))
 {
   assert(point_size % 2 == 1);
   const int side_size = point_size / 2;
@@ -90,51 +117,36 @@ void pushPoint(GridType& grid, const std::size_t center_x, const std::size_t cen
   {
   case 1:
     {
-      UpdateFunction(grid(center_x, center_y), 0.95);
+      const UpdateMatrix<7, 3, float, PointDistribution> update_matrix(point_yaw);
+      update_matrix.update<GridType, UpdateFunction>(grid, center_x, center_y);
     }
     break;
   
   case 3:
     {
-      constexpr PointDistribution<3, 3, float> update_matrix;      
-      for (std::size_t x = 0; x < point_size; ++x) {
-        for (std::size_t y = 0; y < point_size; ++y) {
-          UpdateFunction(grid(center_x - 1 + x, center_y - 1 + y), update_matrix(y, x));
-        }
-      }
+      const UpdateMatrix<7, 3, float, PointDistribution> update_matrix(point_yaw);
+      update_matrix.update<GridType, UpdateFunction>(grid, center_x, center_y);
   }
   break;
 
   case 5:
     {
-      constexpr PointDistribution<5, 5, float> update_matrix;      
-      for (std::size_t x = 0; x < point_size; ++x) {
-        for (std::size_t y = 0; y < point_size; ++y) {
-          UpdateFunction(grid(center_x - 2 + x, center_y - 2 + y), update_matrix(y, x));
-        }
-      }
+      const UpdateMatrix<7, 5, float, PointDistribution> update_matrix(point_yaw);      
+      update_matrix.update<GridType, UpdateFunction>(grid, center_x, center_y);
     }
     break;
 
   case 7:
     {
-      constexpr PointDistribution<7, 7, float> update_matrix;      
-      for (std::size_t x = 0; x < point_size; ++x) {
-        for (std::size_t y = 0; y < point_size; ++y) {
-          UpdateFunction(grid(center_x - 3 + x, center_y - 3 + y), update_matrix(y, x));
-        }
-      }
+      const UpdateMatrix<7, 7, float, PointDistribution> update_matrix(point_yaw);      
+      update_matrix.update<GridType, UpdateFunction>(grid, center_x, center_y);
     }
     break;
 
     case 9:
     {
-      constexpr PointDistribution<9, 9, float> update_matrix;      
-      for (std::size_t x = 0; x < point_size; ++x) {
-        for (std::size_t y = 0; y < point_size; ++y) {
-          UpdateFunction(grid(center_x - 4 + x, center_y - 4 + y), update_matrix(y, x));
-        }
-      }
+      const UpdateMatrix<7, 9, float, PointDistribution> update_matrix(point_yaw);      
+      update_matrix.update<GridType, UpdateFunction>(grid, center_x, center_y);
     }
     break;
 

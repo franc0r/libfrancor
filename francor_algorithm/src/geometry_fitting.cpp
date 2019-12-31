@@ -51,11 +51,6 @@ base::Line fittingLineFromPoints(const base::Point2dVector& points, const std::v
       sumX  += (points[index].x() - avg.x()) * (points[index].x() - avg.x());
     }
   }
-  
-  // construct line segment and return it
-  // const double m = sumXY / sumX;
-  // const double t = avg.y() - m * avg.x();
-  // use instead phi and average point
 
   // happens only if x of all points are equal (vertical line)
   if (sumX == 0.0)
