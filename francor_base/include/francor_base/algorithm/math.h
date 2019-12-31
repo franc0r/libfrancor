@@ -15,64 +15,51 @@ namespace algorithm {
 
 namespace math {
 
-
-
-template <int EXP, typename Type = float>
-struct pow
+template <typename Type = float>
+constexpr auto pow(const Type base, const int exp)
 {
-  pow() = delete;
-  constexpr pow(const Type base) : value(calculate(base, std::make_integer_sequence<std::size_t, std::abs(EXP)>{})) { }
-  inline constexpr operator Type() const { return value; }
+  Type result = static_cast<decltype(result)>(1);
 
-  const Type value;
-  using type = Type;
-
-private:
-  template <std::size_t... I>
-  static constexpr Type calculate(const Type base, std::integer_sequence<std::size_t, I...>)
-  {
-    if constexpr (EXP == 0) {
-      return static_cast<Type>(1);
-    }
-    else if constexpr (EXP < 0) {
-      return ((I * 0 + 1 / base) * ...);
-    }
-    else {
-      return ((I * 0 + base) * ...);
+  if (exp >= 0) {
+    for (int i = 0; i < exp; ++i) {
+      result *= base;
     }
   }
-};
+  else {
+    for (unsigned int i = 0; i < std::abs(exp); ++i) {
+      result *= static_cast<decltype(result)>(1) / base;
+    }
+  }
+
+  return result;
+}
+
+
 
 template <int Significant, int Exp, typename Type = float>
 struct floating_number
 {
-  static constexpr Type value = static_cast<Type>(Significant) * pow<Exp, Type>(10);
+  static constexpr Type value = static_cast<Type>(Significant) * pow<Type>(10, Exp);
 };
 
-template <unsigned int N, typename Type>
-struct fak
+template <typename Type>
+constexpr auto fak(const Type n) -> decltype(n)
 {
-  static constexpr Type value = fak<N, Type>::calculate(std::make_integer_sequence<unsigned int, N>{});
+  Type result = 1;
 
-private:
-  template <unsigned int... K>
-  static constexpr Type calculate(std::integer_sequence<unsigned int, K...>)
-  {
-    if constexpr (sizeof...(K) == 0) {
-      return static_cast<Type>(1);
-    }
-    else {
-      return (static_cast<Type>(K + 1) * ...);
-    }
+  for (Type i = 2; i <= n; ++i) {
+    result *= i;
   }
-};
+
+  return result;
+}
 
 template <unsigned int N, unsigned int K, typename Type = float>
 struct binomial_coefficient
 {
   static_assert(K <= N, "Support parameter K must be smaller equal N.");
 
-  static constexpr Type value = fak<N, Type>::value / (fak<K, Type>::value * fak<N - K, Type>::value);
+  static constexpr Type value = fak<Type>(N) / (fak<Type>(K) * fak<Type>(N - K));
 };
 
 template <unsigned int N, class P, typename Type = float>
@@ -94,7 +81,7 @@ struct binomial_distribution
   {
     static_assert(K <= N, "Template parameter K must be smaller equal N.");
 
-    static constexpr Type value = binomial_coefficient<N, K, Type>::value * pow<K, Type>(p) * pow<N - K, Type>(q);
+    static constexpr Type value = binomial_coefficient<N, K, Type>::value * pow<Type>(p, K) * pow<Type>(q, N - K);
   };
 
   // template <unsigned int A, unsigned int B>
@@ -105,6 +92,58 @@ struct binomial_distribution
 
   //   static constexpr Type value = 
   // };
+};
+
+template <typename Type = float>
+class BinomialCoefficient
+{
+public:
+  constexpr BinomialCoefficient(const unsigned int n, const unsigned int k)
+    : _value(fak<Type>(n) / (fak<Type>(k) * fak<Type>(n - k)))
+  {
+    assert(n >= k);
+  }
+
+  inline constexpr operator Type() const { return _value; }
+
+private:
+  const Type _value;
+};
+
+template <unsigned int N, typename Type = float>
+class BinomialDistribution
+{
+public:
+  BinomialDistribution() = delete;
+  constexpr BinomialDistribution(const Type p)
+    : _p(p),
+      _q(static_cast<Type>(1) - p),
+      _variance(static_cast<Type>(_n) * _p * _q),
+      _mean(static_cast<Type>(_n) * _p)
+  {
+    assert(p >= 0.0 && p <= 1.0);
+
+    for (unsigned int k = 0; k <= _n; ++k) {
+      _pm[k] = BinomialCoefficient<Type>(_n, k) * pow<Type>(p, k) * pow<Type>(_q, _n - k);
+    }
+  }
+
+  inline constexpr Type p() const { return _p; }
+  inline constexpr Type q() const { return _q; }
+  inline constexpr Type variance() const { return _variance; }
+  inline constexpr Type mean() const { return _mean; }
+  inline constexpr Type pm(const unsigned int k) const { return _pm[k]; }
+  inline constexpr Type cd(const unsigned int k) const { assert(false); return _cd[k]; }
+  inline constexpr unsigned int n() const { return _n; }
+
+private:
+  Type _p;
+  Type _q;
+  const unsigned int _n = N;
+  Type _variance;
+  Type _mean;
+  Type _pm[N + 1] = { };
+  Type _cd[N + 1] = { };
 };
 
 } // end namespace point

@@ -10,13 +10,13 @@
 
 TEST(Fak, Functionality)
 {
-  EXPECT_EQ((francor::base::algorithm::math::fak< 4, int>::value),      24);
-  EXPECT_EQ((francor::base::algorithm::math::fak<10, int>::value), 3628800);
+  EXPECT_EQ((francor::base::algorithm::math::fak<int>(4)),      24);
+  EXPECT_EQ((francor::base::algorithm::math::fak<int>(10)), 3628800);
 }
 
 TEST(Pow, Functionality)
 {
-  EXPECT_EQ((francor::base::algorithm::math::pow<8, int>(2)), 256);
+  EXPECT_EQ((francor::base::algorithm::math::pow<int>(2, 8)), 256);
 }
 
 TEST(BinomialDistribution, Functionality)
@@ -43,7 +43,32 @@ TEST(BinomialDistribution, Functionality)
   EXPECT_NEAR(distribution::pm<2>::value, distribution::pm< 8>::value, 1e-6);
   EXPECT_NEAR(distribution::pm<1>::value, distribution::pm< 9>::value, 1e-6);
   EXPECT_NEAR(distribution::pm<0>::value, distribution::pm<10>::value, 1e-6);
+}
 
+TEST(BinomialDistribution, Class)
+{
+  using francor::base::algorithm::math::BinomialDistribution;
+  constexpr BinomialDistribution<10, float> distribution(0.5f);
+
+  EXPECT_EQ(distribution.n(), 10);
+  EXPECT_NEAR(distribution.p(), 0.5f, 1e-6);
+  EXPECT_NEAR(distribution.q(), 0.5f, 1e-6);
+  EXPECT_NEAR(distribution.variance(), 2.5, 1e-6);
+  EXPECT_NEAR(distribution.mean(), 5.0f, 1e-6);
+
+  EXPECT_NEAR(distribution.pm(0), 0.000976, 1e-6);
+  EXPECT_NEAR(distribution.pm(1), 0.009765, 1e-6);
+  EXPECT_NEAR(distribution.pm(2), 0.043945, 1e-6);
+  EXPECT_NEAR(distribution.pm(3), 0.117188, 1e-6);
+  EXPECT_NEAR(distribution.pm(4), 0.205078, 1e-6);
+
+  EXPECT_NEAR(distribution.pm(5), 0.246094, 1e-6);
+
+  EXPECT_NEAR(distribution.pm(4), distribution.pm( 6), 1e-6);
+  EXPECT_NEAR(distribution.pm(3), distribution.pm( 7), 1e-6);
+  EXPECT_NEAR(distribution.pm(2), distribution.pm( 8), 1e-6);
+  EXPECT_NEAR(distribution.pm(1), distribution.pm( 9), 1e-6);
+  EXPECT_NEAR(distribution.pm(0), distribution.pm(10), 1e-6);
 }
 
 int main(int argc, char **argv)
