@@ -230,8 +230,8 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
       // minium one cell is needed
       const std::size_t cells = static_cast<std::size_t>(std::max(1.0, point_expansion / grid.getCellSize())); 
       // updateGridCell(grid(end_index_x, end_index_y), 0.65f);
-      const auto angle = normals.size() == laser_scan.distances().size() ? normals[i] : phi;
-      pushLaserPointToGrid(grid, end_index_x, end_index_y, (cells % 2 == 0 ? cells + 1 : cells), angle);
+      const auto angle = normals.size() == laser_scan.distances().size() ? normals[i] + laser_scan.pose().orientation() + pose_ego.orientation(): phi;
+      pushLaserPointToGrid(grid, end_index_x, end_index_y, (cells % 2 == 0 ? cells + 3 : cells + 2), angle);
 
       // std::cout << "point expansion = " << point_expansion << std::endl;
       // std::cout << "cells = " << cells << std::endl;

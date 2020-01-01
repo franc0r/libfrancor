@@ -119,6 +119,11 @@ bool initialize(const std::string& file_name)
     return false;
   }
 
+  if (!_pipe_convert_scan.initialize()) {
+    LogError() << "Can't initialize \"" << _pipe_convert_scan.name() << "\" pipeline.";
+    return false;    
+  }
+
   if (!_pipe_update_grid.initialize()) {
     LogError() << "Can't initialize \"" << _pipe_update_grid.name() << "\" pipeline.";
     return false;

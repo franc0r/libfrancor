@@ -110,10 +110,14 @@ bool StageReconstructLaserScanFromOccupancyGrid::isReady() const
 
 bool StagePushLaserScanToOccupancyGrid::doProcess(OccupancyGrid& grid)
 {
+  using francor::base::LogError;
+  using francor::base::LogDebug;
+
   const auto& pose_ego = this->input(IN_EGO_POSE).data<base::Pose2d   >();
   const auto& scan     = this->input(IN_SCAN    ).data<base::LaserScan>();
 
   if (this->input(IN_NORMALS).numOfConnections() > 0) {
+    LogDebug() << "Normals will be used.";
     const auto& normals = this->input(IN_NORMALS).data<std::vector<base::NormalizedAngle>>();
     algorithm::occupancy::pushLaserScanToGrid(grid, scan, pose_ego, normals);
   }
