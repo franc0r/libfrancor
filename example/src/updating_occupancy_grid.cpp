@@ -13,6 +13,7 @@
 
 using francor::mapping::PipeSimulateLaserScan;
 using francor::mapping::PipeUpdateOccupancyGrid;
+using francor::mapping::PipeConvertLaserScanToPoints;
 using francor::mapping::OccupancyGrid;
 using francor::mapping::EgoObject;
 using francor::vision::Image;
@@ -26,6 +27,7 @@ using francor::base::LogInfo;
 using francor::base::LogDebug;
 using francor::base::Vector2d;
 using francor::base::Angle;
+using francor::base::NormalizedAngle;
 using francor::base::LaserScan;
 
 OccupancyGrid _grid_source;
@@ -34,6 +36,7 @@ EgoObject _ego;
 const Pose2d _sensor_pose({ 0.0, 0.0 }, Angle::createFromDegree(90.0));
 
 PipeSimulateLaserScan _pipe_simulator;
+PipeConvertLaserScanToPoints _pipe_convert_scan;
 PipeUpdateOccupancyGrid _pipe_update_grid;
 
 void drawLaserBeamOnImage(const Point2d& start_point, const Angle phi, const double length,
@@ -145,7 +148,16 @@ bool processStep(const Vector2d& delta_position)
 
   LaserScan scan(_pipe_simulator.output(PipeSimulateLaserScan::OUT_SCAN).data<LaserScan>());
   applyGaussianNoise(scan);
+  _pipe_convert_scan.input(PipeConvertLaserScanToPoints::IN_SCAN).assign(&scan);
+
+  if (!_pipe_convert_scan.process()) {
+    LogError() << "Error occurred during processing of pipeline \"" << _pipe_convert_scan.name() << "\".";
+    return false;
+  }
+
+  const auto& normals(_pipe_convert_scan.output(PipeConvertLaserScanToPoints::OUT_NORMALS).data<std::vector<NormalizedAngle>>());
   _pipe_update_grid.input(PipeUpdateOccupancyGrid::IN_SCAN).assign(&scan);
+  _pipe_update_grid.input(PipeUpdateOccupancyGrid::IN_NORMALS).assign(&normals);
   start = std::chrono::system_clock::now();
 
   if (!_pipe_update_grid.process(_grid, _ego)) {

@@ -69,7 +69,7 @@ bool StageConvertLaserScanToPoints::doProcess(processing::NoDataType&)
   using francor::base::LogError;
 
   const auto& scan     = this->input(IN_SCAN).data    <base::LaserScan>();
-  const auto& ego_pose = this->input(IN_EGO_POSE).data<base::Pose2d   >();
+  const auto& ego_pose = this->input(IN_EGO_POSE).numOfConnections() > 0 ? this->input(IN_EGO_POSE).data<base::Pose2d>() : base::Pose2d();
 
   LogDebug() << "uses scan pose " << scan.pose();
   LogDebug() << "uses ego pose " << ego_pose;
@@ -100,9 +100,7 @@ bool StageConvertLaserScanToPoints::initializePorts()
 
 bool StageConvertLaserScanToPoints::isReady() const
 {
-  return this->input(IN_SCAN).numOfConnections() > 0
-         &&
-         this->input(IN_EGO_POSE).maxNumOfConnections() > 0;
+  return this->input(IN_SCAN).numOfConnections() > 0;
 }
 
 
