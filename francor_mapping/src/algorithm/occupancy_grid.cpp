@@ -47,7 +47,7 @@ bool convertGridToImage(const OccupancyGrid& grid, vision::Image& image)
       if (std::isnan(cell_value)) {
         image(row, col).gray() = pixel_value_unkown;
       }
-      else if (cell_value <= 0.5f) {
+      else if (cell_value <= 0.1f) {
         image(row, col).gray() = 255;
       }
       else {
@@ -192,6 +192,7 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
   const std::size_t start_index_x = grid.getIndexX(laser_scan.pose().position().x() + pose_ego.position().x());
   const std::size_t start_index_y = grid.getIndexY(laser_scan.pose().position().y() + pose_ego.position().y());
   const Point2d position = laser_scan.pose().position() + pose_ego.position();
+  std::size_t index_normal = 0;
 
   // process each distance measurement. start from phi min
   for (std::size_t i = 0; i < laser_scan.distances().size(); ++i)
@@ -205,7 +206,7 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
     const auto direction = base::algorithm::line::calculateV(phi);
     const auto distance_corrected = (std::isnan(distance) || std::isinf(distance) ?
                                      laser_scan.range() :
-                                     distance - 0.1); //point_expansion * 0.5);
+                                     distance - 0.2); //point_expansion * 0.5);
 
     Ray2d ray(Ray2d::create(start_index_x, start_index_y, grid.getNumCellsX(),
               grid.getNumCellsY(), grid.getCellSize(), position, direction, distance_corrected));
@@ -230,7 +231,7 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
       // minium one cell is needed
       const std::size_t cells = static_cast<std::size_t>(std::max(1.0, point_expansion / grid.getCellSize())); 
       // updateGridCell(grid(end_index_x, end_index_y), 0.65f);
-      const auto angle = normals.size() == laser_scan.distances().size() ? normals[i] + laser_scan.pose().orientation() + pose_ego.orientation(): phi;
+      const auto angle = index_normal < normals.size() ? normals[index_normal++] /* + laser_scan.pose().orientation() + pose_ego.orientation() */ : phi;
       pushLaserPointToGrid(grid, end_index_x, end_index_y, (cells % 2 == 0 ? cells + 3 : cells + 2), angle);
 
       // std::cout << "point expansion = " << point_expansion << std::endl;

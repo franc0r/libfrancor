@@ -117,8 +117,8 @@ bool StagePushLaserScanToOccupancyGrid::doProcess(OccupancyGrid& grid)
   const auto& scan     = this->input(IN_SCAN    ).data<base::LaserScan>();
 
   if (this->input(IN_NORMALS).numOfConnections() > 0) {
-    LogDebug() << "Normals will be used.";
     const auto& normals = this->input(IN_NORMALS).data<std::vector<base::NormalizedAngle>>();
+    LogDebug() << "Normals (size = " << normals.size() << ") will be used.";
     algorithm::occupancy::pushLaserScanToGrid(grid, scan, pose_ego, normals);
   }
   else {
