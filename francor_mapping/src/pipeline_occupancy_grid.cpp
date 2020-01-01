@@ -108,6 +108,33 @@ bool PipeLocalizeAndUpdateEgo::initializePorts()
 
 
 
+bool PipeConvertLaserScanToPoints::configureStages()
+{
+  bool ret = true;
+
+  ret &= std::get<0>(_stages).input(algorithm::StageConvertLaserScanToPoints::IN_SCAN)
+                             .connect(this->input(IN_SCAN));
+  ret &= std::get<0>(_stages).output(algorithm::StageConvertLaserScanToPoints::OUT_POINTS)
+                             .connect(this->output(OUT_POINTS));                             
+
+  ret &= std::get<1>(_stages).input(algorithm::StageEstimateNormalsFromOrderedPoints::IN_POINTS)
+                             .connect(std::get<0>(_stages).output(algorithm::StageConvertLaserScanToPoints::OUT_POINTS));
+  ret &= std::get<1>(_stages).output(algorithm::StageEstimateNormalsFromOrderedPoints::OUT_NORMALS)
+                             .connect(this->output(OUT_NORMALS));
+
+  return ret;                             
+}
+
+bool PipeConvertLaserScanToPoints::initializePorts()
+{
+  this->initializeInputPort<base::LaserScan>(IN_SCAN, "laser scan");
+
+  this->initializeOutputPort<base::Point2dVector>(OUT_POINTS, "points 2d");
+  this->initializeOutputPort<std::vector<base::NormalizedAngle>>(OUT_NORMALS, "normals");
+
+  return true;
+}
+
 } // end namespace mapping
 
 } // end namespace francor

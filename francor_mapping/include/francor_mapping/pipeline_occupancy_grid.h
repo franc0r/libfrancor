@@ -92,10 +92,35 @@ public:
   PipeLocalizeAndUpdateEgo() : PipeLocalizeAndUpdateEgoParent("localize and update ego", COUNT_INPUTS, COUNT_OUTPUTS) { }
 
 private:
-  bool configureStages() final;
+  bool configureStages() final; 
   bool initializePorts() final;
 };
 
+
+using PipeConvertLaserScanToPointsParent = processing::ProcessingPipeline<processing::NoDataType,
+                                                                          algorithm::StageConvertLaserScanToPoints,         // convert scan stage
+                                                                          algorithm::StageEstimateNormalsFromOrderedPoints  // estimate normals stage
+                                                                          >;
+
+class PipeConvertLaserScanToPoints final : public PipeConvertLaserScanToPointsParent
+{
+public:
+  enum Inputs {
+    IN_SCAN = 0,
+    COUNT_INPUTS
+  };
+  enum Outputs {
+    OUT_POINTS = 0,
+    OUT_NORMALS,
+    COUNT_OUTPUTS
+  };
+
+  PipeConvertLaserScanToPoints() : PipeConvertLaserScanToPointsParent("convert laser scan to points", COUNT_INPUTS, COUNT_OUTPUTS) { }
+
+private:
+  bool configureStages() final; 
+  bool initializePorts() final;
+};                                                                          
 
 
 } // end namespace mapping
