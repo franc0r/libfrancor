@@ -44,9 +44,9 @@ private:
 
 
 
-using PipeUpdateOccupancyGridParent = processing::ProcessingPipeline<OccupancyGrid,                    // model type
-                                                                     StageEstimateLaserScannerPose,    // estimate ego pose stage
-                                                                     StagePushLaserScanToOccupancyGrid // update grid stage
+using PipeUpdateOccupancyGridParent = processing::ProcessingPipeline<OccupancyGrid,                                    // model type
+                                                                     StageEstimateLaserScannerPose,                    // estimate ego pose stage
+                                                                     StagePushLaserScanToOccupancyGrid                // update grid stage                                                                     
                                                                      >;
 
 class PipeUpdateOccupancyGrid final : public PipeUpdateOccupancyGridParent
@@ -54,6 +54,7 @@ class PipeUpdateOccupancyGrid final : public PipeUpdateOccupancyGridParent
 public:
   enum Inputs {
     IN_SCAN = 0,
+    IN_NORMALS,
     COUNT_INPUTS
   };
   enum Outputs {

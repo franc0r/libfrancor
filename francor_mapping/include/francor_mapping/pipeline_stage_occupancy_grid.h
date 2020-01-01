@@ -101,6 +101,7 @@ public:
   enum Inputs {
     IN_EGO_POSE = 0,
     IN_SCAN,
+    IN_NORMALS,
     COUNT_INPUTS
   };
   enum Outputs {
@@ -109,6 +110,32 @@ public:
 
   StagePushLaserScanToOccupancyGrid()
     : processing::ProcessingStage<OccupancyGrid>("push laser scan to occupancy grid", COUNT_INPUTS, COUNT_OUTPUTS)
+  { }
+
+private:
+  bool doProcess(OccupancyGrid& grid) final;
+  bool doInitialization() final;
+  bool initializePorts() final;
+  bool isReady() const final;  
+};
+
+
+
+class StagePushPointsToOccupancyGrid final : public processing::ProcessingStage<OccupancyGrid>
+{
+public:
+  enum Inputs {
+    IN_EGO_POSE = 0,
+    IN_POINTS,
+    IN_NORMALS,
+    COUNT_INPUTS
+  };
+  enum Outputs {
+    COUNT_OUTPUTS = 0
+  };
+
+  StagePushPointsToOccupancyGrid()
+    : processing::ProcessingStage<OccupancyGrid>("push points to occupancy grid", COUNT_INPUTS, COUNT_OUTPUTS)
   { }
 
 private:

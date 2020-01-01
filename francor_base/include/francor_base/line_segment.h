@@ -61,7 +61,7 @@ using LineSegmentVector = std::vector<LineSegment>;
 namespace std
 {
 
-std::ostream& operator<<(std::ostream& os, const francor::base::LineSegment& segment)
+inline std::ostream& operator<<(std::ostream& os, const francor::base::LineSegment& segment)
 {
   os << "[line: " << segment.line() << " | p0: x = " << segment.p0().x() << ", y = " << segment.p0().y()
      << " | p1: x = " << segment.p1().x() << ", y = " << segment.p1().y() << "]";

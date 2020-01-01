@@ -85,6 +85,33 @@ private:
   base::Point2dVector _resulted_points;
 };
 
+
+
+class StageEstimateNormalsFromOrderedPoints final : public processing::ProcessingStage<processing::NoDataType>
+{
+public:
+  enum Inputs {
+    IN_POINTS = 0,
+    COUNT_INPUTS
+  };
+  enum Outputs {
+    OUT_NORMALS = 0,
+    COUNT_OUTPUTS
+  };
+
+  StageEstimateNormalsFromOrderedPoints()
+    : processing::ProcessingStage<processing::NoDataType>("estimate normals from ordered points", COUNT_INPUTS, COUNT_OUTPUTS)
+  { }
+
+private:
+  bool doProcess(processing::NoDataType&) final;
+  bool doInitialization() final;
+  bool initializePorts() final;
+  bool isReady() const final;
+
+  std::vector<base::NormalizedAngle> _resulted_normals;
+};
+
 } // end namespace algorithm
 
 } // end namespace francor

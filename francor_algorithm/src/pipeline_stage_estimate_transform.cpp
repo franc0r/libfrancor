@@ -5,6 +5,7 @@
  */
 
 #include "francor_algorithm/pipeline_stage_estimate_transform.h"
+#include "francor_algorithm/geometry_fitting.h"
 
 #include <francor_base/laser_scan.h>
 #include <francor_base/algorithm/point.h>
@@ -104,6 +105,44 @@ bool StageConvertLaserScanToPoints::isReady() const
          this->input(IN_EGO_POSE).maxNumOfConnections() > 0;
 }
 
+
+
+bool StageEstimateNormalsFromOrderedPoints::doProcess(processing::NoDataType&)
+{
+  using francor::base::LogDebug;
+  using francor::base::LogError;
+
+  const auto& points = this->input(IN_POINTS).data<base::Point2dVector>();
+
+  if (auto result = estimateNormalsFromOrderedPoints(points, 5)) {
+    _resulted_normals = std::move(*result);
+  }
+  else {
+    LogError() << "Normal estimation wasn't successfull.";
+    return false;
+  }
+
+  return true;
+}
+
+bool StageEstimateNormalsFromOrderedPoints::doInitialization()
+{
+  return true;
+}
+
+bool StageEstimateNormalsFromOrderedPoints::initializePorts()
+{
+  this->initializeInputPort<base::Point2dVector>(IN_POINTS, "points 2d");
+
+  this->initializeOutputPort<std::vector<base::NormalizedAngle>>(OUT_NORMALS, "normals 2d", &_resulted_normals);
+
+  return true;
+}
+
+bool StageEstimateNormalsFromOrderedPoints::isReady() const
+{
+  return this->input(IN_POINTS).numOfConnections() > 0;
+}
 
 } // end namespace algorithm
 

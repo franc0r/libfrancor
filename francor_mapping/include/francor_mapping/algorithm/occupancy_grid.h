@@ -117,8 +117,22 @@ struct updateGridCell
  * \param grid Occupancy grid.
  * \param scan Input laser scan. To the ego pose will be added to the scan pose.
  * \param pose_ego Input ego pose.
+ * \param normals Normals of the resulting laser scan points. Each normal corresponds with the beam of same index. If no normals are given the beam angle will be
+ *                used instead.
  */
-void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& scan, const base::Pose2d& pose_ego);
+void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& scan, const base::Pose2d& pose_ego,
+                         const std::vector<base::NormalizedAngle>& normals = std::vector<base::NormalizedAngle>());
+
+/**
+ * \brief Push points of a laser scan into a occupancy grid using the update grid cell function.
+ * 
+ * \param grid Occupancy grid.
+ * \param points Input points of a laser scan. To the ego pose will be added to the points.
+ * \param pose_ego Ego pose used as start point for each ray.
+ * \param normals Normals of the input points. Each normal corresponds with the point of same index.
+ * \return true if push was successfull.
+ */
+bool pushPointsToGrid(OccupancyGrid& grid, const base::Point2dVector& points, const base::Pose2d& pose_ego, const std::vector<base::NormalizedAngle>& normals);
 
 /**
  * \brief Pushes a laser point (endpoint of the laser beam) into a occupancy grid. The shape of the point is

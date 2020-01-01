@@ -181,7 +181,7 @@ bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d&
   return true;
 }                                  
 
-void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan, const base::Pose2d& pose_ego)
+void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan, const base::Pose2d& pose_ego, const std::vector<base::NormalizedAngle>& normals)
 {
   using francor::base::Point2d;
   using francor::base::Angle;
@@ -204,8 +204,8 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
     const Angle phi = current_phi + laser_scan.pose().orientation() + pose_ego.orientation();
     const auto direction = base::algorithm::line::calculateV(phi);
     const auto distance_corrected = (std::isnan(distance) || std::isinf(distance) ?
-                                    laser_scan.range() :
-                                    distance - 0.1); //point_expansion * 0.5);
+                                     laser_scan.range() :
+                                     distance - 0.1); //point_expansion * 0.5);
 
     Ray2d ray(Ray2d::create(start_index_x, start_index_y, grid.getNumCellsX(),
               grid.getNumCellsY(), grid.getCellSize(), position, direction, distance_corrected));
@@ -230,7 +230,8 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
       // minium one cell is needed
       const std::size_t cells = static_cast<std::size_t>(std::max(1.0, point_expansion / grid.getCellSize())); 
       // updateGridCell(grid(end_index_x, end_index_y), 0.65f);
-      pushLaserPointToGrid(grid, end_index_x, end_index_y, (cells % 2 == 0 ? cells + 1 : cells), phi);
+      const auto angle = normals.size() == laser_scan.distances().size() ? normals[i] : phi;
+      pushLaserPointToGrid(grid, end_index_x, end_index_y, (cells % 2 == 0 ? cells + 1 : cells), angle);
 
       // std::cout << "point expansion = " << point_expansion << std::endl;
       // std::cout << "cells = " << cells << std::endl;
@@ -244,6 +245,20 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
 
     current_phi += laser_scan.phiStep();
   }
+}
+
+bool pushPointsToGrid(OccupancyGrid& grid, const base::Point2dVector& points, const base::Pose2d& pose_ego, const std::vector<base::NormalizedAngle>& normals)
+{
+  if (points.size() != normals.size()) {
+    base::LogError() << "pushPointsToGrid(): number of points and normals isn't equal. Cancel push to grid.";
+    return false;
+  }
+
+  using francor::base::Line;
+
+  const std::size_t start_index_x = grid.getIndexX(pose_ego.position().x());
+  const std::size_t start_index_y = grid.getIndexY(pose_ego.position().y());
+  // const 
 }
 
 void pushLaserPointToGrid(OccupancyGrid& grid, const std::size_t x, const std::size_t y, const std::size_t point_size, const base::Angle point_yaw)

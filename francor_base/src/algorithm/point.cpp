@@ -7,6 +7,7 @@
 #include "francor_base/algorithm/point.h"
 #include "francor_base/laser_scan.h"
 #include "francor_base/transform.h"
+#include "francor_base/log.h"
 
 #include <iostream>
 

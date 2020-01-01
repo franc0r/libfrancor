@@ -57,6 +57,8 @@ bool PipeUpdateOccupancyGrid::configureStages()
                              .connect(std::get<0>(_stages).output(StageEstimateLaserScannerPose::OUT_EGO_POSE));
   ret &= std::get<1>(_stages).input(StagePushLaserScanToOccupancyGrid::IN_SCAN)
                              .connect(this->input(IN_SCAN));
+  ret &= std::get<1>(_stages).input(StagePushLaserScanToOccupancyGrid::IN_NORMALS)
+                             .connect(this->input(IN_NORMALS));                             
 
   return ret;                             
 }
@@ -64,6 +66,7 @@ bool PipeUpdateOccupancyGrid::configureStages()
 bool PipeUpdateOccupancyGrid::initializePorts()
 {
   this->initializeInputPort<base::LaserScan>(IN_SCAN, "laser scan");
+  this->initializeInputPort<std::vector<base::NormalizedAngle>>(IN_NORMALS, "normals");
 
   return true;
 }

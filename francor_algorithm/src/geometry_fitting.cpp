@@ -119,7 +119,31 @@ base::LineSegment fittingLineSegmentFromPoints(const base::Point2dVector& points
       return { p0, p1 };
     }
   }
-}                                               
+}                
+
+std::optional<std::vector<base::NormalizedAngle>> estimateNormalsFromOrderedPoints(const base::Point2dVector& points, const int n)
+{
+  if (n % 2 != 1) {
+    base::LogError() << "estimateNormalsFromOrderedPoints(): argument n must be odd. n = " << n;
+    return std::nullopt;
+  }
+
+  std::vector<base::NormalizedAngle> normals;
+  normals.reserve(points.size());
+  std::vector<std::size_t> indices(n);
+  indices.reserve(n);
+
+  for (int p = 0; p < static_cast<int>(points.size()); ++p) {
+    for (int i = p - n / 2; i < n; ++i) {
+      if (i > 0) indices.push_back(i);
+    }
+
+    normals.push_back(base::NormalizedAngle(90.0) + fittingLineFromPoints(points, indices).phi());
+    indices.clear();
+  }
+
+  return normals;
+}
 
 } // end namespace algorithm
 
