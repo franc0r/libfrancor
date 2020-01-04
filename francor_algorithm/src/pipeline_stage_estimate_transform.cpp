@@ -30,7 +30,6 @@ bool StageEstimateTransformBetweenPoints::doProcess(processing::NoDataType&)
     return false;
   }
 
-  _estimated_transform = _estimated_transform.inverse(); // \todo well that has to be clarified 
   LogDebug() << this->name() << ": estimated transform = " << _estimated_transform;
   return true;
 }

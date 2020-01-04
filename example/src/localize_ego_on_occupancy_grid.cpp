@@ -10,6 +10,7 @@
 #include <francor_mapping/algorithm/occupancy_grid.h>
 
 #include <thread>
+#include <random>
 
 using francor::mapping::PipeSimulateLaserScan;
 using francor::mapping::PipeLocalizeAndUpdateEgo;
@@ -105,6 +106,22 @@ void drawPointsOnImage(const Point2dVector& points, Image& image)
   }
 }
 
+void applyGaussianNoise(LaserScan& scan)
+{
+  std::default_random_engine generator;
+  std::normal_distribution<double> distribution(0.0, 0.05);
+  std::vector<double> modified_distances;
+
+  modified_distances.reserve(scan.distances().size());
+
+  for (const auto distance : scan.distances()) {
+    modified_distances.push_back(distance + distribution(generator));
+  }
+
+  scan = LaserScan(modified_distances, scan.pose(), scan.phiMin(),
+                   scan.phiMax(), scan.phiStep(), scan.range(), Angle::createFromDegree(1.0));
+}
+
 bool loadGridFromFile(const std::string& file_name, OccupancyGrid& grid)
 {
   const Image image(francor::vision::loadImageFromFile(file_name, francor::vision::ColourSpace::GRAY));
@@ -137,7 +154,7 @@ bool initialize(const std::string& file_name)
 
 bool processStep(const Vector2d& delta_position)
 {
-  const Transform2d transform({ Angle::createFromDegree(-0.1) }, delta_position);
+  const Transform2d transform({ Angle::createFromDegree(-1.0) }, delta_position);
 
   _ego_ground_truth.setPose(transform * _ego_ground_truth.pose());
   std::cout << "ego ground truth " << _ego_ground_truth.pose() << std::endl;
@@ -156,6 +173,7 @@ bool processStep(const Vector2d& delta_position)
 
   // estimate pose using generated laser scan
   LaserScan scan(_pipe_simulator.output(PipeSimulateLaserScan::OUT_SCAN).data<LaserScan>());
+  applyGaussianNoise(scan);
   _pipe_update_ego.input(PipeLocalizeAndUpdateEgo::IN_SCAN).assign(&scan);
   start = std::chrono::system_clock::now();
 
@@ -171,8 +189,8 @@ bool processStep(const Vector2d& delta_position)
   Image out_grid;
   francor::mapping::algorithm::occupancy::convertGridToImage(_grid, out_grid);
   out_grid.transformTo(ColourSpace::BGR);
-  drawPose(_ego.pose(), out_grid);
   drawLaserScanOnImage(scan, out_grid);
+  drawPose(_ego.pose(), out_grid);
   Point2dVector points;
   francor::base::algorithm::point::convertLaserScanToPoints(scan, _ego_ground_truth.pose(), points);
   drawPointsOnImage(points, out_grid);
@@ -199,7 +217,7 @@ int main(int argc, char** argv)
 
   for (std::size_t step = 0; step < 500; ++step)
   {
-    const Vector2d step_position(0.0, 0.02);
+    const Vector2d step_position(0.0, 0.05);
 
     if (!processStep(step_position)) {
       LogError() << "terminate application";

@@ -117,35 +117,35 @@ void pushPoint(GridType& grid, const std::size_t center_x, const std::size_t cen
   {
   case 1:
     {
-      const UpdateMatrix<4, 3, float, PointDistribution> update_matrix(point_yaw);
+      const UpdateMatrix<5, 3, float, PointDistribution> update_matrix(point_yaw);
       update_matrix.update<GridType, UpdateFunction>(grid, center_x, center_y);
     }
     break;
   
   case 3:
     {
-      const UpdateMatrix<4, 3, float, PointDistribution> update_matrix(point_yaw);
+      const UpdateMatrix<5, 3, float, PointDistribution> update_matrix(point_yaw);
       update_matrix.update<GridType, UpdateFunction>(grid, center_x, center_y);
   }
   break;
 
   case 5:
     {
-      const UpdateMatrix<4, 5, float, PointDistribution> update_matrix(point_yaw);      
+      const UpdateMatrix<5, 5, float, PointDistribution> update_matrix(point_yaw);      
       update_matrix.update<GridType, UpdateFunction>(grid, center_x, center_y);
     }
     break;
 
   case 7:
     {
-      const UpdateMatrix<4, 7, float, PointDistribution> update_matrix(point_yaw);      
+      const UpdateMatrix<5, 7, float, PointDistribution> update_matrix(point_yaw);      
       update_matrix.update<GridType, UpdateFunction>(grid, center_x, center_y);
     }
     break;
 
     case 9:
     {
-      const UpdateMatrix<4, 9, float, PointDistribution> update_matrix(point_yaw);      
+      const UpdateMatrix<5, 9, float, PointDistribution> update_matrix(point_yaw);      
       update_matrix.update<GridType, UpdateFunction>(grid, center_x, center_y);
     }
     break;

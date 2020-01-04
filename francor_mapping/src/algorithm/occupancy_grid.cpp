@@ -113,7 +113,7 @@ bool reconstructPointsFromGrid(const OccupancyGrid& grid, const base::Pose2d& po
     {
       const auto cell_value = grid(idx.x(), idx.y()).value;
 
-      if (cell_value > 0.9 && cell_value <= 1.0) {
+      if (cell_value > 0.93 && cell_value <= 1.0) {
         points.push_back( { static_cast<double>(idx.x()) * grid.getCellSize() + grid.getOrigin().x(),
                             static_cast<double>(idx.y()) * grid.getCellSize() + grid.getOrigin().y() } );
 
@@ -156,12 +156,13 @@ bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d&
     bool found_occupancy = false;
     Ray2d ray(Ray2d::create(start_index_x, start_index_y, grid.getNumCellsX(),
                             grid.getNumCellsY(), grid.getCellSize(), pose.position(), direction, range));
+    double old_value = 0.5;
 
     for (const auto& idx : ray)
     {
       const auto cell_value = grid(idx.x(), idx.y()).value;
 
-      if (cell_value > 0.9 && cell_value <= 1.0) {
+      if (cell_value > 0.93 && cell_value <= 1.0) {
         Vector2d point{ static_cast<double>(idx.x()) * grid.getCellSize() + grid.getOrigin().x(),
                         static_cast<double>(idx.y()) * grid.getCellSize() + grid.getOrigin().y() };
         distances[beam] = (Vector2d(pose.position().x(), pose.position().y()) - point).norm();
@@ -184,6 +185,7 @@ bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d&
 void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan, const base::Pose2d& pose_ego, const std::vector<base::NormalizedAngle>& normals)
 {
   using francor::base::Point2d;
+  using francor::base::Vector2d;
   using francor::base::Angle;
   using francor::base::Line;
   using francor::algorithm::Ray2d;
@@ -206,7 +208,7 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
     const auto direction = base::algorithm::line::calculateV(phi);
     const auto distance_corrected = (std::isnan(distance) || std::isinf(distance) ?
                                      laser_scan.range() :
-                                     distance - 0.2); //point_expansion * 0.5);
+                                     distance - 0.15); //point_expansion * 0.5);
 
     Ray2d ray(Ray2d::create(start_index_x, start_index_y, grid.getNumCellsX(),
               grid.getNumCellsY(), grid.getCellSize(), position, direction, distance_corrected));
@@ -231,7 +233,7 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
       // minium one cell is needed
       const std::size_t cells = static_cast<std::size_t>(std::max(1.0, point_expansion / grid.getCellSize())); 
       // updateGridCell(grid(end_index_x, end_index_y), 0.65f);
-      const auto angle = index_normal < normals.size() ? normals[index_normal++] /* + laser_scan.pose().orientation() + pose_ego.orientation() */ : phi;
+      const auto angle = index_normal < normals.size() ? normals[index_normal++] + pose_ego.orientation(): phi;
       pushLaserPointToGrid(grid, end_index_x, end_index_y, (cells % 2 == 0 ? cells + 3 : cells + 2), angle);
 
       // std::cout << "point expansion = " << point_expansion << std::endl;

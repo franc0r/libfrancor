@@ -40,3 +40,12 @@ add_executable(localize-ego-on-occupancy-grid
 target_link_libraries(localize-ego-on-occupancy-grid
   PRIVATE francor-mapping
 )
+
+# slam occupancy grid example
+add_executable(slam-occupancy-grid
+  src/slam_occupancy_grid.cpp
+)
+
+target_link_libraries(slam-occupancy-grid
+  PRIVATE francor-mapping
+)
