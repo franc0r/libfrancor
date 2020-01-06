@@ -86,7 +86,9 @@ bool PipeLocalizeAndUpdateEgo::configureStages()
                              .connect(std::get<0>(_stages).output(StageEstimateLaserScannerPose::OUT_EGO_POSE));                            
 
   ret &= std::get<2>(_stages).input(StageReconstructPointsFromOccupancyGrid::IN_SENSOR_POSE)
-                             .connect(std::get<0>(_stages).output(StageEstimateLaserScannerPose::OUT_POSE));                              
+                             .connect(std::get<0>(_stages).output(StageEstimateLaserScannerPose::OUT_POSE)); 
+  ret &= std::get<2>(_stages).output(StageReconstructPointsFromOccupancyGrid::OUT_POINTS)
+                             .connect(this->output(OUT_POINTS));                                                          
 
   ret &= std::get<3>(_stages).input(algorithm::StageEstimateTransformBetweenPoints::IN_POINTS_A)
                              .connect(std::get<2>(_stages).output(StageReconstructPointsFromOccupancyGrid::OUT_POINTS));
@@ -102,6 +104,8 @@ bool PipeLocalizeAndUpdateEgo::configureStages()
 bool PipeLocalizeAndUpdateEgo::initializePorts()
 {
   this->initializeInputPort<base::LaserScan>(IN_SCAN, "laser scan");
+
+  this->initializeOutputPort<base::Point2dVector>(OUT_POINTS, "reconstructed points 2d");
 
   return true;
 }

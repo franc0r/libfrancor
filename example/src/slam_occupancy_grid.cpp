@@ -71,7 +71,7 @@ void drawLaserBeamOnImage(const Point2d& start_point, const Angle phi, const dou
   const auto index_end_x = _grid.getIndexX(end.x());
   const auto index_end_y = _grid.getIndexY(end.y());
 
-  cv::line(image.cvMat(), { index_start_x, index_start_y }, { index_end_x, index_end_y }, colour, 3);
+  cv::line(image.cvMat(), { index_start_x, index_start_y }, { index_end_x, index_end_y }, colour, 1);
 }
 
 void drawLaserScanOnImage(const LaserScan& scan, Image& image)
@@ -108,14 +108,14 @@ void drawPointsOnImage(const Point2dVector& points, Image& image)
     const auto index_x = _grid.getIndexX(point.x());
     const auto index_y = _grid.getIndexY(point.y());
 
-    cv::circle(image.cvMat(), { index_x, index_y }, 7, cv::Scalar(0, 0, 255), 3);
+    cv::circle(image.cvMat(), { index_x, index_y }, 7, cv::Scalar(0, 0, 255), 1);
   }
 }
 
 void applyGaussianNoise(LaserScan& scan)
 {
   std::default_random_engine generator;
-  std::normal_distribution<double> distribution(0.0, 0.05);
+  std::normal_distribution<double> distribution(0.0, 0.1);
   std::vector<double> modified_distances;
 
   modified_distances.reserve(scan.distances().size());
@@ -147,7 +147,7 @@ bool initialize(const std::string& file_name)
     return false;
   }
 
-  _ego.setPose({ { 25.0, 2.0 }, 0.0 });
+  _ego.setPose({ { 25.0, 5.0 }, 0.0 });
   _ego_ground_truth.setPose(_ego.pose());
 
   if (!_pipe_simulator.initialize()) {
@@ -178,7 +178,7 @@ bool processStep(const Vector2d& delta_position)
   static unsigned int counter_move = 0;
 
   if (counter_move++ >= 10) {
-    const Transform2d transform({ Angle::createFromDegree(-0.3) }, delta_position);
+    const Transform2d transform({ Angle::createFromDegree(0.0) }, delta_position);
     _ego_ground_truth.setPose(transform * _ego_ground_truth.pose());
   }
 
@@ -241,11 +241,13 @@ bool processStep(const Vector2d& delta_position)
   // cv::GaussianBlur(out_grid.cvMat(), out_grid.cvMat(), cv::Size(3, 3), 0.0, 0.0);
   out_grid.transformTo(ColourSpace::BGR);
   drawPose(_ego.pose(), out_grid);
-  // drawLaserScanOnImage(scan, out_grid);
-  // Point2dVector points;
+  drawLaserScanOnImage(scan, out_grid);
+  const auto& points = _pipe_update_ego.output(PipeLocalizeAndUpdateEgo::OUT_POINTS).data<Point2dVector>();
   // francor::base::algorithm::point::convertLaserScanToPoints(scan, _ego_ground_truth.pose(), points);
-  // drawPointsOnImage(points, out_grid);
-  cv::imshow("occupancy grid", out_grid.cvMat());
+  drawPointsOnImage(points, out_grid);
+  cv::Mat scaled;
+  cv::resize(out_grid.cvMat(), scaled, cv::Size(1000, 1000));
+  cv::imshow("occupancy grid", scaled);
   cv::waitKey(10);
 
   return true;
@@ -266,9 +268,9 @@ int main(int argc, char** argv)
     return 2;
   }
 
-  for (std::size_t step = 0; step < 1300; ++step)
+  for (std::size_t step = 0; step < 800; ++step)
   {
-    const Vector2d step_position(0.0, 0.07);
+    const Vector2d step_position(0.0, 0.2);
 
     if (!processStep(step_position)) {
       LogError() << "terminate application";

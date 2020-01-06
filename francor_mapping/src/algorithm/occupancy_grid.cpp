@@ -72,7 +72,7 @@ bool createGridFromImage(const Image& image, const double cell_size, OccupancyGr
       const auto pixel_value = image(y, x).gray();
 
       if (pixel_value == 255) {
-        grid(x, y).value = 0.01f;
+        grid(x, y).value = 0.1f;
       }
       else if (pixel_value < 100) {
         grid(x, y).value = static_cast<float>(100 - pixel_value) / 100.0f;
@@ -95,6 +95,7 @@ bool reconstructPointsFromGrid(const OccupancyGrid& grid, const base::Pose2d& po
   using francor::base::Angle;
   using francor::base::Line;
   using francor::algorithm::Ray2d;
+  using francor::base::Vector2i;  
 
   Angle current_phi = pose.orientation() + phi_min;
   const std::size_t start_index_x = grid.getIndexX(pose.position().x());
@@ -108,18 +109,31 @@ bool reconstructPointsFromGrid(const OccupancyGrid& grid, const base::Pose2d& po
     const auto direction = base::algorithm::line::calculateV(current_phi);
     Ray2d ray(Ray2d::create(start_index_x, start_index_y, grid.getNumCellsX(),
                             grid.getNumCellsY(), grid.getCellSize(), pose.position(), direction, range));
+    double best_value = 0.5;
+    Vector2i best_index;
+    bool found_obstacle = false;
 
     for (const auto& idx : ray)
     {
       const auto cell_value = grid(idx.x(), idx.y()).value;
 
-      if (cell_value > 0.93 && cell_value <= 1.0) {
-        points.push_back( { static_cast<double>(idx.x()) * grid.getCellSize() + grid.getOrigin().x(),
-                            static_cast<double>(idx.y()) * grid.getCellSize() + grid.getOrigin().y() } );
-
-        break;
+      if (found_obstacle || (cell_value > 0.8 && cell_value <= 1.0)) {
+        if (cell_value > best_value) {
+          best_value = cell_value;
+          best_index = idx;
+          found_obstacle = true;
+        }
+        else
+        {
+          break;
+        }
       }
     }                            
+
+    if (found_obstacle) {
+      points.push_back( { (static_cast<double>(best_index.x()) + 0.5) * grid.getCellSize() + grid.getOrigin().x(),
+                          (static_cast<double>(best_index.y()) + 0.5) * grid.getCellSize() + grid.getOrigin().y() } );
+    }
 
     current_phi += phi_step;
   }
@@ -137,6 +151,7 @@ bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d&
   using francor::algorithm::Ray2d;
   using francor::base::LaserScan;
   using francor::base::Vector2d;
+  using francor::base::Vector2i;
   using francor::base::Pose2d;
   using francor::base::Transform2d;
 
@@ -156,23 +171,34 @@ bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d&
     bool found_occupancy = false;
     Ray2d ray(Ray2d::create(start_index_x, start_index_y, grid.getNumCellsX(),
                             grid.getNumCellsY(), grid.getCellSize(), pose.position(), direction, range));
-    double old_value = 0.5;
+    double best_value = 0.5;
+    Vector2i best_index;
 
     for (const auto& idx : ray)
     {
       const auto cell_value = grid(idx.x(), idx.y()).value;
 
-      if (cell_value > 0.93 && cell_value <= 1.0) {
-        Vector2d point{ static_cast<double>(idx.x()) * grid.getCellSize() + grid.getOrigin().x(),
-                        static_cast<double>(idx.y()) * grid.getCellSize() + grid.getOrigin().y() };
-        distances[beam] = (Vector2d(pose.position().x(), pose.position().y()) - point).norm();
-        found_occupancy = true;
-        break;
+      if (found_occupancy || (cell_value > 0.8 && cell_value <= 1.0)) {
+        if (cell_value > best_value) {
+          best_value = cell_value;
+          best_index = idx;
+          found_occupancy = true;
+        }
+        else
+        {
+          break;          
+        }
       }
     }                            
 
-    if (!found_occupancy)
+    if (found_occupancy) {
+      Vector2d point{ (static_cast<double>(best_index.x()) + 0.5) * grid.getCellSize() + grid.getOrigin().x(),
+                      (static_cast<double>(best_index.y()) + 0.5) * grid.getCellSize() + grid.getOrigin().y() };
+      distances[beam] = (Vector2d(pose.position().x(), pose.position().y()) - point).norm();
+    }
+    else {
       distances[beam] = std::numeric_limits<double>::quiet_NaN();
+    }
 
     current_phi += phi_step;
   }
@@ -208,7 +234,7 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
     const auto direction = base::algorithm::line::calculateV(phi);
     const auto distance_corrected = (std::isnan(distance) || std::isinf(distance) ?
                                      laser_scan.range() :
-                                     distance - 0.15); //point_expansion * 0.5);
+                                     distance - 0.125); //point_expansion * 0.5);
 
     Ray2d ray(Ray2d::create(start_index_x, start_index_y, grid.getNumCellsX(),
               grid.getNumCellsY(), grid.getCellSize(), position, direction, distance_corrected));
@@ -234,16 +260,8 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
       const std::size_t cells = static_cast<std::size_t>(std::max(1.0, point_expansion / grid.getCellSize())); 
       // updateGridCell(grid(end_index_x, end_index_y), 0.65f);
       const auto angle = index_normal < normals.size() ? normals[index_normal++] + pose_ego.orientation(): phi;
-      pushLaserPointToGrid(grid, end_index_x, end_index_y, (cells % 2 == 0 ? cells + 3 : cells + 2), angle);
+      pushLaserPointToGrid(grid, end_index_x, end_index_y, cells % 2 ? cells : cells + 1, angle);
 
-      // std::cout << "point expansion = " << point_expansion << std::endl;
-      // std::cout << "cells = " << cells << std::endl;
-      // std::cout << "cells side = " << cells / 2 - 1 << std::endl;
-
-      // \todo check can be too late depends on update value and grid cell data type
-      // if (grid(end_index_x, end_index_y).value > 1.0) {
-      //   grid(end_index_x, end_index_y).value = 1.0;
-      // }
     }
 
     current_phi += laser_scan.phiStep();

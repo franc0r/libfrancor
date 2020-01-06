@@ -47,14 +47,14 @@ bool Icp::estimateTransform(const base::Point2dVector& origin, const base::Point
     }
     // std::cout << "current rms = " << current_rms << std::endl;
     // check if current estimation rms is bigger than previous one 
-    if (current_rms >= rms) {
-      return true;
-    }
+    // if (current_rms >= rms) {
+    //   return true;
+    // }
 
     // integrate current iteration results
     rms = current_rms;
     // std::cout << "estimated current_transform: " << current_transform << std::endl;
-    transform = transform * current_transform;
+    transform = current_transform * transform;
     // std::cout << "rms = " << rms << std::endl;
     // std::cout << "estimated transform: " << transform << std::endl;
 
@@ -68,9 +68,8 @@ bool Icp::estimateTransform(const base::Point2dVector& origin, const base::Point
 
     for (auto& point : moved_points)
       point = current_transform * point;
-
-    // std::cout << "moved point " << moved_points << std::endl;
   }
+
   return true;
 }
 
@@ -85,7 +84,7 @@ bool Icp::doIteration(const base::Point2dVector& origin, const base::Point2dVect
   }  
 
   try {
-    rms = _transform_estimator(origin, target, pairs, std::max(pairs.medianDistance() * 10.0, 0.06), transform);
+    rms = _transform_estimator(origin, target, pairs, std::max(pairs.medianDistance() * 2.0, 0.2), transform);
     // std::cout << pairs << std::endl;
     if (rms >= _max_rms) {
       LogWarn() << "Icp::estimateTransform(): max rms value reached. Cancel estimation process.";

@@ -86,7 +86,8 @@ public:
     COUNT_INPUTS
   };
   enum Outputs {
-    COUNT_OUTPUTS = 0
+    OUT_POINTS = 0,
+    COUNT_OUTPUTS
   };
 
   PipeLocalizeAndUpdateEgo() : PipeLocalizeAndUpdateEgoParent("localize and update ego", COUNT_INPUTS, COUNT_OUTPUTS) { }
