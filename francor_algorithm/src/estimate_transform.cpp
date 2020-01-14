@@ -51,7 +51,6 @@ double estimateTransform(const base::Point2dVector& dataset_a,
     const auto& point_b = dataset_b[pair.second];
     centroid_set_a += point_a;
     centroid_set_b += point_b;
-    // rms += (point_b - point_a).norm();
     rms += pair.distance;
     ++used_pairs;
   }
@@ -76,12 +75,11 @@ double estimateTransform(const base::Point2dVector& dataset_a,
     d_denominator += dFC_a.x() * dFC_b.x() + dFC_a.y() * dFC_b.y();
   }
 
-  // calculate rotation
-  transform.setRotation(std::atan2(d_nominator, d_denominator));
-
-  // rotate centroid of dataset b and estimate translation
-  centroid_set_b = transform.rotation() * centroid_set_b;
-  transform.setTranslation(centroid_set_b - centroid_set_a);
+  // calculate rotation and translation
+  transform.setRotation(-std::atan2(d_nominator, d_denominator));
+  // remove the rotation affect from centroid
+  centroid_set_a = transform.rotation() * centroid_set_a;
+  transform.setTranslation(centroid_set_a - centroid_set_b);
 
   return rms;
 }
