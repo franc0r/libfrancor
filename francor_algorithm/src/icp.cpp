@@ -45,7 +45,7 @@ bool Icp::estimateTransform(const base::Point2dVector& origin, const base::Point
     if (!this->doIteration(origin, moved_points, current_transform, current_rms)) {
       return false;
     }
-    // std::cout << "current rms = " << current_rms << std::endl;
+
     // check if current estimation rms is bigger than previous one 
     // if (current_rms >= rms) {
     //   return true;
@@ -53,19 +53,17 @@ bool Icp::estimateTransform(const base::Point2dVector& origin, const base::Point
 
     // integrate current iteration results
     rms = current_rms;
-    // std::cout << "estimated current_transform: " << current_transform << std::endl;
-    transform = current_transform * transform;
-    // std::cout << "rms = " << rms << std::endl;
-    // std::cout << "estimated transform: " << transform << std::endl;
-
-    // transform points
-    // current_transform = current_transform.inverse();
+    // \todo I expect the opposite 
+    transform = transform * current_transform;
 
     // check if estimated transformation is good enough
     if (current_rms <= _termination_rms) {
       return true;
     }
 
+    // transform points
+    current_transform = current_transform.inverse();
+    
     for (auto& point : moved_points)
       point = current_transform * point;
   }

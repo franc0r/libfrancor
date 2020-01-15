@@ -52,7 +52,7 @@ TEST(Icp, EstimateTransformFullAssignment)
   // estimate transform using icp
   constexpr std::size_t max_iterations = 100;
   constexpr double max_rms = 10.0;
-  constexpr double termination_rms = 0.05;
+  constexpr double termination_rms = 0.001;
 
   Icp icp(std::make_unique<FlannPointPairEstimator>(), estimateTransform);
   Transform2d result;
@@ -93,7 +93,7 @@ TEST(Icp, EstimateTransformFullAssignmentRectangle)
 
   // create target points
   Point2dVector target(origin.size());                                 
-  const Transform2d transform( { Angle::createFromDegree(-20.0) }, { 0.3, 0.2 } );
+  const Transform2d transform( { Angle::createFromDegree(-0.0) }, { 0.3, 0.2 } );
 
   // transform origin points
   ASSERT_EQ(origin.size(), target.size());
@@ -104,7 +104,7 @@ TEST(Icp, EstimateTransformFullAssignmentRectangle)
   // estimate transform using icp
   constexpr std::size_t max_iterations = 100;
   constexpr double max_rms = 10.0;
-  constexpr double termination_rms = 0.001;
+  constexpr double termination_rms = 0.0001;
 
   Icp icp(std::make_unique<FlannPointPairEstimator>(), estimateTransform);
   Transform2d result;
@@ -118,7 +118,7 @@ TEST(Icp, EstimateTransformFullAssignmentRectangle)
   auto end = std::chrono::system_clock::now();
   auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
   std::cout << "elapsed = " << elapsed.count() << " us" << std::endl;  
-  EXPECT_NEAR(result.rotation().phi(), Angle::createFromDegree(-20), Angle::createFromDegree(1.0));
+  EXPECT_NEAR(result.rotation().phi(), Angle::createFromDegree(-0), Angle::createFromDegree(1.0));
   EXPECT_NEAR(result.translation().x(), 0.3, 0.01);
   EXPECT_NEAR(result.translation().y(), 0.2, 0.01);
 }

@@ -60,7 +60,7 @@ double estimateTransform(const base::Point2dVector& dataset_a,
   rms            /= static_cast<double>(used_pairs);
 
   // calculate nominator and denominator
-  double d_nominator = 0.0;
+  double d_nominator   = 0.0;
   double d_denominator = 0.0;
 
   for (const auto& pair : pair_indices)
