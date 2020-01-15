@@ -31,7 +31,7 @@ bool Icp::estimateTransform(const base::Point2dVector& origin, const base::Point
 
   // get a copy the target points
   base::Point2dVector moved_points(target);
-  double rms = std::numeric_limits<double>::max();
+  double rms = _max_rms;
   transform.setRotation(0.0);
   transform.setTranslation({ 0.0, 0.0 });
 
@@ -42,11 +42,12 @@ bool Icp::estimateTransform(const base::Point2dVector& origin, const base::Point
     double current_rms;
 
     // do iteration and estimate transformation
-    if (!this->doIteration(origin, moved_points, current_transform, current_rms)) {
+    if (!this->doIteration(origin, moved_points, current_transform, rms * 10.0, current_rms)) {
       return false;
     }
 
     // check if current estimation rms is bigger than previous one 
+    // it seems not a good idea to cancel the estimation using this criterion
     // if (current_rms >= rms) {
     //   return true;
     // }
@@ -72,7 +73,7 @@ bool Icp::estimateTransform(const base::Point2dVector& origin, const base::Point
 }
 
 bool Icp::doIteration(const base::Point2dVector& origin, const base::Point2dVector& target,
-                      base::Transform2d& transform, double& rms) const
+                      base::Transform2d& transform, const double distance_threshold, double& rms) const
 {
   PointPairIndexVector pairs;
 
@@ -82,8 +83,8 @@ bool Icp::doIteration(const base::Point2dVector& origin, const base::Point2dVect
   }  
 
   try {
-    rms = _transform_estimator(origin, target, pairs, std::max(pairs.medianDistance() * 2.0, 0.2), transform);
-    // std::cout << pairs << std::endl;
+    rms = _transform_estimator(origin, target, pairs, std::max(pairs.medianDistance() * 2.0, distance_threshold), transform);
+
     if (rms >= _max_rms) {
       LogWarn() << "Icp::estimateTransform(): max rms value reached. Cancel estimation process.";
       return false;

@@ -268,6 +268,9 @@ int main(int argc, char** argv)
     return 2;
   }
 
+
+  unsigned int counter_sleep_ = 0;
+
   for (std::size_t step = 0; step < 800; ++step)
   {
     const Vector2d step_position(0.0, 0.2);
@@ -277,7 +280,9 @@ int main(int argc, char** argv)
       return 3;
     }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    if (counter_sleep_++ >= 10) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
   }
 
   return 0;

@@ -44,7 +44,7 @@ public:
 
 private:
   bool doIteration(const base::Point2dVector& origin, const base::Point2dVector& target,
-                   base::Transform2d& transform, double& rms) const;
+                   base::Transform2d& transform, const double distance_threshold, double& rms) const;
 
   std::unique_ptr<PointPairEstimator> _pair_estimator;
   TransformEstimationFunction _transform_estimator;

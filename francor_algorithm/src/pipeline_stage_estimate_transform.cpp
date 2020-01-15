@@ -25,11 +25,14 @@ bool StageEstimateTransformBetweenPoints::doProcess(processing::NoDataType&)
   LogDebug() << this->name() << ": input points";
   LogDebug() << point_set_a;
   LogDebug() << point_set_b;
+
+  // estimate transform between point sets using icp
   if (!_icp.estimateTransform(point_set_a, point_set_b, _estimated_transform)) {
     LogError() << this->name() << ": error occurred during estimation. Can't estimate transformatin.";
     return false;
   }
 
+  _estimated_transform = _estimated_transform.inverse();
   LogDebug() << this->name() << ": estimated transform = " << _estimated_transform;
   return true;
 }

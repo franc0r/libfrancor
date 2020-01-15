@@ -117,7 +117,7 @@ bool reconstructPointsFromGrid(const OccupancyGrid& grid, const base::Pose2d& po
     {
       const auto cell_value = grid(idx.x(), idx.y()).value;
 
-      if (found_obstacle || (cell_value > 0.8 && cell_value <= 1.0)) {
+      if (found_obstacle || (cell_value > 0.75 && cell_value <= 1.0)) {
         if (cell_value > best_value) {
           best_value = cell_value;
           best_index = idx;
@@ -178,7 +178,7 @@ bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d&
     {
       const auto cell_value = grid(idx.x(), idx.y()).value;
 
-      if (found_occupancy || (cell_value > 0.8 && cell_value <= 1.0)) {
+      if (found_occupancy || (cell_value > 0.75 && cell_value <= 1.0)) {
         if (cell_value > best_value) {
           best_value = cell_value;
           best_index = idx;
