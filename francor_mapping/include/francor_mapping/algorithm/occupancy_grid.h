@@ -8,6 +8,8 @@
 #include <cstddef>
 
 #include <francor_base/point.h>
+#include <francor_base/angle.h>
+
 #include "francor_mapping/occupancy_grid.h"
 namespace francor {
 

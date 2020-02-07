@@ -68,3 +68,20 @@ add_test(
   NAME test-occupancy-grid-algorithm
   COMMAND unit-test-occupancy-grid-algorithm
 )
+
+
+# validation occupancy register and reconstruction
+add_executable(validation-occupancy-register-and-reconstruction
+  src/validation_occupancy_register_and_reconstruction.cpp
+)
+
+target_link_libraries(validation-occupancy-register-and-reconstruction
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-mapping
+)
+
+add_test(
+  NAME validation-occupancy-register-and-reconstruction
+  COMMAND validation-occupancy-register-and-reconstruction
+)

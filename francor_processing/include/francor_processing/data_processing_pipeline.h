@@ -91,7 +91,7 @@ private:
   inline bool initializeStages()
   {
     if constexpr (StageIndex < _num_stages) {
-      return std::get<StageIndex>(_stages).initialize() && this->initializeStage<StageIndex + 1>();
+      return std::get<StageIndex>(_stages).initialize() && ProcessingPipeline<DataStructureType, Stages...>::template initializeStages<StageIndex + 1>();
     }
     else {
       return true;

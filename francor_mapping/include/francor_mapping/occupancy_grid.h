@@ -13,7 +13,7 @@ namespace mapping {
 
 struct OccupancyCell
 {
-  float value = std::numeric_limits<float>::quiet_NaN();
+  float value = 0.5f;
 };
 
 class OccupancyGrid : public Grid<OccupancyCell>
