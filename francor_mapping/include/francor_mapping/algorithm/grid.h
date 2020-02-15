@@ -121,7 +121,7 @@ void pushPoint(GridType& grid, const std::size_t center_x, const std::size_t cen
   {
   case 1:
     {
-      const UpdateMatrix<PointSizeX, 1, float, PointDistribution> update_matrix(point_yaw);
+      const UpdateMatrix<PointSizeX, 3, float, PointDistribution> update_matrix(point_yaw);
       update_matrix.template update<GridType, UpdateFunction>(grid, center_x, center_y);
     }
     break;
