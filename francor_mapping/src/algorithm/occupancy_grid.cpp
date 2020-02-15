@@ -271,6 +271,8 @@ bool pushPointsToGrid(OccupancyGrid& grid, const base::Point2dVector& points, co
 {
   if (points.size() != normals.size()) {
     base::LogError() << "pushPointsToGrid(): number of points and normals isn't equal. Cancel push to grid.";
+    base::LogError() << "points size  = " << points.size();
+    base::LogError() << "normals size = " << normals.size();
     return false;
   }
 
@@ -278,7 +280,8 @@ bool pushPointsToGrid(OccupancyGrid& grid, const base::Point2dVector& points, co
 
   const std::size_t start_index_x = grid.getIndexX(pose_ego.position().x());
   const std::size_t start_index_y = grid.getIndexY(pose_ego.position().y());
-  // const 
+
+  return false;
 }
 
 void pushLaserPointToGrid(OccupancyGrid& grid, const std::size_t x, const std::size_t y, const std::size_t point_size, const base::Angle point_yaw)

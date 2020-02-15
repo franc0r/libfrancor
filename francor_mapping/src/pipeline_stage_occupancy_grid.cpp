@@ -153,11 +153,12 @@ bool StagePushLaserScanToOccupancyGrid::isReady() const
 
 bool StagePushPointsToOccupancyGrid::doProcess(OccupancyGrid& grid)
 {
-  const auto& pose_ego = this->input(IN_EGO_POSE).data<base::Pose2d   >();
+  const auto& pose_ego = this->input(IN_EGO_POSE).data<base::Pose2d>();
   const auto& points   = this->input(IN_POINTS).data<base::Point2dVector>();
   const auto& normals  = this->input(IN_NORMALS).data<std::vector<base::NormalizedAngle>>();
 
   // algorithm::occupancy::
+  // \todo finish implementation
   return false;
 }
 
