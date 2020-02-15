@@ -65,7 +65,7 @@ public:
       models.push_back(model);
     }
     
-    return std::move(models);
+    return models;
   }
 
   /**

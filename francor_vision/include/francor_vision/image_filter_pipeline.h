@@ -84,7 +84,7 @@ protected:
       it.second = std::make_shared<Image>(image, it.first);
     }
 
-    return std::move(images);
+    return images;
   }
 
   std::map<ColourSpace, std::shared_ptr<Image>> required_images_;

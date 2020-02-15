@@ -11,6 +11,7 @@
 #include "francor_processing/data_processing_port.h"
 
 #include <string>
+#include <vector>
 #include <stdexcept>
 
 namespace francor
