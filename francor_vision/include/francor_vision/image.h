@@ -201,7 +201,7 @@ public:
           break;
 
         default:
-          return true;
+          return false;
         }
       }
 
@@ -224,12 +224,31 @@ public:
           break;
 
         default:
-          return true;
+          return false;
         }
       }
 
       break;
-      
+
+    case ColourSpace::GRAY:
+      {
+        switch (space)
+        {
+        case ColourSpace::RGB:
+          cv::cvtColor(mat, mat, CV_GRAY2RGB);
+          break;
+        
+        case ColourSpace::BGR:
+          cv::cvtColor(mat, mat, CV_GRAY2BGR);
+          break;
+
+        default:
+          break;
+        }
+      }
+
+      break;
+
     // TODO: add implementation for HSV and GRAY, too 
 
     default:

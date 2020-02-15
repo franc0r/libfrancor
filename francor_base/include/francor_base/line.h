@@ -8,12 +8,18 @@
 
 #include "francor_base/vector.h"
 #include "francor_base/log.h"
+#include "francor_base/angle.h"
+#include "francor_base/point.h"
+
+#include "francor_base/algorithm/line.h"
 
 #include <ostream>
 
 namespace francor {
 
 namespace base {
+
+using francor::base::Angle;
 
 class Line
 {
@@ -24,100 +30,29 @@ public:
   /**
    * Default constructor.
    * 
-   * \param m Gradient of the line.
-   * \param t Offset of the line.
+   * \param angle gradient of the line as angle in rad.
+   * \param y0 y-value of this line for x == 0.
+   * \param x0 x-value of this line for y == 0. Note: that value is ussely set by this class automatically, but
+   *        in case the angle is close to pi/2 or -pi/2 it helps a lot.
    */
-  Line(const double m = 0.0, const double t = 0.0)
-    : v_(1.0, m),
-      p_(0.0, t),
-      m_(m),
-      t_(t)
+  constexpr Line(const Angle& angle = Angle(0.0), const Point2d& point = Point2d(0.0, 0.0))
+    : _phi(angle),
+      _p(point)
   {
-    v_.normalize();
-    assert(std::abs(m_) <= static_cast<double>(std::numeric_limits<std::size_t>::max()));
-    assert(std::abs(t_) <= static_cast<double>(std::numeric_limits<std::size_t>::max()));
-  }
-  /**
-   * Construct a line from a direction vector and point.
-   * 
-   * \param v Direction vector of the line. Must have a length of 1.0.
-   * \param p One point of the line.
-   */
-  Line(const Vector2d v, const Vector2d p)
-    : v_(v),
-      p_(p),
-      // if v.x is close to zero use limit or zero
-      m_(std::abs(v.x()) < 1e-6 ? (std::abs(v.y()) < 1e-6 ? 0.0 : static_cast<double>(std::numeric_limits<std::size_t>::max())) : v.y() / v.x()),
-      t_(p.y() - m_ * p.x())
-  {
-    if (std::isinf(t_))
-      t_ = -static_cast<double>(std::numeric_limits<std::size_t>::max());
-    // limit m_ to size_t max limit. That is the maximum expected number of cols or rows of an image.
-    // at moment the is the supported range
-    if (std::abs(m_) > static_cast<double>(std::numeric_limits<std::size_t>::max()))
-    {
-      const double positive = m_ >= 0.0;
-      m_ = static_cast<double>(std::numeric_limits<std::size_t>::max()) * (positive ? 1.0 : -1.0);
-    }
-    if (std::abs(t_) > static_cast<double>(std::numeric_limits<std::size_t>::max()))
-    {
-      const double positive = t_ >= 0.0;
-      t_ = static_cast<double>(std::numeric_limits<std::size_t>::max()) * (positive ? 1.0 : -1.0);
-    }
 
-    assert(v_.norm() <= 1.01);
   }
 
   /**
    * Returns the normal of this line.
    * 
-   * \param p The normal points in direction of p.
    * \return The normal of this line.
    */
-  Vector2d n(const Vector2d p) const
-  {
-    if (p.y() >= this->y(p.x()))
-      return this->n();
-    else
-      return this->n() * -1.0;
-  }
- /**
-   * Returns the normal of this line.
-   * 
-   * \return The normal of this line.
-   */
-  Vector2d n(void) const
-  {
-    return { -v_.y(), v_.x() };
-  }
-
-  /**
-   * Returns the direction vector v.
-   * 
-   * \return The direction vector v.
-   */
-  inline const Vector2d& v(void) const noexcept { return v_; }
-
-  /**
-   * Returns the reference point p. Actually it is more a offset point.
-   * 
-   * \return The reference point p.
-   */
-  inline const Vector2d& p(void) const noexcept { return p_; }
-
-  /**
-   * Returns the gradient m of the line.
-   * 
-   * \return The gradient m.
-   */
-  inline double m(void) const noexcept { return m_; }
-
-  /**
-   * Returns the offset t of the line.
-   * 
-   * \return The offset t.
-   */
-  inline double t(void) const noexcept { return t_; }
+  inline Vector2d n() const { return algorithm::line::calculateV(_phi + M_PI_2); }
+  inline Vector2d v() const { return algorithm::line::calculateV(_phi); }
+  inline constexpr double x0() const { const double delta_x = _p.y() / std::tan(_phi); return _phi >= 0.0 ? _p.x() - delta_x : _p.x() + delta_x; }
+  inline constexpr double y0() const { const double delta_y = _p.x() * std::tan(_phi); return _phi >= 0.0 ? _p.y() - delta_y : _p.x() + delta_y; }
+  inline constexpr Angle phi() const noexcept { return _phi; }
+  inline constexpr const Point2d& p() const noexcept { return _p; }
 
   /**
    * Calculates the y value for the given x value.
@@ -125,10 +60,7 @@ public:
    * \param x The x value.
    * \return y The y value for given x value.
    */
-  inline double y(const double x) const noexcept
-  {
-    return m_ * x + t_;
-  }
+  inline constexpr double y(const double x) const { return std::tan(_phi) * x + _p.y(); }
 
   /**
    * Calculates the x value for the given y value.
@@ -136,14 +68,7 @@ public:
    * \param y The y value.
    * \return x The x value for the given y value.
    */
-  inline double x(const double y) const
-  {
-    // if m is zero it exists inf number of solutions --> return just zero as x value
-    if (m_ == 0.0)
-      return 0.0;
-
-    return (y - t_) / m_;
-  }
+  inline constexpr double x(const double y) const { return y / std::tan(_phi) + _p.x(); }
 
   /**
    * Calculates the distance along the normal of this line.
@@ -151,13 +76,14 @@ public:
    * \param p The distance will be calculated to that point.
    * \return Distance to the point p.
    */
-  double distanceTo(const Vector2d p) const
+  double distanceTo(const Point2d p) const
   {
-    // special case m = 0.0
-    if (m_ == 0.0)
-      return std::abs(p.y() - t_);
+    const Vector2d hypotenuse = p - _p;
+    const double hypotenuse_length = hypotenuse.norm();
+    const double angle_hypotenuse = std::atan2(hypotenuse.y(), hypotenuse.x());
+    const double gegenkathete_length = std::abs(std::sin(angle_hypotenuse - _phi) * hypotenuse_length);
 
-    return (this->intersectionPoint(Line(this->n(p) * -1.0, p)) - p).norm();
+    return gegenkathete_length;
   }
 
   /**
@@ -166,35 +92,52 @@ public:
    * \param line Other line.
    * \return Intersection point of that two lines.
    */
-  Vector2d intersectionPoint(const Line& line) const
+  Point2d intersectionPoint(const Line& line) const
   {
-    // m_1 * x + t_1 = m_2 * x + t_2
-    //     t_1 - t_2 = m_2 * x - m_1 * x = (m_2 - m_1) * x
+    // p_x = intersection point
     //
-    // ==> x = (t_1 - t_2) / (m_2 - m_1)
-    const double subM = line.m_ - m_;
+    // p_x = p0 + s0 * v0 = p1 + s1 * v1
+    //
+    // ==> p_x.x = p0.x + s0 * v0.x = p1.x + s1 * v1.x
+    //     p_x.y = p0.y + s0 * v0.y = p1.y + s1 * v1.y
+    //
+    // ==> s1 = (p0.x + s0 * v0.x - p1.x) / v1.x
+    //
+    // ==> p0.y + s0 * v0.y = p1.y + (p0.x + s0 * v0.x - p1.x) * v1.y / v1.x
+    //     s0 * v0.y - s0 * (v0.x / v1.y) / v1.x = p1.y - p0.y + (p0.x - p1.x) * v1.y / v1.x
+    //     s0 * v0.y * v1.x - s0 * v0.x * v1.y = (p1.y - p0.y) * v1.x + (p0.x - p1.x) * v1.y
+    //
+    //          (p1.y - p0.y) * v1.x + (p0.x - p1.x) * v1.y      a
+    // ==> s0 = -------------------------------------------  =  ---
+    //                  v0.y * v1.x - v0.x * v1.y                b
+    // 
+    const auto v0 = this->v();
+    const auto v1 = line.v();
+    const double a = (line._p.y() - _p.y()) * v1.x() + (_p.x() - line._p.x()) * v1.y();
+    const double b = v0.y() * v1.x() - v0.x() * v1.y();
+    const double s0 = a / b;
 
-    if (subM == 0.0)
-      return p_;
+    return _p + v0 * s0;
+  }
 
-    const double x = (t_ - line.t_) / subM;
-    const double y = m_ * x + t_;
-
-    assert(!std::isinf(x));
-    assert(!std::isinf(y));
-
-    return { x, y };
+  static Line createFromVectorAndPoint(const Vector2d& v, const Point2d& p)
+  {
+    assert(v.norm() - 1.0 <= 1e-6);
+    return { std::atan2(v.y(), v.x()), p };
+  }
+  static Line createFromTwoPoints(const Point2d& p0, const Point2d& p1)
+  {
+    assert(p0 != p1);
+    const auto v = (p1 - p0).normalized();
+    return { std::atan2(v.y(), v.x()), p0 };
   }
 
 private:
-  Vector2d v_;
-  Vector2d p_;
-  //TODO: replace attribute m with an angle
-  double m_;
-  double t_;
+  NormalizedAngle _phi; //> angle in rad of the gradient regarding the x-axis
+  Point2d _p; //> center point of this line
 };
 
-using LineVector = std::vector<Line, Eigen::aligned_allocator<Line>>;
+using LineVector = std::vector<Line>;
 
 } // end namespace base
 
@@ -203,9 +146,9 @@ using LineVector = std::vector<Line, Eigen::aligned_allocator<Line>>;
 namespace std
 {
 
-std::ostream& operator<<(std::ostream& os, const francor::base::Line& line)
+inline std::ostream& operator<<(std::ostream& os, const francor::base::Line& line)
 {
-  os << "[m = " << line.m() << ", t = " << line.t() << "]";
+  os << "line [phi = " << line.phi().radian() << ", p = " << line.p() << "]";
 
   return os;
 }

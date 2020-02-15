@@ -21,15 +21,16 @@ namespace francor
 
 namespace vision
 {
+  using francor::processing::NoDataType;
 
-class ExportClusteredPointsFromBitMask : public processing::ProcessingStage<>
+class ExportClusteredPointsFromBitMask : public processing::ProcessingStage<NoDataType>
 {
 public:
   ExportClusteredPointsFromBitMask(void)
-    : processing::ProcessingStage<>("export clustered points from bit mask", 1, 1) {  }
+    : processing::ProcessingStage<NoDataType>("export clustered points from bit mask", 1, 1) {  }
   ~ExportClusteredPointsFromBitMask(void) = default;
 
-  bool doProcess(const std::shared_ptr<void>&) final
+  bool doProcess(NoDataType&) final
   {
     // input data type safety check
     if (this->getInputs()[0].data<Image>().colourSpace() != vision::ColourSpace::BIT_MASK)
@@ -83,14 +84,14 @@ private:
   std::vector<VectorVector2d> _clustered_points;
 };
 
-class ColouredImageToBitMask : public processing::ProcessingStage<>
+class ColouredImageToBitMask : public processing::ProcessingStage<NoDataType>
 {
 public:
   ColouredImageToBitMask()
-    : processing::ProcessingStage<>("coloured image to bit mask", 1, 1) {  }
+    : processing::ProcessingStage<NoDataType>("coloured image to bit mask", 1, 1) {  }
   ~ColouredImageToBitMask() = default;
 
-  bool doProcess(const std::shared_ptr<void>&) final
+  bool doProcess(NoDataType&) final
   {
     // check colour space of input image
     if (this->getInputs()[0].data<Image>().colourSpace() != ColourSpace::BGR

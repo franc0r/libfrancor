@@ -154,9 +154,9 @@ public:
   const DataType& data(void) const
   {
     if (_data == nullptr)
-      throw "Port::data(): data pointer is null";
+      throw std::runtime_error("Port::data(): data pointer is null");
     if (_data_type_info.get() != typeid(DataType))
-      throw std::string("Port::data(): type ") + typeid(DataType).name() + " isn't supported.";
+      throw std::runtime_error(std::string("Port::data(): type ") + typeid(DataType).name() + " isn't supported.");
   
     return *static_cast<DataType const*>(_data);
   }

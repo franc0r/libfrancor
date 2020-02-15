@@ -11,6 +11,7 @@
 #include "francor_processing/data_processing_port.h"
 
 #include <string>
+#include <vector>
 #include <stdexcept>
 
 namespace francor
@@ -28,10 +29,10 @@ protected:
     : _input_ports(numOfInputs),
       _output_ports(numOfOutputs)
   {  }
+  virtual ~DataInputOutput() = default;
 
 public:
   DataInputOutput(const DataInputOutput&) = delete;
-  virtual ~DataInputOutput() = default;
 
   DataInputOutput& operator=(const DataInputOutput&) = delete;
 
@@ -82,7 +83,7 @@ private:
   std::vector<OutputType> _output_ports;
 };
 
-template <typename DataStructureType = void>
+template <typename DataStructureType>
 class ProcessingStage : public DataInputOutput<data::InputPort, data::OutputPort>
 {
 protected:
@@ -92,9 +93,11 @@ protected:
   { }
 
 public:
+  using data_structure_type = DataStructureType;
+
   virtual ~ProcessingStage() = default;
 
-  bool process(const std::shared_ptr<DataStructureType>& data)
+  bool process(DataStructureType& data)
   {
     base::LogDebug() << "ProcessingStage (name = " << _name << "): processing...";
     
@@ -113,12 +116,13 @@ public:
       return false;
     }
     // check if data structure data is valid
-    if (!std::is_same<DataStructureType, void>::value && !this->isDataConsistant(data))
+    if (!this->isDataConsistant(data))
     {
       base::LogError() << "ProcessingStage (name = " << _name << "): data structure is not consistent. Cancel processing.";
       // TODO: throw exception
       return false;
     }
+
     // process
     if (!this->doProcess(data))
     {
@@ -126,6 +130,7 @@ public:
       // TODO: throw exception
       return false;
     }
+
     // check if output data are valid
     if (!this->validateOutputData())
     {
@@ -135,7 +140,7 @@ public:
     }
     // TODO: add diagnostic
 
-    if (!std::is_same<DataStructureType, void>::value && !this->isDataConsistant(data))
+    if (!this->isDataConsistant(data))
     {
       base::LogError() << "ProcessingStage (name = " << _name << "): data structure is not consistent. Cancel processing.";
       // TODO: throw exception
@@ -164,17 +169,18 @@ public:
   inline const std::string& name() const noexcept { return _name; }
 
 protected:
-  virtual bool doProcess(const std::shared_ptr<DataStructureType>& data) = 0;
+  virtual bool doProcess(DataStructureType& data) = 0;
   virtual bool doInitialization() = 0;
   virtual bool isReady() const = 0;
   virtual bool validateInputData() const { return true; }
   virtual bool validateOutputData() const { return true; }
-  virtual bool isDataConsistant(const std::shared_ptr<DataStructureType>&) const { return true; }
+  virtual bool isDataConsistant(const DataStructureType&) const { return true; }
   
 private:
   const std::string _name;
 };
 
+using NoDataType = bool;
 
 } // end namespace processing
 

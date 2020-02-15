@@ -6,14 +6,14 @@ namespace francor {
 
 namespace algorithm {
 
-base::Line fittingLineFromPoints(const base::VectorVector2d& points, const std::vector<std::size_t>& indices)
+base::Line fittingLineFromPoints(const base::Point2dVector& points, const std::vector<std::size_t>& indices)
 {
     // a line needs minium two points
   if (points.size() < 2)
     return { };
 
   // calculate the average point
-  base::Vector2d avg(0.0, 0.0);
+  base::Point2d avg(0.0, 0.0);
 
   if (indices.size() == 0)
   {
@@ -34,7 +34,7 @@ base::Line fittingLineFromPoints(const base::VectorVector2d& points, const std::
   // calculate the sum (x - avg.x) * (y - avg.y) and (x - avg.x) * (x - avg.x)
   double sumXY = 0.0;
   double sumX  = 0.0;
-
+  
   if (indices.size() == 0)
   {
     for (const auto point : points)
@@ -51,20 +51,15 @@ base::Line fittingLineFromPoints(const base::VectorVector2d& points, const std::
       sumX  += (points[index].x() - avg.x()) * (points[index].x() - avg.x());
     }
   }
-  
 
-  // m is infinity
+  // happens only if x of all points are equal (vertical line)
   if (sumX == 0.0)
-    return {static_cast<double>(std::numeric_limits<std::size_t>::max()), -static_cast<double>(std::numeric_limits<std::size_t>::max())};
-
-  // construct line segment and return it
-  const double m = sumXY / sumX;
-  const double t = avg.y() - m * avg.x();
-
-  return {m, t};
+    return { M_PI_2, avg };
+  
+  return { std::atan2(sumXY, sumX), avg };
 }
 
-base::LineSegment fittingLineSegmentFromPoints(const base::VectorVector2d& points, const std::vector<std::size_t>& indices)
+base::LineSegment fittingLineSegmentFromPoints(const base::Point2dVector& points, const std::vector<std::size_t>& indices)
 {
   if (points.size() < 2 || indices.size() == 1)
   {
@@ -77,10 +72,10 @@ base::LineSegment fittingLineSegmentFromPoints(const base::VectorVector2d& point
 
   if (indices.size() == 0)
   {
-    const double minY = std::min_element(points.begin(), points.end(), [&] (const base::Vector2d& left, const base::Vector2d& right) { return left.y() < right.y(); })->y();
-    const double maxY = std::max_element(points.begin(), points.end(), [&] (const base::Vector2d& left, const base::Vector2d& right) { return left.y() > right.y(); })->y();
+    const double minY = std::min_element(points.begin(), points.end(), [&] (const base::Point2d& left, const base::Point2d& right) { return left.y() < right.y(); })->y();
+    const double maxY = std::max_element(points.begin(), points.end(), [&] (const base::Point2d& left, const base::Point2d& right) { return left.y() > right.y(); })->y();
 
-    return { base::Vector2d(line.x(minY), minY), base::Vector2d(line.x(maxY), maxY) };
+    return { base::Point2d(line.x(minY), minY), base::Point2d(line.x(maxY), maxY) };
   }
   else
   {
@@ -93,10 +88,62 @@ base::LineSegment fittingLineSegmentFromPoints(const base::VectorVector2d& point
                                                  indices.end(), 
                                                  [&] (const std::size_t left, const std::size_t right) { return points[left].y() < points[right].y(); } )
                               ].y();             
-                                              
-    return { base::Vector2d(line.x(minY), minY), base::Vector2d(line.x(maxY), maxY) };
+
+    if (minY != maxY)
+    {
+      if (std::abs(line.phi()) == M_PI_2)
+      {
+        return { base::Point2d(line.x0(), minY), base::Point2d(line.x0(), maxY) };
+      }
+      // else: normal case, expect valid x value
+      // TODO: search for min and max x values, too.
+      base::Point2d p0(line.x(minY), minY);
+      base::Point2d p1(line.x(maxY), maxY);
+      return { p0, p1 };
+    }
+    else
+    // horizontal line -> search using x values
+    {
+      const double minX = points[*std::min_element(indices.begin(),
+                                                   indices.end(), 
+                                                   [&] (const std::size_t left, const std::size_t right) { return points[left].x() < points[right].x(); } )
+                                ].x();
+
+      const double maxX = points[*std::max_element(indices.begin(),
+                                                   indices.end(), 
+                                                   [&] (const std::size_t left, const std::size_t right) { return points[left].x() < points[right].x(); } )
+                                ].x();
+
+      base::Point2d p0(minX, line.y(minX));
+      base::Point2d p1(maxX, line.y(maxX));
+      return { p0, p1 };
+    }
   }
-}                                               
+}                
+
+std::optional<std::vector<base::NormalizedAngle>> estimateNormalsFromOrderedPoints(const base::Point2dVector& points, const int n)
+{
+  if (n % 2 != 1) {
+    base::LogError() << "estimateNormalsFromOrderedPoints(): argument n must be odd. n = " << n;
+    return std::nullopt;
+  }
+
+  std::vector<base::NormalizedAngle> normals;
+  normals.reserve(points.size());
+  std::vector<std::size_t> indices(n);
+  indices.reserve(n);
+
+  for (int p = 0; p < static_cast<int>(points.size()); ++p) {
+    for (int i = p - n / 2; i < n; ++i) {
+      if (i > 0) indices.push_back(i);
+    }
+
+    normals.push_back(base::NormalizedAngle(90.0) + fittingLineFromPoints(points, indices).phi());
+    indices.clear();
+  }
+
+  return normals;
+}
 
 } // end namespace algorithm
 

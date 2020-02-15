@@ -20,9 +20,12 @@ namespace francor
 namespace processing
 {
 
-template <typename DataStructureType = void>
+
+template <typename DataStructureType, class... Stages>
 class ProcessingPipeline : public DataInputOutput<data::SourcePort, data::DestinationPort>
 {
+  static constexpr std::size_t _num_stages = sizeof...(Stages);
+
 public:
   ProcessingPipeline(void) = delete;
   ProcessingPipeline(const std::string& name, const std::size_t numOfInputs, const std::size_t numOfOutputs)
@@ -30,24 +33,6 @@ public:
       _name(name)
   { }
   ~ProcessingPipeline(void) = default;
-
-  bool addStage(std::unique_ptr<ProcessingStage<DataStructureType>> stage)
-  {
-    using francor::base::LogError;
-    using francor::base::LogDebug;
-    LogDebug() << "DataProcessingPipeline: try to add stage \"" << stage->name() << "\" to pipeline.";
-
-    if (this->containStageByName(stage->name()))
-    {
-      LogError() << "DataProcessingPipeline: stage with same name is already included. Can't add to stage \""
-                 << stage->name() << "\" to pipeline.";
-      return false;
-    }
-
-    LogDebug() << "DataProcessingPipeline: stage \"" << stage->name() << "\" successfully added to pipeline.";
-    _stages.push_back(std::move(stage));
-    return true;
-  }
 
   bool initialize()
   {
@@ -59,7 +44,14 @@ public:
     // initialize input and output ports of this pipeline
     this->initializePorts();
 
-    // configure all stages.
+    // initialize stages (parametrization)
+    if (!this->initializeStages())
+    {
+      LogError() << "DataProcessingPipeline (name = " << _name << "): error occurred during initialization of stages.";
+      return false;
+    }
+
+    // configure all stages (contecting ports).
     if (!this->configureStages())
     {
       LogError() << "DataProcessingPipeline (name = " << _name << "): initializing of processing stages failed.";
@@ -70,41 +62,85 @@ public:
     return true;
   }
 
-  bool process(const std::shared_ptr<DataStructureType>& data = std::shared_ptr<DataStructureType>())
+  bool process()
   {
-    bool ret = true;
+    NoDataType dummy;
+    return this->process<>(dummy);
+  }
+  template<typename... ArgumentTypes>
+  bool process(DataStructureType& model, ArgumentTypes&... data)
+  {
+    static_assert(_num_stages > 0, "ProcessingPipeline: no processing stage is added. Minimum one is required to process the pipeline");
 
-    for (auto& stage : _stages)
-      ret &= stage->process(data);
-
-    return ret;
+    if constexpr (sizeof...(ArgumentTypes) == 0) {
+      NoDataType dummy;
+      return this->processStage<0>(model, dummy);
+    }
+    else {
+      return this->processStage<0>(model, data...);
+    }
   }
 
   const std::string& name() const noexcept { return _name; }
 
-protected:
+private:
   virtual bool configureStages() = 0;
 
-private:
-  bool containStageByName(const std::string& stageName) const
+  // initialize stages
+  template<std::size_t StageIndex = 0>
+  inline bool initializeStages()
   {
-    return std::find_if(_stages.begin(),
-                        _stages.end(),
-                        [&] (const std::unique_ptr<ProcessingStage<DataStructureType>>& stage) { return stage->name() == stageName; } )
-           !=
-           _stages.end();
-  }
-  std::size_t getStageIndexByName(const std::string& stageName) const
-  {
-    for (std::size_t stageIndex = 0; stageIndex < _stages.size(); ++stageIndex)
-      if (_stages[stageIndex]->name() == stageName)
-        return stageIndex;
-
-    return _stages.size();
+    if constexpr (StageIndex < _num_stages) {
+      return std::get<StageIndex>(_stages).initialize() && ProcessingPipeline<DataStructureType, Stages...>::template initializeStages<StageIndex + 1>();
+    }
+    else {
+      return true;
+    }
   }
 
-  const std::string _name;
-  std::vector<std::unique_ptr<ProcessingStage<DataStructureType>>> _stages;
+  // process stages
+  template<std::size_t StageIndex, typename ArgumentType = NoDataType>
+  inline bool processStage(DataStructureType& model, ArgumentType& arg)
+  {
+    if constexpr (StageIndex >= _num_stages)
+      return false;
+
+    bool ret = true;
+    
+    if constexpr (std::is_same<typename std::tuple_element_t<StageIndex, std::tuple<Stages...>>::data_structure_type, NoDataType>::value) {
+      NoDataType dummy;
+      ret &= std::get<StageIndex>(_stages).process(dummy);
+    }
+    else if constexpr (std::is_same<typename std::tuple_element_t<StageIndex, std::tuple<Stages...>>::data_structure_type, DataStructureType>::value) {
+      ret &= std::get<StageIndex>(_stages).process(model);
+    }
+    else if constexpr (std::is_same<typename std::tuple_element_t<StageIndex, std::tuple<Stages...>>::data_structure_type, ArgumentType>::value) {
+      ret &= std::get<StageIndex>(_stages).process(arg);
+    }
+
+    if constexpr (StageIndex + 1 < _num_stages) {
+      ret &= this->processStage<StageIndex + 1>(model, arg);
+    }
+
+    return ret;
+  }
+  
+  // get stage index by name
+  template<std::size_t StageIndex>
+  inline constexpr std::size_t getStageIndexByName(const char* name) const
+  {
+    if constexpr (std::get<StageIndex>(_stages).name() == name) {
+      return StageIndex;
+    }
+    else {
+      return this->getStageIndexByName<StageIndex + 1>(name);
+    }
+  }
+
+  const std::string _name; //> pipeline name
+
+protected:
+  std::tuple<Stages...> _stages; //> stages of this pipeline
 };
 
 } // end namespace processing

@@ -13,15 +13,25 @@ using francor::processing::ProcessingStage;
 using francor::processing::ProcessingPipeline;
 using francor::processing::data::SourcePort;
 using francor::processing::data::DestinationPort;
+using francor::processing::NoDataType;
 
-class StageDummyIntToDouble : public ProcessingStage<>
+class StageDummyIntToDouble : public ProcessingStage<NoDataType>
 {
 public:
-  StageDummyIntToDouble() : ProcessingStage<>("dummy int to double", 1, 1) { }
+  enum Inputs {
+    IN_INT_VALUE = 0,
+    COUNT_INPUTS
+  };
+  enum Outpus {
+    OUT_DOUBLE_VALUE = 0,
+    COUNT_OUTPUTS
+  };
+
+  StageDummyIntToDouble() : ProcessingStage<NoDataType>("dummy int to double", COUNT_INPUTS, COUNT_OUTPUTS) { }
   ~StageDummyIntToDouble() = default;
 
 private:
-  bool doProcess(const std::shared_ptr<void>&) final
+  bool doProcess(NoDataType&) final
   {
     _value = static_cast<double>(this->getInputs()[0].data<int>());
     return true;
@@ -43,22 +53,19 @@ private:
   double _value = 0.0;
 };
 
-class Pipeline : public ProcessingPipeline<>
+class Pipeline : public ProcessingPipeline<NoDataType, StageDummyIntToDouble>
 {
 public:
-  Pipeline() : ProcessingPipeline<>("pipeline", 1, 1) { }
+  Pipeline() : ProcessingPipeline<NoDataType, StageDummyIntToDouble>("pipeline", 1, 1) { }
 
 private:
   bool configureStages() final
   {
-    auto stage = std::make_unique<StageDummyIntToDouble>();
 
     bool ret = true;
 
-    ret &= stage->initialize();
-    ret &= stage->input("int").connect(this->input("input"));
-    ret &= stage->output("double").connect(this->output("output"));
-    ret &= this->addStage(std::move(stage));
+    ret &= std::get<0>(_stages).input("int").connect(this->input("input"));
+    ret &= std::get<0>(_stages).output("double").connect(this->output("output"));
   
     return ret;
   }

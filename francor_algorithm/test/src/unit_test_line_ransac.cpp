@@ -29,12 +29,12 @@ TEST(LineRansac, Instantiate)
 TEST(RansacLineModel, EstimateModelFromTwoPoints)
 {
   RansacLineModel model;
-  std::array<RansacLineModel::Input::type, RansacLineModel::Input::count> inputData = { Vector2d(0.0, 1.0), Vector2d(1.0, 1.0) };
+  std::array<RansacLineModel::Input::type, RansacLineModel::Input::count> inputData = {{ { 0.0, 1.0 }, { 1.0, 1.0 } }};
 
   ASSERT_TRUE(model.estimate(inputData));
 
-  EXPECT_NEAR(model.model().m(), 0.0, 1e-3);
-  EXPECT_NEAR(model.model().t(), 1.0, 1e-3);
+  EXPECT_NEAR(model.model().phi(), 0.0, 1e-3);
+  EXPECT_NEAR(model.model().y0() , 1.0, 1e-3);
 }
 
 /**
@@ -43,34 +43,37 @@ TEST(RansacLineModel, EstimateModelFromTwoPoints)
 TEST(RansacLineModel, CalculateErrorToModel)
 {
   RansacLineModel model;
-  std::array<RansacLineModel::Input::type, RansacLineModel::Input::count> inputData = { Vector2d(0.0, 1.0), Vector2d(1.0, 1.0) };
+  std::array<RansacLineModel::Input::type, RansacLineModel::Input::count> inputData = {{ { 0.0, 1.0 }, { 1.0, 1.0 } }};
 
   ASSERT_TRUE(model.estimate(inputData));
 
-  const Vector2d point(0.5, 2.0);
+  const RansacLineModel::Input::type point(0.5, 2.0);
 
   EXPECT_NEAR(model.error(point), 1.0, 1e-3);
 }
 
 TEST(LineRansac, FindTwoLines)
 {
+  using francor::base::Point2dVector;
+  using francor::base::Point2d;
+
   LineRansac ransac;
-  const VectorVector2d inputPoints = { Vector2d(0.0, 1.0), Vector2d(1.0, 1.0), Vector2d(2.0, 1.0), Vector2d(3.0, 1.0), Vector2d(4.0, 1.0),
-                                       Vector2d(0.0, 3.0), Vector2d(1.0, 3.0), Vector2d(2.0, 3.0), Vector2d(3.0, 3.0), Vector2d(4.0, 3.0),
-                                       Vector2d(9.0, 9.0), Vector2d(5.0, 0.0) }; // the last two are outliers
+  const Point2dVector inputPoints = { { 0.0, 1.0 }, { 1.0, 1.0 }, { 2.0, 1.0 }, { 3.0, 1.0 }, { 4.0, 1.0 },
+                                      { 0.0, 3.0 }, { 1.0, 3.0 }, { 2.0, 3.0 }, { 3.0, 3.0 }, { 4.0, 3.0 },
+                                      { 9.0, 9.0 }, { 5.0, 0.0 } }; // the last two are outliers
 
   ransac.setEpsilon(0.1);
-  ransac.setMaxIterations(100);
+  ransac.setMaxIterations(10);
   ransac.setMinNumPoints(4);
 
   LineVector result = ransac(inputPoints);
 
   ASSERT_EQ(result.size(), 2);
 
-  EXPECT_NEAR(result[0].m(), 0.0, 1e-3);
-  EXPECT_NEAR(result[1].m(), 0.0, 1e-3);
-  EXPECT_NEAR(std::max(result[0].t(), result[1].t()), 3.0, 1e-3);
-  EXPECT_NEAR(std::min(result[0].t(), result[1].t()), 1.0, 1e-3);
+  EXPECT_NEAR(result[0].phi(), 0.0, 1e-3);
+  EXPECT_NEAR(result[1].phi(), 0.0, 1e-3);
+  EXPECT_NEAR(std::max(result[0].y0(), result[1].y0()), 3.0, 1e-3);
+  EXPECT_NEAR(std::min(result[0].y0(), result[1].y0()), 1.0, 1e-3);
 }
 
 int main(int argc, char **argv)

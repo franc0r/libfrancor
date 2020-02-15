@@ -53,19 +53,19 @@ public:
    * \param inputData the ransac will seach on this container. If the number of elements are too less nothing will happen.
    * \return the found model stored in a vector. The vector size can be zero if nothing was found.
    */
-  std::vector<typename Output::type, Eigen::aligned_allocator<typename Output::type>>
-  operator()(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData)
+  std::vector<typename Output::type>
+  operator()(const std::vector<typename Input::type>& inputData)
   {
     this->prepareProcessing(inputData);
     typename Output::type model;
-    std::vector<typename Output::type, Eigen::aligned_allocator<typename Output::type>> models;
+    std::vector<typename Output::type> models;
 
     while (this->process(inputData, model))
     {
       models.push_back(model);
     }
     
-    return std::move(models);
+    return models;
   }
 
   /**
@@ -130,7 +130,7 @@ public:
   }
 
 private:
-  bool process(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData, typename Output::type& foundModel)
+  bool process(const std::vector<typename Input::type>& inputData, typename Output::type& foundModel)
   {
     if (inputData.size() - _count_data_used < _min_number_points)
       return false;
@@ -178,7 +178,7 @@ private:
     return true;
   }
 
-  void estimateModel(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData)
+  void estimateModel(const std::vector<typename Input::type>& inputData)
   {
       // get random indices and estimate model parameter
       const auto modelIndices = this->getNextRandomIndices();
@@ -229,7 +229,7 @@ private:
     return indices;
   }
 
-  void prepareProcessing(const std::vector<typename Input::type, Eigen::aligned_allocator<typename Input::type>>& inputData)
+  void prepareProcessing(const std::vector<typename Input::type>& inputData)
   {
     // clear data and reserve memory for possible count of indicies
     _mask_used_data.clear();
