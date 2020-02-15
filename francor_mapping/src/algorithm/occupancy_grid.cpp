@@ -234,7 +234,7 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
     const auto direction = base::algorithm::line::calculateV(phi);
     const auto distance_corrected = (std::isnan(distance) || std::isinf(distance) ?
                                      laser_scan.range() :
-                                     distance - 0.125); //point_expansion * 0.5);
+                                     distance - 0.125); //point_expansion * 0.5); \todo parameter for 0.125 
 
     Ray2d ray(Ray2d::create(start_index_x, start_index_y, grid.getNumCellsX(),
               grid.getNumCellsY(), grid.getCellSize(), position, direction, distance_corrected));
@@ -258,7 +258,6 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
       const std::size_t end_index_y = grid.getIndexY(end_position.y());
       // minium one cell is needed
       const std::size_t cells = static_cast<std::size_t>(std::max(1.0, point_expansion / grid.getCellSize())); 
-      // updateGridCell(grid(end_index_x, end_index_y), 0.65f);
       const auto angle = index_normal < normals.size() ? normals[index_normal++] + pose_ego.orientation(): phi;
       pushLaserPointToGrid(grid, end_index_x, end_index_y, cells % 2 ? cells : cells + 1, angle);
 
@@ -284,7 +283,7 @@ bool pushPointsToGrid(OccupancyGrid& grid, const base::Point2dVector& points, co
 
 void pushLaserPointToGrid(OccupancyGrid& grid, const std::size_t x, const std::size_t y, const std::size_t point_size, const base::Angle point_yaw)
 {
-  grid::pushPoint<OccupancyGrid, updateGridCell>(grid, x, y, point_size, point_yaw);
+  grid::pushPoint<OccupancyGrid, updateGridCell, 5>(grid, x, y, point_size, point_yaw);
 }
 
 

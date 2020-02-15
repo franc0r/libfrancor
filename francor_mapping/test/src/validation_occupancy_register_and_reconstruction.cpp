@@ -32,7 +32,9 @@ TEST(ValidationOccupancy, RegisterAndReconstruct)
                    sensor_pose,
                    Angle::createFromDegree(-180.0),
                    Angle::createFromDegree(180.0 - 22.5),
-                   Angle::createFromDegree(22.5), 12.0);
+                   Angle::createFromDegree(22.5),
+                   12.0,
+                   Angle::createFromDegree(5.0));
 
   OccupancyGrid grid;
   
@@ -46,7 +48,7 @@ TEST(ValidationOccupancy, RegisterAndReconstruct)
   Image out_grid;
   francor::mapping::algorithm::occupancy::convertGridToImage(grid, out_grid);
   cv::Mat image;
-  cv::resize(out_grid.cvMat(), image, cv::Size(500, 500));
+  cv::resize(out_grid.cvMat(), image, cv::Size(1000, 1000));
   cv::imshow("grid", image);
   cv::waitKey(0);
 

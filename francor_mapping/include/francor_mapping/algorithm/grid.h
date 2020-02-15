@@ -34,13 +34,13 @@ public:
 
     for (std::size_t x = 0; x < SizeX / 2; ++x) {
       for (std::size_t y = 0; y < SizeY; ++y) {
-        _data[x][y] = distribution_x.pm(x) * distribution_y.pm(y) + static_cast<Type>(0.5);
+        _data[x][y] = std::min(distribution_x.pm(x) * distribution_y.pm(y) + static_cast<Type>(0.5), static_cast<Type>(0.95));
       }
     }
 
     for (std::size_t x = SizeX / 2; x < SizeX; ++x) {
       for (std::size_t y = 0; y < SizeY; ++y) {
-        _data[x][y] = distribution_x.pm(x) * distribution_y.pm(y) + static_cast<Type>(0.5);
+        _data[x][y] = std::min(distribution_x.pm(x) * distribution_y.pm(y) + static_cast<Type>(0.5), static_cast<Type>(0.95));
       }
     }
   }
@@ -70,11 +70,11 @@ public:
     for (int x = 0; x < static_cast<int>(SizeX); ++x) {
       for (int y = 0; y < static_cast<int>(SizeY); ++y) {
         const std::size_t current_x = static_cast<std::size_t>(center_x
-                                                               + _cos_yaw * (static_cast<float>(x) - static_cast<float>(SizeX) * 0.5f) + 0.5f 
-                                                               - _sin_yaw * (static_cast<float>(y) - static_cast<float>(SizeY) * 0.5f) + 0.5f);
+                                                               + _cos_yaw * (static_cast<float>(x) + 0.5f - static_cast<float>(SizeX) * 0.5f) 
+                                                               - _sin_yaw * (static_cast<float>(y) + 0.5f - static_cast<float>(SizeY) * 0.5f));
         const std::size_t current_y = static_cast<std::size_t>(center_y 
-                                                               + _sin_yaw * (static_cast<float>(x) - static_cast<float>(SizeX) * 0.5f) + 0.5f
-                                                               + _cos_yaw * (static_cast<float>(y) - static_cast<float>(SizeY) * 0.5f) + 0.5f);
+                                                               + _sin_yaw * (static_cast<float>(x) + 0.5f - static_cast<float>(SizeX) * 0.5f)
+                                                               + _cos_yaw * (static_cast<float>(y) + 0.5f - static_cast<float>(SizeY) * 0.5f));
         UpdateFunction(grid(current_x, current_y), _distribution(x, y));
       }
     }
@@ -87,6 +87,7 @@ private:
   static constexpr Distribution<SizeX, SizeY, Type> _distribution{};
 };
 
+
 /**
  * \brief Pushes a point respecting its variance into a grid. The shape of the point is
  *        according gaussian distribution.
@@ -97,63 +98,67 @@ private:
  * \param point_size Size of the laser point in grid cells.
  * \tparam GridCellType The type of each grid cell.
  * \tparam UpdateFunction The function used to update each grid cell.
+ * \tparam PointSizeX Point size in x dimension.
  */
-template <typename GridType, typename UpdateFunction>
+template <typename GridType, typename UpdateFunction, std::size_t PointSizeX>
 void pushPoint(GridType& grid, const std::size_t center_x, const std::size_t center_y,
-               const std::size_t point_size, const base::Angle point_yaw = base::Angle::createFromDegree(0.0))
+               const std::size_t point_size_y, const base::Angle point_yaw = base::Angle::createFromDegree(0.0))
 {
-  assert(point_size % 2 == 1);
-  const int side_size = point_size / 2;
+  static_assert(PointSizeX % 2 == 1);
+  assert(point_size_y % 2 == 1);
+  constexpr int side_size_x = PointSizeX / 2;
+  const int side_size_y = point_size_y / 2;
 
   // do nothing if point is out of range including point size
-  if (static_cast<int>(center_x) - static_cast<int>(side_size) < 0 || center_x + side_size >= grid.getNumCellsX()) {
+  if (static_cast<int>(center_x) - static_cast<int>(side_size_x) < 0 || center_x + side_size_x >= grid.getNumCellsX()) {
     return;
   }
-  if (static_cast<int>(center_y) - static_cast<int>(side_size) < 0 || center_y + side_size >= grid.getNumCellsY()) {
+  if (static_cast<int>(center_y) - static_cast<int>(side_size_y) < 0 || center_y + side_size_y >= grid.getNumCellsY()) {
     return;
   }
 
-  switch (point_size)
+  switch (point_size_y)
   {
   case 1:
     {
-      const UpdateMatrix<5, 3, float, PointDistribution> update_matrix(point_yaw);
-      update_matrix.update<GridType, UpdateFunction>(grid, center_x, center_y);
+      const UpdateMatrix<PointSizeX, 1, float, PointDistribution> update_matrix(point_yaw);
+      update_matrix.template update<GridType, UpdateFunction>(grid, center_x, center_y);
     }
     break;
   
   case 3:
     {
-      const UpdateMatrix<5, 3, float, PointDistribution> update_matrix(point_yaw);
-      update_matrix.update<GridType, UpdateFunction>(grid, center_x, center_y);
+      const UpdateMatrix<PointSizeX, 3, float, PointDistribution> update_matrix(point_yaw);
+      update_matrix.template update<GridType, UpdateFunction>(grid, center_x, center_y);
   }
   break;
 
   case 5:
     {
-      const UpdateMatrix<5, 5, float, PointDistribution> update_matrix(point_yaw);      
-      update_matrix.update<GridType, UpdateFunction>(grid, center_x, center_y);
+      const UpdateMatrix<PointSizeX, 5, float, PointDistribution> update_matrix(point_yaw);      
+      update_matrix.template update<GridType, UpdateFunction>(grid, center_x, center_y);
     }
     break;
 
   case 7:
     {
-      const UpdateMatrix<5, 7, float, PointDistribution> update_matrix(point_yaw);      
-      update_matrix.update<GridType, UpdateFunction>(grid, center_x, center_y);
+      const UpdateMatrix<PointSizeX, 7, float, PointDistribution> update_matrix(point_yaw);      
+      update_matrix.template update<GridType, UpdateFunction>(grid, center_x, center_y);
     }
     break;
 
     case 9:
     {
-      const UpdateMatrix<5, 9, float, PointDistribution> update_matrix(point_yaw);      
-      update_matrix.update<GridType, UpdateFunction>(grid, center_x, center_y);
+      const UpdateMatrix<PointSizeX, 9, float, PointDistribution> update_matrix(point_yaw);      
+      update_matrix.template update<GridType, UpdateFunction>(grid, center_x, center_y);
     }
     break;
 
   default:
-    francor::base::LogError() << "pushPoint(): point size = " << point_size << " isn't supported.";
+    francor::base::LogError() << "pushPoint(): point size y = " << point_size_y << " isn't supported.";
     break;
   }
+
 }
 
 /**
