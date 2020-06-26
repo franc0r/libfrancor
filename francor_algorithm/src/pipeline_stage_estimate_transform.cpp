@@ -73,7 +73,7 @@ bool StageConvertLaserScanToPoints::doProcess(processing::NoDataType&)
   const auto& scan     = this->input(IN_SCAN).data    <base::LaserScan>();
   const auto& ego_pose = this->input(IN_EGO_POSE).numOfConnections() > 0 ? this->input(IN_EGO_POSE).data<base::Pose2d>() : base::Pose2d();
 
-  LogDebug() << "uses scan pose " << scan.pose();
+  LogDebug() << "uses scan pose " << scan.sensorPose();
   LogDebug() << "uses ego pose " << ego_pose;
 
   if (!base::algorithm::point::convertLaserScanToPoints(scan, ego_pose, _resulted_points)) {

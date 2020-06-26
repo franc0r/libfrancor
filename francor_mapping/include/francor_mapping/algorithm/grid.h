@@ -181,14 +181,14 @@ void pushPoint(GridType& grid, const std::size_t center_x, const std::size_t cen
 //   using francor::algorithm::Ray2d;
 
 //   Angle current_phi = laser_scan.phiMin();
-//   const std::size_t start_index_x = grid.getIndexX(laser_scan.pose().position().x() + pose_ego.position().x());
-//   const std::size_t start_index_y = grid.getIndexY(laser_scan.pose().position().y() + pose_ego.position().y());
+//   const std::size_t start_index_x = grid.getIndexX(laser_scan.sensorPose().position().x() + pose_ego.position().x());
+//   const std::size_t start_index_y = grid.getIndexY(laser_scan.sensorPose().position().y() + pose_ego.position().y());
 //   const double max_truncation = grid.getMaxTruncation();
 
 //   for (const auto& distance : laser_scan.distances())
 //   {
-//     const Point2d position = laser_scan.pose().position() + pose_ego.position();
-//     const Angle phi = current_phi + laser_scan.pose().orientation() + pose_ego.orientation();
+//     const Point2d position = laser_scan.sensorPose().position() + pose_ego.position();
+//     const Angle phi = current_phi + laser_scan.sensorPose().orientation() + pose_ego.orientation();
 //     const auto direction = base::algorithm::line::calculateV(phi);
 
 //     Ray2d ray(Ray2d::create(start_index_x, start_index_y, grid.getNumCellsX(), grid.getNumCellsY(), grid.getCellSize(), position, direction, distance));

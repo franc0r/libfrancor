@@ -217,9 +217,9 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
   using francor::algorithm::Ray2d;
 
   Angle current_phi = laser_scan.phiMin();
-  const std::size_t start_index_x = grid.getIndexX(laser_scan.pose().position().x() + pose_ego.position().x());
-  const std::size_t start_index_y = grid.getIndexY(laser_scan.pose().position().y() + pose_ego.position().y());
-  const Point2d position = laser_scan.pose().position() + pose_ego.position();
+  const std::size_t start_index_x = grid.getIndexX(laser_scan.sensorPose().position().x() + pose_ego.position().x());
+  const std::size_t start_index_y = grid.getIndexY(laser_scan.sensorPose().position().y() + pose_ego.position().y());
+  const Point2d position = laser_scan.sensorPose().position() + pose_ego.position();
   std::size_t index_normal = 0;
 
   // process each distance measurement. start from phi min
@@ -230,7 +230,7 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
 
     const double point_expansion = laser_scan.pointExpansions()[i];
     const double distance = laser_scan.distances()[i];
-    const Angle phi = current_phi + laser_scan.pose().orientation() + pose_ego.orientation();
+    const Angle phi = current_phi + laser_scan.sensorPose().orientation() + pose_ego.orientation();
     const auto direction = base::algorithm::line::calculateV(phi);
     const auto distance_corrected = (std::isnan(distance) || std::isinf(distance) ?
                                      laser_scan.range() :

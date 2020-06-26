@@ -79,7 +79,7 @@ void drawLaserBeamOnImage(const Point2d& start_point, const Angle phi, const dou
 void drawLaserScanOnImage(const LaserScan& scan, Image& image)
 {
   const Transform2d tranform({ _ego.pose().orientation() }, { _ego.pose().position().x(), _ego.pose().position().y() });
-  const Pose2d pose(tranform * scan.pose());
+  const Pose2d pose(tranform * scan.sensorPose());
   const auto index_start_x = _grid.getIndexX(pose.position().x());
   const auto index_start_y = _grid.getIndexY(pose.position().y());
   Angle current_phi = scan.phiMin();

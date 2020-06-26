@@ -24,7 +24,7 @@ bool convertLaserScanToPoints(const LaserScan& scan, const Pose2d& ego_pose, Poi
   points.resize(0);
   points.reserve(scan.distances().size());
   const Transform2d transform( { ego_pose.orientation() }, { ego_pose.position().x(), ego_pose.position().y() } );
-  const Pose2d start(transform * scan.pose());
+  const Pose2d start(transform * scan.sensorPose());
   Angle current_phi = scan.phiMin() + start.orientation();
   
   std::cout << "start " << start << std::endl;

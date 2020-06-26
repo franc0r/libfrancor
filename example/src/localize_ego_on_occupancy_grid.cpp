@@ -72,7 +72,7 @@ void drawLaserScanOnImage(const LaserScan& scan, Image& image)
 {
   const Transform2d tranform({ _ego_ground_truth.pose().orientation() },
                              { _ego_ground_truth.pose().position().x(), _ego_ground_truth.pose().position().y() });
-  const Pose2d pose(tranform * scan.pose());
+  const Pose2d pose(tranform * scan.sensorPose());
   const auto index_start_x = _grid.getIndexX(pose.position().x());
   const auto index_start_y = _grid.getIndexY(pose.position().y());
   Angle current_phi = scan.phiMin();
@@ -118,7 +118,7 @@ void applyGaussianNoise(LaserScan& scan)
     modified_distances.push_back(distance + distribution(generator));
   }
 
-  scan = LaserScan(modified_distances, scan.pose(), scan.phiMin(),
+  scan = LaserScan(modified_distances, scan.sensorPose(), scan.phiMin(),
                    scan.phiMax(), scan.phiStep(), scan.range(), Angle::createFromDegree(1.0));
 }
 

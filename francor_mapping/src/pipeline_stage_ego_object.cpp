@@ -19,7 +19,7 @@ bool StageEstimateLaserScannerPose::doProcess(EgoObject& ego)
   
   const auto pose(this->input(IN_SENSOR_POSE).numOfConnections() > 0   ?
                   this->input(IN_SENSOR_POSE).data<base::Pose2d>()     :
-                  this->input(IN_SCAN).data<base::LaserScan>().pose());
+                  this->input(IN_SCAN).data<base::LaserScan>().sensorPose());
 
   base::Transform2d t_laser_ego({ pose.orientation() }, { pose.position().x(), pose.position().y() });
   _estimated_pose = t_laser_ego * ego.pose();
