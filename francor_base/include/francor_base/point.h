@@ -21,8 +21,20 @@ class Point2dImpl
 {
 public:
   constexpr Point2dImpl(const Type x = 0.0, const Type y = 0.0) : _x(x), _y(y) { }
-  Point2dImpl(const Point2dImpl&) = default;
-  Point2dImpl(Point2dImpl&&) = default;
+  template <typename SourceType>
+  constexpr Point2dImpl(const Point2dImpl<SourceType>& source)
+    : _x(static_cast<Type>(source.x())),
+      _y(static_cast<Type>(source.y()))
+  {
+    static_assert(std::is_floating_point<Type>::value
+                  ||
+                  (std::is_integral<Type>::value && std::is_signed<Type>::value)
+                  ||
+                  (std::is_integral<Type>::value && std::is_unsigned<Type>::value && std::is_unsigned<Type>()),
+                  "convertion is dangerous and is not supported");
+  }
+  constexpr Point2dImpl(const Point2dImpl&) = default;
+  constexpr Point2dImpl(Point2dImpl&&) = default;
   ~Point2dImpl() = default;
 
   inline constexpr Type& x() noexcept { return _x; }

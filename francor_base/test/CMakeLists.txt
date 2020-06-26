@@ -96,3 +96,37 @@ add_test(
   NAME test-math
   COMMAND unit-test-math
 )
+
+
+# Size
+add_executable(unit-test-size
+  src/unit_test_size.cpp
+)
+
+target_link_libraries(unit-test-size PRIVATE
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-base
+)
+
+add_test(
+  NAME test-size
+  COMMAND unit-test-size
+)
+
+
+# Rect
+add_executable(unit-test-rect
+  src/unit_test_rect.cpp
+)
+
+target_link_libraries(unit-test-rect PRIVATE
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-base
+)
+
+add_test(
+  NAME test-rect
+  COMMAND unit-test-rect
+)
