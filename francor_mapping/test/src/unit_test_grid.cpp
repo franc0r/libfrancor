@@ -235,8 +235,48 @@ TEST(Grid, MoveAssignmentOperator)
   EXPECT_FALSE(grid_origin.isValid()); 
 }
 
-int main(int argc, char** argv)
+TEST(Grid, SharedGridWithRoi)
 {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+  Grid<double> grid_origin;
+
+  // initialize origin
+  EXPECT_TRUE(grid_origin.init(10u, 10u, 1.0));
+
+  // get shared instance limited by ROI
+  constexpr francor::base::Rect2u roi(5, 5, 3, 3);
+  Grid<double> grid_roi(grid_origin, roi);
+
+  for (std::size_t x = 0; x < grid_roi.getNumCellsX(); ++x) {
+    for (std::size_t y = 0; y < grid_roi.getNumCellsY(); ++y) {
+      grid_roi(x, y) = static_cast<double>(x + y);
+    }
+  }
+
+  for (std::size_t x = 0; x < grid_origin.getNumCellsX(); ++x) {
+    for (std::size_t y = 0; y < grid_origin.getNumCellsY(); ++y) {
+      if (x < roi.x() || y < roi.y()) {
+        EXPECT_EQ(grid_origin(x, y), 0.0);
+      }
+      else if (x > roi.xMax() || y > roi.yMax()) {
+        EXPECT_EQ(grid_origin(x, y), 0.0);
+      }
+      else {
+        EXPECT_GE(grid_origin(x, y), 0.0);
+      }
+    }
+  }
+  
+
+  grid_roi.clear();
+  EXPECT_EQ(grid_roi.getNumCellsX(), 0);
+  EXPECT_EQ(grid_roi.getNumCellsY(), 0);
+  EXPECT_TRUE(grid_roi.isEmpty());
+
+  EXPECT_EQ(grid_origin.getNumCellsX(), 10);
+  EXPECT_EQ(grid_origin.getNumCellsY(), 10);
+  EXPECT_FALSE(grid_origin.isEmpty());
+  EXPECT_TRUE(grid_origin.isValid());
+  
+  // std::cout << "grid origin:" << std::endl << grid_origin << std::endl;
+  // std::cout << "grid roi:" << std::endl << grid_roi << std::endl;
 }

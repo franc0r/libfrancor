@@ -46,9 +46,10 @@ public:
   {
     if (Level >= getLogLevel()) {
       this->printWarnLevel(Level);
-    }
-    if constexpr (Name != nullptr) {
-      this->printName(Name);
+
+      if (Name != nullptr) {
+        this->printName(Name);
+      }
     }
   }
   Log(const Log&) = delete;

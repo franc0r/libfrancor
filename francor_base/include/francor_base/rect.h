@@ -17,6 +17,10 @@ template <typename Type>
 class Rect2Impl
 {
 public:
+  constexpr Rect2Impl(const Type x, const Type y, const Type width, const Type height)
+    : _origin(x, y),
+      _size(width, height)
+  { }
   constexpr Rect2Impl(const Point2dImpl<Type> origin = {0, 0}, const Size2Impl<Type> size = {0, 0})
     : _origin(origin),
       _size(size)
@@ -33,6 +37,9 @@ public:
   constexpr inline Type height() const noexcept { return _size.height; }
   constexpr inline Point2dImpl<Type> origin() const noexcept { return _origin; }
   constexpr inline Size2Impl<Type> size() const noexcept { return _size; }
+
+  constexpr inline Type xMax() const { return std::max(_origin.x() + _size.width , 1u) - 1; }
+  constexpr inline Type yMax() const { return std::max(_origin.y() + _size.height, 1u) - 1; }
 
   inline void setOrigin(const Point2dImpl<Type> origin) { _origin = origin; }
   inline void setWidth(const Type width) { _size.width = width; }

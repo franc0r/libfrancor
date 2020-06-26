@@ -64,7 +64,11 @@ private:
   Type _y;
 };
 
+using Point2u = Point2dImpl<unsigned int>;
+using Point2i = Point2dImpl<int>;
+using Point2f = Point2dImpl<float>;
 using Point2d = Point2dImpl<double>;
+
 
 using Point2dVector = std::vector<Point2d>;
 

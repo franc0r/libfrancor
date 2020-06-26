@@ -38,16 +38,17 @@ public:
 
   bool updateGrid(OccupancyGrid& grid, std::shared_ptr<const base::SensorMeasurment> sensor_measurement) const
   {
-    using Log = base::Log<base::LogLevel::DEBUG, base::LogGroup::ALGORITHM, ClassName>;
+    using LogDebug = base::Log<base::LogLevel::DEBUG, base::LogGroup::ALGORITHM, class_name>;
+    using LogError = base::Log<base::LogLevel::ERROR, base::LogGroup::ALGORITHM, class_name>;
 
-    Log() << "check if sensor model can process grid type.";
+    LogDebug() << "check if sensor model can process grid type.";
 
-    if (std::strstr(this->type(), base::SensorMeasurment::SensorType::LIDAR_2D) != nullptr) {
-      Log() << "sensor type " << this->type() << " is compatible.";
+    if (std::strstr(this->type(), sensor_measurement->sensorType()) != nullptr) {
+      LogDebug() << "sensor type " << this->type() << " is compatible.";
       return this->updateGridImpl(grid, sensor_measurement);
     }
     else {
-      Log() << "sensor type " << this->type() << " is not compatible.";
+      LogError() << "sensor type " << this->type() << " is not compatible.";
       return false;
     }
   }
@@ -55,7 +56,7 @@ public:
 protected:
   virtual bool updateGridImpl(OccupancyGrid& grid, std::shared_ptr<const base::SensorMeasurment> sensor_measurement) const
   {
-    using Log = base::Log<base::LogLevel::FATAL, base::LogGroup::COMPONENT, ClassName>;
+    using Log = base::Log<base::LogLevel::FATAL, base::LogGroup::COMPONENT, class_name>;
     Log() << "updateGridImpl() is not implemented but sensor type is compatible in general.";
     return false;
   }
@@ -64,7 +65,7 @@ private:
   const char* _sensor_type;
   const std::string _sensor_name;
 
-  static constexpr const char ClassName[] = "SensorModel";
+  static constexpr const char class_name[] = "SensorModel";
 };
 
 } // end namespace mapping
