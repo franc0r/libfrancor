@@ -14,6 +14,7 @@ add_library(${PROJECT_NAME} SHARED
   src/lidar_rotating_sensor_model.cpp
   src/occupancy_grid.cpp
   src/tsd_grid.cpp
+  src/grid.cpp
 )
 
 target_include_directories(${PROJECT_NAME}

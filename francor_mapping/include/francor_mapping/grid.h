@@ -140,23 +140,8 @@ public:
   /**
    * \brief Moves all context to this and resets the origin grid object.
    */
-  Grid(Grid&& origin)
-  {
-    this->operator=(std::move(origin));
-  }
-  Grid(Grid& origin, const base::Rect2u& roi)
-    : _cell_size(origin._cell_size),
-      _size_x(roi.width() * _cell_size),
-      _size_y(roi.height() * _cell_size),
-      _origin(origin.getCellPosition(roi.x(), roi.y())),
-      _data(origin._data, roi)
-  {
-    if (!_data.isInitialized()) {
-      base::Log<base::LogLevel::ERROR, base::LogGroup::ALGORITHM, Grid::class_name>() << "grid data memory is not initialized. "
-        << "This can happen, if ROI is out of range. Grid will be reseted.";
-      this->clear();
-    }
-  }
+  Grid(Grid&& origin);
+  Grid(Grid& origin, const base::Rect2u& roi);
   /**
    * \brief Defaulted destructor.
    */
@@ -189,25 +174,8 @@ public:
    * \param cellSize size (edge length) of each cell in meter.
    * \return true if grid was successfully initialized.
    */
-  bool init(const std::size_t numCellsX, const std::size_t numCellsY, const double cellSize)
-  {
-    if (cellSize <= std::numeric_limits<double>::min())
-    {
-      using Log = base::Log<base::LogLevel::ERROR, base::LogGroup::ALGORITHM, Grid::class_name>;
-      Log() << "Grid: cell size must be greater than zero. Can't initialize grid. cell size = " << cellSize << ".";
-      return false;
-    }
+  bool init(const std::size_t numCellsX, const std::size_t numCellsY, const double cellSize);
 
-    // allocate grid data
-    _data.resize(numCellsX, numCellsY);
-    _cell_size = cellSize;
-
-    // calculate size from other parameter
-    _size_x = _data.cols() * _cell_size;
-    _size_y = _data.rows() * _cell_size;
-
-    return true;
-  }
 
   /**
    * \brief Resets this grid. The grid will be empty and invalid.
