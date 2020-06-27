@@ -12,6 +12,8 @@ add_library(${PROJECT_NAME} SHARED
   src/pipeline_stage_occupancy_grid.cpp
   src/pipeline_occupancy_grid.cpp
   src/lidar_rotating_sensor_model.cpp
+  src/occupancy_grid.cpp
+  src/tsd_grid.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -21,11 +23,10 @@ target_include_directories(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
-  PUBLIC
-  francor-base
-  francor-algorithm
-  francor-processing
-  francor-vision
+  PUBLIC francor-base
+  PUBLIC francor-algorithm
+  PUBLIC francor-processing
+  PUBLIC francor-vision
 )
 
 add_subdirectory(test)

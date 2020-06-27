@@ -152,7 +152,7 @@ public:
       _data(origin._data, roi)
   {
     if (!_data.isInitialized()) {
-      base::Log<base::LogLevel::ERROR, base::LogGroup::ALGORITHM, class_name>() << "grid data memory is not initialized. "
+      base::Log<base::LogLevel::ERROR, base::LogGroup::ALGORITHM, Grid::class_name>() << "grid data memory is not initialized. "
         << "This can happen, if ROI is out of range. Grid will be reseted.";
       this->clear();
     }
@@ -310,7 +310,7 @@ private:
 
   GridDataMemoryHandler<CellType> _data; //> grid cells
 
-private:
+public:
   static constexpr const char class_name[] = "Grid<CellType>";
 };
 

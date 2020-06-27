@@ -20,6 +20,8 @@ struct TsdCell
 class TsdGrid : public Grid<TsdCell>
 {
 public:
+  TsdGrid();
+
   inline void setMaxTruncation(const double max_truncation) noexcept { _max_truncation = max_truncation; }
   inline double getMaxTruncation() const noexcept { return _max_truncation; }
   

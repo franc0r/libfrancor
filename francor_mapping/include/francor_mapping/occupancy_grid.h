@@ -19,7 +19,7 @@ struct OccupancyCell
 class OccupancyGrid : public Grid<OccupancyCell>
 {
 public:
-  OccupancyGrid() = default;
+  OccupancyGrid();
 };
 
 } // end namespace mapping
