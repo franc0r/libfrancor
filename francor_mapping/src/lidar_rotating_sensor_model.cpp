@@ -11,12 +11,13 @@ namespace model {
 using LogDebug = base::Log<base::LogLevel::DEBUG, base::LogGroup::ALGORITHM, LidarRotating::class_name>;
 using LogError = base::Log<base::LogLevel::ERROR, base::LogGroup::ALGORITHM, LidarRotating::class_name>;
 
-bool LidarRotating::updateGridImpl(OccupancyGrid& grid,
-                                   std::shared_ptr<const base::SensorMeasurment> sensor_measurement) const
+OccupancyGrid LidarRotating::createOccupancyGrid(std::shared_ptr<const base::SensorMeasurment> sensor_measurement,
+                                                 const OccupancyGrid& status_grid) const
 {
-  return true;
-}
+  OccupancyGrid grid;
 
+  grid.init()
+}                                                
 
 } // end namespace model
 

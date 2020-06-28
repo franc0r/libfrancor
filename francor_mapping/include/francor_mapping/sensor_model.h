@@ -11,8 +11,11 @@
 #include <cstring>
 #include <memory>
 
-#include "francor_base/log.h"
-#include "francor_base/sensor_measurment.h"
+#include <francor_base/log.h>
+#include <francor_base/sensor_measurment.h>
+#include <francor_base/exception.h>
+
+#include "francor_mapping/occupancy_grid.h"
 
 namespace francor {
 
@@ -36,32 +39,47 @@ public:
   inline const std::string& name() const noexcept { return _sensor_name; }
   inline const char* type() const noexcept { return _sensor_type; }
 
-  bool updateGrid(OccupancyGrid& grid, std::shared_ptr<const base::SensorMeasurment> sensor_measurement) const
+  OccupancyGrid createMeasurmentGrid(std::shared_ptr<const base::SensorMeasurment> sensor_measurement,
+                                     const OccupancyGrid& status_grid) const
   {
     using LogDebug = base::Log<base::LogLevel::DEBUG, base::LogGroup::ALGORITHM, class_name>;
     using LogError = base::Log<base::LogLevel::ERROR, base::LogGroup::ALGORITHM, class_name>;
 
     LogDebug() << "check if sensor model can process grid type.";
 
-    if (std::strstr(this->type(), sensor_measurement->sensorType()) != nullptr) {
+    if (this->isCompatibleWithMeasurement(sensor_measurement)) {
       LogDebug() << "sensor type " << this->type() << " is compatible.";
-      return this->updateGridImpl(grid, sensor_measurement);
+      return std::move(this->createOccupancyGrid(sensor_measurement, status_grid));
     }
     else {
       LogError() << "sensor type " << this->type() << " is not compatible.";
+      throw base::DataProcessingError("SensorModel::createMeasurementGrid(): sensor type and measurement type are"
+                                      " incompatible.");
+    }
+  }                                     
+
+protected:
+  virtual OccupancyGrid createOccupancyGrid(std::shared_ptr<const base::SensorMeasurment> sensor_measurement,
+                                            const OccupancyGrid& status_grid) const
+  {
+    using Log = base::Log<base::LogLevel::FATAL, base::LogGroup::COMPONENT, class_name>;
+    Log() << "createOccupancyGrid() is not implemented but sensor type is compatible in general.";
+    
+    throw base::DataProcessingError("SensorModel::createOccupancyGrid() is not implemented but measurement type"
+                                    " is compatible in general.");
+  }
+
+private:
+  bool isCompatibleWithMeasurement(std::shared_ptr<const base::SensorMeasurment> sensor_measurement) const
+  {
+    if (std::strstr(this->type(), sensor_measurement->sensorType()) != nullptr) {
+      return true;
+    }
+    else {
       return false;
     }
   }
 
-protected:
-  virtual bool updateGridImpl(OccupancyGrid& grid, std::shared_ptr<const base::SensorMeasurment> sensor_measurement) const
-  {
-    using Log = base::Log<base::LogLevel::FATAL, base::LogGroup::COMPONENT, class_name>;
-    Log() << "updateGridImpl() is not implemented but sensor type is compatible in general.";
-    return false;
-  }
-
-private:
   const char* _sensor_type;
   const std::string _sensor_name;
 

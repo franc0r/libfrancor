@@ -141,3 +141,23 @@ add_test(
   NAME test-icp
   COMMAND unit-test-icp
 )
+
+# Geometry Fitting Functions
+add_executable(unit-test-geometry-fitting
+  src/unit_test_geometry_fitting.cpp
+)
+
+target_include_directories(unit-test-geometry-fitting
+  PRIVATE ${GTEST_INCLUDE_DIRS}
+)
+
+target_link_libraries(unit-test-geometry-fitting
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-algorithm
+)
+
+add_test(
+  NAME test-geometry-fitting
+  COMMAND unit-test-geometry-fitting
+)

@@ -23,9 +23,9 @@ public:
   LidarRotating(const std::string& sensor_name) : SensorModel("lidar_rotating", sensor_name) { }
   ~LidarRotating() override = default;
 
-  bool updateGridImpl(OccupancyGrid& grid,
-                      std::shared_ptr<const base::SensorMeasurment> sensor_measurement) const override;
-
+private:
+  OccupancyGrid createOccupancyGrid(std::shared_ptr<const base::SensorMeasurment> sensor_measurement,
+                                    const OccupancyGrid& status_grid) const override;
 
 public:
   static constexpr const char class_name[] = "LidarRotation";

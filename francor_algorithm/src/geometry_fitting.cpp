@@ -130,15 +130,20 @@ std::optional<std::vector<base::NormalizedAngle>> estimateNormalsFromOrderedPoin
 
   std::vector<base::NormalizedAngle> normals;
   normals.reserve(points.size());
-  std::vector<std::size_t> indices(n);
+  std::vector<std::size_t> indices;
   indices.reserve(n);
 
   for (int p = 0; p < static_cast<int>(points.size()); ++p) {
-    for (int i = p - n / 2; i < n; ++i) {
-      if (i > 0) indices.push_back(i);
+    for (int i = p - n / 2, c = 0; c < n && i < static_cast<int>(points.size()); ++i, ++c) {
+      std::cout << "i = " << i << std::endl;
+      if (i >= 0) indices.push_back(i);
     }
 
-    normals.push_back(base::NormalizedAngle(90.0) + fittingLineFromPoints(points, indices).phi());
+    for (const auto& idx : indices)
+      std::cout << "point " << idx << " = " << points[idx] << std::endl;
+
+    std::cout << "normal raw = " << fittingLineFromPoints(points, indices).phi() << std::endl;
+    normals.push_back(base::NormalizedAngle(base::Angle::createFromDegree(90.0)) + fittingLineFromPoints(points, indices).phi());
     indices.clear();
   }
 

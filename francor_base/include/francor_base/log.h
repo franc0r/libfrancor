@@ -44,7 +44,7 @@ class Log
 public:
   Log()
   {
-    if (Level >= getLogLevel()) {
+    if (Level >= getLogLevel() && Group >= getLogGroup()) {
       this->printWarnLevel(Level);
 
       if constexpr (Name != nullptr) {
@@ -82,31 +82,23 @@ public:
 private:
   static void printWarnLevel(const LogLevel level)
   {
-    switch (level)
-    {
-    case LogLevel::DEBUG:
+    if constexpr (Level == LogLevel::DEBUG) {
       std::clog << "[DEBUG] ";
-      break;
-
-    case LogLevel::INFO:
+    }
+    else if constexpr (Level == LogLevel::INFO) {
       std::clog << "[INFO] ";
-      break;
-
-    case LogLevel::WARNING:
+    }
+    else if constexpr (Level == LogLevel::WARNING) {
       std::clog << "[WARNING] ";
-      break;
-
-    case LogLevel::ERROR:
+    }
+    else if constexpr (Level == LogLevel::ERROR) {
       std::clog << "[ERROR] ";
-      break;
-
-    case LogLevel::FATAL:
+    }
+    else if constexpr (Level == LogLevel::FATAL) {
       std::clog << "[FATAL] ";
-      break;
-
-    default:
+    }
+    else {
       std::clog << "[UNKOWN] ";
-      break;
     }
   }
   static void printName(const char* name)
