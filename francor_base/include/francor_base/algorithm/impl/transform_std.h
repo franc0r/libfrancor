@@ -6,7 +6,6 @@
 #pragma once
 
 #include "francor_base/point.h"
-#include "francor_base/algotihm/impl/transform_std.h"
 
 namespace francor {
 
@@ -18,7 +17,17 @@ namespace algorithm {
 
 namespace transform {
 
-using francor::base::algorithm::transform::std::transformPointVector;
+namespace std {
+
+/**
+ * \brief Transforms a set of points by given transform.
+ * 
+ * \param transform The points will be transformed by that transfrom.
+ * \param points Transformed points.
+ */
+void transformPointVector(const Transform2d& transform, Point2dVector& points);
+
+} // end namespace std
 
 } // end namespace transform
 

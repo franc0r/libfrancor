@@ -16,7 +16,7 @@ OccupancyGrid LidarRotating::createOccupancyGrid(std::shared_ptr<const base::Sen
 {
   OccupancyGrid grid;
 
-  grid.init()
+  // grid.init()
 }                                                
 
 } // end namespace model

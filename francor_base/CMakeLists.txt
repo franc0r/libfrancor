@@ -8,7 +8,8 @@ find_package(Eigen3 REQUIRED NO_MODULE)
 add_library(${PROJECT_NAME} SHARED
   src/log.cpp
   src/algorithm/point.cpp
-  src/algorithm/transform.cpp
+  src/algorithm/impl/transform_std.cpp
+  src/algorithm/impl/transform_eigen.cpp
   src/algorithm/laser_scan.cpp
 )
 

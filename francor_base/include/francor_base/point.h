@@ -17,7 +17,7 @@ namespace francor {
 namespace base {
 
 template <typename Type>
-class Point2dImpl
+class alignas(16) Point2dImpl
 {
 public:
   constexpr Point2dImpl(const Type x = 0.0, const Type y = 0.0) : _x(x), _y(y) { }
@@ -60,14 +60,16 @@ public:
   inline constexpr Point2dImpl& operator=(Point2dImpl&& operant) = default;
 
 private:
-  Type _x;
-  Type _y;
+  alignas(16) Type _x;
+  alignas(16) Type _y;
 };
 
-using Point2u = Point2dImpl<unsigned int>;
-using Point2i = Point2dImpl<int>;
-using Point2f = Point2dImpl<float>;
-using Point2d = Point2dImpl<double>;
+template <typename Type>
+using Point2  = Point2dImpl<Type>;
+using Point2u = Point2<unsigned int>;
+using Point2i = Point2<int>;
+using Point2f = Point2<float>;
+using Point2d = Point2<double>;
 
 
 using Point2dVector = std::vector<Point2d>;
