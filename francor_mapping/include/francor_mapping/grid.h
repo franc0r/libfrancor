@@ -19,36 +19,13 @@ template <typename CellType>
 class GridDataMemoryHandler
 {
 public:
-  GridDataMemoryHandler(const std::size_t numCellsX = 0, const std::size_t numCellsY = 0)
-  {
-    this->resize(numCellsX, numCellsY);
-  }
-  GridDataMemoryHandler(GridDataMemoryHandler& handler, const base::Rect2u& roi)
-  {
-    this->clear();
-    this->shareGridDataFrom(handler, roi);
-  }
-  GridDataMemoryHandler(GridDataMemoryHandler&& origin)
-  {
-    *this = std::move(origin);
-  }
+  GridDataMemoryHandler(const std::size_t numCellsX = 0, const std::size_t numCellsY = 0);
+  GridDataMemoryHandler(GridDataMemoryHandler& handler, const base::Rect2u& roi);
+  GridDataMemoryHandler(GridDataMemoryHandler&& origin);
   GridDataMemoryHandler(const GridDataMemoryHandler&) = default;
 
   GridDataMemoryHandler& operator=(const GridDataMemoryHandler&) = default;
-  GridDataMemoryHandler& operator=(GridDataMemoryHandler&& origin)
-  {
-    _is_shared_memory = origin._is_shared_memory;
-
-    _data   = std::move(origin._data);
-    _offset = origin._offset;
-    _cols   = origin._cols;
-    _rows   = origin._rows;
-    _stride = origin._stride;
-
-    origin.clear();
-
-    return *this;
-  }
+  GridDataMemoryHandler& operator=(GridDataMemoryHandler&& origin);
 
   inline constexpr std::size_t cols() const noexcept { return _cols; }
   inline constexpr std::size_t rows() const noexcept { return _rows; }
@@ -63,59 +40,12 @@ public:
     return (*_data)[(y + _offset.y()) * _stride + x + _offset.y()];
   }
   
-  void clear()
-  {
-    _is_shared_memory = false;
-    
-    _data   = nullptr;
-    _offset = {0, 0};
-    _cols   = 0;
-    _rows   = 0;
-    _stride = 0;
-  }
+  void clear();
 
-  void resize(const std::size_t num_cells_x, const std::size_t num_cells_y)
-  {
-    using LogWarn = base::Log<base::LogLevel::WARNING, base::LogGroup::ALGORITHM, class_name>;
-
-    if (_is_shared_memory) {
-      LogWarn() << "grid data memory was shared. Clear grid data before resize will be executed.";
-      this->clear();
-    }
-
-    _data   = std::make_shared<std::vector<CellType>>(num_cells_x * num_cells_y);
-    _cols   = num_cells_x;
-    _rows   = num_cells_y;
-    _stride = num_cells_x;
-  }
+  void resize(const std::size_t num_cells_x, const std::size_t num_cells_y);
 
 private:
-  bool shareGridDataFrom(GridDataMemoryHandler& source, const base::Rect2u& roi)
-  {
-    using LogError = base::Log<base::LogLevel::ERROR, base::LogGroup::ALGORITHM, class_name>;
-    using LogDebug = base::Log<base::LogLevel::DEBUG, base::LogGroup::ALGORITHM, class_name>;
-
-    if (roi.xMax() >= source._rows || roi.yMax() >= source._cols) {
-      // Log error and clear this grid data to fall into a safe state.
-      LogError() << "roi is out of range. source rows = " << source._rows << ", source cols = " << source._cols
-                 << ". roi = " << roi << ".";  
-      this->clear();
-      return false;
-    }
-
-    LogDebug() << "uses shared memory. Roi = " << roi << " from grid with following size: rows = " << source._rows
-               << " cols = " << source._cols << ".";
-
-    _is_shared_memory = true;
-
-    _data   = source._data;
-    _offset = roi.origin();
-    _cols   = roi.width();
-    _rows   = roi.height();
-    _stride = source._cols;
-
-    return true;
-  }
+  bool shareGridDataFrom(GridDataMemoryHandler& source, const base::Rect2u& roi);
 
   bool _is_shared_memory = false;
   std::shared_ptr<std::vector<CellType>> _data;
@@ -153,18 +83,7 @@ public:
   /**
    * \brief Moves all context to this and resets the origin grid object.
    */
-  Grid& operator=(Grid&& origin)
-  {
-    _data = std::move(origin._data);
-
-    _cell_size   = origin._cell_size;
-    _size_x      = origin._size_x;
-    _size_y      = origin._size_y;
-
-    origin.clear();
-
-    return *this;
-  }
+  Grid& operator=(Grid&& origin);
 
   /**
    * \brief Initialize this grid using the given arguments. The size is given in number of cells in x and y direction.
@@ -176,18 +95,10 @@ public:
    */
   bool init(const std::size_t numCellsX, const std::size_t numCellsY, const double cellSize);
 
-
   /**
    * \brief Resets this grid. The grid will be empty and invalid.
    */
-  void clear()
-  {
-    _cell_size   = 0.0;
-    _size_x      = 0.0;
-    _size_y      = 0.0;
-
-    _data.clear();
-  }
+  void clear();
 
   /**
    * \brief Checks if this grid is empty.

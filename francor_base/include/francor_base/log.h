@@ -47,7 +47,7 @@ public:
     if (Level >= getLogLevel()) {
       this->printWarnLevel(Level);
 
-      if (Name != nullptr) {
+      if constexpr (Name != nullptr) {
         this->printName(Name);
       }
     }
