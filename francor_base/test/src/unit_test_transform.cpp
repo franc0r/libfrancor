@@ -6,9 +6,13 @@
  */
 #include <gtest/gtest.h>
 
+#include <random>
+#include <chrono>
+
 #include "francor_base/transform.h"
 #include "francor_base/point.h"
 #include "francor_base/algorithm/impl/transform_eigen.h"
+#include "francor_base/algorithm/impl/transform_std.h"
 
 using francor::base::Transform2d;
 using francor::base::Vector2d;
@@ -74,6 +78,41 @@ TEST(TransfromEigenLib, TransformPointVector)
 
   const Transform2d transform({ Angle::createFromDegree(180.0) }, {  0.0, 0.0 });
   transformPointVector(transform, inputPoints);
+}
+
+TEST(TransformPointVector, Benchmark)
+{
+  using francor::base::Point2dVector;
+
+  std::random_device rd;  
+  std::mt19937 gen(rd()); 
+  std::uniform_int_distribution<> distrib(-10000, 10000);
+  constexpr std::size_t iterations = 1000000;
+  const Transform2d transform({ Angle::createFromDegree(180.0) }, {  0.0, 0.0 });
+
+  Point2dVector set_a(iterations);
+
+  for (std::size_t i = 0; i < set_a.size(); ++i) {
+    set_a[i].x() = static_cast<double>(distrib(gen));
+    set_a[i].y() = static_cast<double>(distrib(gen));
+  }
+
+  Point2dVector set_b(set_a);
+  std::cout << "transform points using std" << std::endl;
+  auto start = std::chrono::system_clock::now();
+  francor::base::algorithm::transform::std::transformPointVector(transform, set_a);
+  auto end = std::chrono::system_clock::now();
+  auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+  std::cout << "elapsed = " << elapsed.count() << " us" << std::endl; 
+  
+  std::cout << "finished" << std::endl;
+  std::cout << "transform points using eigen" << std::endl;
+  start = std::chrono::system_clock::now();
+  francor::base::algorithm::transform::eigen::transformPointVector(transform, set_b);
+  end = std::chrono::system_clock::now();
+  elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+  std::cout << "finish" << std::endl;
+  std::cout << "elapsed = " << elapsed.count() << " us" << std::endl; 
 }
 
 int main(int argc, char **argv)

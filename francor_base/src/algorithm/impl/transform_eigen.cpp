@@ -19,7 +19,7 @@ void transformPointVector(const Transform2d& transform, Point2dVector& points)
 {
   using Map = Eigen::Map<Eigen::Matrix<double, 2, Eigen::Dynamic, Eigen::ColMajor>, Eigen::Aligned16, Eigen::InnerStride<2>>;
   Map point_mat(reinterpret_cast<double*>(points.data()), 2, points.size());
-  std::cout << "point mat:" << std::endl << point_mat << std::endl;
+  // std::cout << "point mat:" << std::endl << point_mat << std::endl;
 
   const Eigen::Translation2d t_t(transform.translation().x(), transform.translation().y());
   const Eigen::Rotation2Dd t_r(transform.rotation().phi());
@@ -28,7 +28,7 @@ void transformPointVector(const Transform2d& transform, Point2dVector& points)
   // std::cout << "T:" << std::endl << T.matrix() << std::endl;
   point_mat = t_r.matrix() * point_mat;
   point_mat.colwise() + t;
-  std::cout << "transformed point mat:" << std::endl << point_mat << std::endl;
+  // std::cout << "transformed point mat:" << std::endl << point_mat << std::endl;
 }
 
 } // end namespace eigen
