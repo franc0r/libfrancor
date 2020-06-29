@@ -5,6 +5,8 @@
  */
 #pragma once
 
+#include "francor_base/point.h"
+
 namespace francor {
 
 namespace base {

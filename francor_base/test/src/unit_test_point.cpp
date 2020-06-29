@@ -12,9 +12,13 @@ using francor::base::Point2d;
 
 TEST(Point2d, Instantiate)
 {
-  // Point<double, 2> point;
+  Point2d point[2];
 
-  // point.x();
+  for (int i = 0; i < 2; ++i) {
+    std::cout << "point[" << i << "]: " << &point[i] << std::endl;
+    std::cout << "x: " << &point[i].x() << std::endl;
+    std::cout << "y: " << &point[i].y() << std::endl;
+  }
 }
 
 int main(int argc, char **argv)

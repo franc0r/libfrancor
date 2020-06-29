@@ -7,7 +7,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
                       /usr/share/cmake
 )
 
-add_compile_options(-Wall -O2)
+add_compile_options(-Wall -O2 -march=native)
 
 set(CMAKE_CXX_STANDARD 17)
 

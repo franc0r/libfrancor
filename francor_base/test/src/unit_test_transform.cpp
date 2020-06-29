@@ -7,6 +7,8 @@
 #include <gtest/gtest.h>
 
 #include "francor_base/transform.h"
+#include "francor_base/point.h"
+#include "francor_base/algorithm/impl/transform_eigen.h"
 
 using francor::base::Transform2d;
 using francor::base::Vector2d;
@@ -59,6 +61,19 @@ TEST(Transform, TransformTransform)
   const Point2d p2_transformed = t_12 * t_01 * p_2;
   EXPECT_NEAR(p2_transformed.x(), p_0.x(), 1e-6);
   EXPECT_NEAR(p2_transformed.y(), p_0.y(), 1e-6);
+}
+
+TEST(TransfromEigenLib, TransformPointVector)
+{
+  using francor::base::algorithm::transform::eigen::transformPointVector;
+  using francor::base::Point2dVector;
+
+  Point2dVector inputPoints = { { 0.0, 1.0 }, { 1.0, 1.0 }, { 2.0, 1.0 }, { 3.0, 1.0 }, { 4.0, 1.0 },
+                                { 0.0, 3.0 }, { 1.0, 3.0 }, { 2.0, 3.0 }, { 3.0, 3.0 }, { 4.0, 3.0 },
+                                { 9.0, 9.0 }, { 5.0, 0.0 } };
+
+  const Transform2d transform({ Angle::createFromDegree(180.0) }, {  0.0, 0.0 });
+  transformPointVector(transform, inputPoints);
 }
 
 int main(int argc, char **argv)
