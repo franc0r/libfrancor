@@ -85,3 +85,20 @@ add_test(
   NAME validation-occupancy-register-and-reconstruction
   COMMAND validation-occupancy-register-and-reconstruction
 )
+
+
+# unit test state attribute vector
+add_executable(unit-test-state-attribute-vector
+  src/unit_test_state_attribute_vector.cpp
+)
+
+target_link_libraries(unit-test-state-attribute-vector
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-mapping
+)
+
+add_test(
+  NAME test-state-attribute-vector
+  COMMAND unit-test-state-attribute-vector
+)
