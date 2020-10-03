@@ -1,8 +1,8 @@
 /**
- * Unit test for grid algorithm.
+ * Unit test for state attribute vector.
  *
  * \author Christian Merkl (knueppl@gmx.de)
- * \date 30. December 2019
+ * \date 03. October 2020
  */
 #include <gtest/gtest.h>
 
@@ -17,6 +17,9 @@ using TestAttributeVector = StateAttributeVector<StateAttribute::ACC_X,
                                                  StateAttribute::POS_X,
                                                  StateAttribute::POS_Y>;
 
+/**
+ * \brief Checks the method hasAttribute() of StateAttributeVector.
+ */
 TEST(StateAttributeVector, hasAttribute)
 {
   // first test positive requests
@@ -36,6 +39,10 @@ TEST(StateAttributeVector, hasAttribute)
   EXPECT_FALSE(TestAttributeVector::hasAttribute<StateAttribute::YAW_RATE>());
 }
 
+/**
+ * \brief Checks the method getAttributeIndex() of StateAttributeVector 
+ *        using the defined TestAttributeVector.
+ */
 TEST(StateAttributeVector, getAttributeIndex)
 {
   EXPECT_EQ(0, TestAttributeVector::getAttributeIndex<StateAttribute::ACC_X>());
