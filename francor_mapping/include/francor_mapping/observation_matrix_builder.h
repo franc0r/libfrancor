@@ -1,5 +1,5 @@
 /**
- * This file defines a builder class to create an observation matrix from KinematicAttributeVector.
+ * This file defines a builder class to create an observation matrix from KinematicAttributePack.
  * \author Christian Wendt (knueppl@gmx.de)
  * \date 3. October 2020
  */
@@ -19,7 +19,7 @@ template <typename, typename>
 struct ObservationMatrix;
 
 template <KinematicAttribute... AttributesA, KinematicAttribute... AttributesB>
-struct ObservationMatrix<KinematicAttributeVector<AttributesA...>, KinematicAttributeVector<AttributesB...>>
+struct ObservationMatrix<KinematicAttributePack<AttributesA...>, KinematicAttributePack<AttributesB...>>
 {
   static constexpr std::size_t rows = sizeof...(AttributesA);
   static constexpr std::size_t cols = sizeof...(AttributesB);
@@ -37,8 +37,8 @@ private:
     template <std::size_t Row, std::size_t Col>
     static constexpr double estimateMatrixElementValue()
     {
-      constexpr auto attribute_a = KinematicAttributeVector<AttributesA...>::template getAttributeByIndex<Row>();
-      constexpr auto attribute_b = KinematicAttributeVector<AttributesB...>::template getAttributeByIndex<Col>();
+      constexpr auto attribute_a = KinematicAttributePack<AttributesA...>::template getAttributeByIndex<Row>();
+      constexpr auto attribute_b = KinematicAttributePack<AttributesB...>::template getAttributeByIndex<Col>();
 
       return attribute_a == attribute_b ? 1.0 : 0.0;
     }
@@ -65,7 +65,7 @@ template <class VectorA, class VectorB>
 struct ObservationMatrixBuilder;
 
 template <KinematicAttribute... AttributesA, KinematicAttribute... AttributesB>
-struct ObservationMatrixBuilder<KinematicAttributeVector<AttributesA...>, KinematicAttributeVector<AttributesB...>>
+struct ObservationMatrixBuilder<KinematicAttributePack<AttributesA...>, KinematicAttributePack<AttributesB...>>
 {
   using MatrixType = base::Matrix<double, sizeof...(AttributesA), sizeof...(AttributesB)>;
 

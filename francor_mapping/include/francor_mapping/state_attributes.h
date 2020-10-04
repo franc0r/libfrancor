@@ -33,17 +33,42 @@ namespace impl {
  *        and to get the index of an attribute.
  */
 template <std::size_t Index, KinematicAttribute... Attributes>
-struct KinematicAttributeVector;
+struct KinematicAttributePack;
+
+template <typename DataType>
+class KinematicAttributeValueBase
+{
+public:
+  using data_type = DataType;
+
+protected:
+  constexpr KinematicAttributeValueBase() { }
+  inline constexpr operator const DataType&() const { return _value; }
+  inline constexpr KinematicAttributeValueBase& operator=(const DataType& new_value) { _value = new_value; }
+
+protected:
+  DataType _value;
+};
+
+template <std::size_t Index, KinematicAttribute Attribute>
+class KinematicAttributeValue;
+
+template <std::size_t Index, KinematicAttribute Attribute>
+class KinematicAttributeValue : public KinematicAttributeValueBase<double> { };
+
+template <std::size_t Index>
+class KinematicAttributeValue<Index, KinematicAttribute::ROLL> : public KinematicAttributeValueBase<double> { };
 
 /**
  * \brief Specialization for the top level struct (no state attribute is left).
  */
 template <std::size_t Index>
-struct KinematicAttributeVector<Index>
+struct KinematicAttributePack<Index>
 {
   template <KinematicAttribute RequestAttribute>
   static constexpr bool hasAttribute() { /* returns false in case RequestedAttribute is in this vector */ return false; }
-
+  template <KinematicAttribute Attribute>
+  static constexpr std::size_t countQuantityOfAttribute() { return 0; }
   static inline constexpr std::size_t count() { return Index; }
 };
 
@@ -52,8 +77,24 @@ struct KinematicAttributeVector<Index>
  *        actually also implement the methods hasAttributes() and getAttributeIndex().
  */
 template <std::size_t Index, KinematicAttribute HeadAttribute, KinematicAttribute... TailAttributes>
-struct KinematicAttributeVector<Index, HeadAttribute, TailAttributes...> : public KinematicAttributeVector<Index + 1, TailAttributes...>
+struct KinematicAttributePack<Index, HeadAttribute, TailAttributes...> : public KinematicAttributePack<Index + 1, TailAttributes...>
 {
+protected:
+  template <KinematicAttribute Attribute>
+  static constexpr std::size_t countQuantityOfAttribute()
+  {
+    std::size_t count = 0;
+
+    if constexpr (Attribute == HeadAttribute) {
+      ++count;
+    }
+
+    return count + KinematicAttributePack<Index + 1, TailAttributes...>::template countQuantityOfAttribute<Attribute>();
+  }
+
+  static_assert(countQuantityOfAttribute<HeadAttribute>() == 1, "Each attribute must be exist only one time.");
+
+public:
   /**
    * \brief Checks if a state attribute is contained.
    * 
@@ -67,7 +108,7 @@ struct KinematicAttributeVector<Index, HeadAttribute, TailAttributes...> : publi
       return true;
     }
     else {
-      return KinematicAttributeVector<Index + 1, TailAttributes...>::template hasAttribute<TargetAttribute>();
+      return KinematicAttributePack<Index + 1, TailAttributes...>::template hasAttribute<TargetAttribute>();
     }
   }
 
@@ -85,7 +126,7 @@ struct KinematicAttributeVector<Index, HeadAttribute, TailAttributes...> : publi
       return Index;
     }
     else {
-      return KinematicAttributeVector<Index + 1, TailAttributes...>::template getAttributeIndex<TargetAttribute>();
+      return KinematicAttributePack<Index + 1, TailAttributes...>::template getAttributeIndex<TargetAttribute>();
     }
 
     // assert if the requested attribute isn't contained in this vector
@@ -102,7 +143,7 @@ struct KinematicAttributeVector<Index, HeadAttribute, TailAttributes...> : publi
       return HeadAttribute;
     }
     else {
-      return KinematicAttributeVector<Index + 1, TailAttributes...>::template getAttributeByIndex<TargetIndex>();
+      return KinematicAttributePack<Index + 1, TailAttributes...>::template getAttributeByIndex<TargetIndex>();
     }
 
     // assert if target index is out of range
@@ -114,7 +155,7 @@ struct KinematicAttributeVector<Index, HeadAttribute, TailAttributes...> : publi
 
   static inline constexpr std::size_t count()
   {
-    return KinematicAttributeVector<Index + 1, TailAttributes...>::count();
+    return KinematicAttributePack<Index + 1, TailAttributes...>::count();
   }
 };
 
@@ -122,7 +163,7 @@ struct KinematicAttributeVector<Index, HeadAttribute, TailAttributes...> : publi
 
 // create state attribute vector using an alias
 template <KinematicAttribute... Attributes>
-using KinematicAttributeVector = impl::KinematicAttributeVector<0, Attributes...>;
+using KinematicAttributePack = impl::KinematicAttributePack<0, Attributes...>;
 
 } // end namespace mapping
 

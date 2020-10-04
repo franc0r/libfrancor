@@ -9,18 +9,18 @@
 #include "francor_mapping/state_attributes.h"
 
 using francor::mapping::KinematicAttribute;
-using francor::mapping::KinematicAttributeVector;
+using francor::mapping::KinematicAttributePack;
 
 // defines attribute vector that is used for the unit tests
-using TestAttributeVector = KinematicAttributeVector<KinematicAttribute::ACC_X,
-                                                 KinematicAttribute::ACC_Y,
-                                                 KinematicAttribute::POS_X,
-                                                 KinematicAttribute::POS_Y>;
+using TestAttributeVector = KinematicAttributePack<KinematicAttribute::ACC_X,
+                                                   KinematicAttribute::ACC_Y,
+                                                   KinematicAttribute::POS_X,
+                                                   KinematicAttribute::POS_Y>;
 
 /**
- * \brief Checks the method hasAttribute() of KinematicAttributeVector.
+ * \brief Checks the method hasAttribute() of KinematicAttributePack.
  */
-TEST(KinematicAttributeVector, hasAttribute)
+TEST(KinematicAttributePack, hasAttribute)
 {
   // first test positive requests
   EXPECT_TRUE(TestAttributeVector::hasAttribute<KinematicAttribute::ACC_X>());
@@ -40,10 +40,10 @@ TEST(KinematicAttributeVector, hasAttribute)
 }
 
 /**
- * \brief Checks the method getAttributeIndex() of KinematicAttributeVector 
+ * \brief Checks the method getAttributeIndex() of KinematicAttributePack 
  *        using the defined TestAttributeVector.
  */
-TEST(KinematicAttributeVector, getAttributeIndex)
+TEST(KinematicAttributePack, getAttributeIndex)
 {
   EXPECT_EQ(0, TestAttributeVector::getAttributeIndex<KinematicAttribute::ACC_X>());
   EXPECT_EQ(1, TestAttributeVector::getAttributeIndex<KinematicAttribute::ACC_Y>());
@@ -58,7 +58,7 @@ TEST(KinematicAttributeVector, getAttributeIndex)
 /**
  * \brief Checks the method getNumberOfAttributes() using defined TestAttributeVector.
  */
-TEST(KinematicAttributeVector, getNumberOfAttributes)
+TEST(KinematicAttributePack, getNumberOfAttributes)
 {
   EXPECT_EQ(4, TestAttributeVector::count());
 }

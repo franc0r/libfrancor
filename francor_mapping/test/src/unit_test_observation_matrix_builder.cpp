@@ -9,18 +9,18 @@
 #include "francor_mapping/observation_matrix_builder.h"
 
 using francor::mapping::KinematicAttribute;
-using francor::mapping::KinematicAttributeVector;
+using francor::mapping::KinematicAttributePack;
 using francor::mapping::ObservationMatrix;
 using francor::mapping::ObservationMatrixBuilder;
 
-using AttributeVectorA = KinematicAttributeVector<KinematicAttribute::ACC_X,
+using AttributeVectorA = KinematicAttributePack<KinematicAttribute::ACC_X,
                                               KinematicAttribute::ACC_Y,
                                               KinematicAttribute::POS_X,
                                               KinematicAttribute::POS_Y,
                                               KinematicAttribute::VEL_X,
                                               KinematicAttribute::VEL_Y>;
 
-using AttributeVectorB = KinematicAttributeVector<KinematicAttribute::POS_Y,
+using AttributeVectorB = KinematicAttributePack<KinematicAttribute::POS_Y,
                                               KinematicAttribute::POS_X,
                                               KinematicAttribute::VEL_Y,
                                               KinematicAttribute::VEL_X>;
