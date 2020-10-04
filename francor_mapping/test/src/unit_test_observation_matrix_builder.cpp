@@ -8,27 +8,28 @@
 
 #include "francor_mapping/observation_matrix_builder.h"
 
-using francor::mapping::StateAttribute;
-using francor::mapping::StateAttributeVector;
+using francor::mapping::KinematicAttribute;
+using francor::mapping::KinematicAttributeVector;
 using francor::mapping::ObservationMatrix;
 using francor::mapping::ObservationMatrixBuilder;
 
-using AttributeVectorA = StateAttributeVector<StateAttribute::ACC_X,
-                                              StateAttribute::ACC_Y,
-                                              StateAttribute::POS_X,
-                                              StateAttribute::POS_Y,
-                                              StateAttribute::VEL_X,
-                                              StateAttribute::VEL_Y>;
+using AttributeVectorA = KinematicAttributeVector<KinematicAttribute::ACC_X,
+                                              KinematicAttribute::ACC_Y,
+                                              KinematicAttribute::POS_X,
+                                              KinematicAttribute::POS_Y,
+                                              KinematicAttribute::VEL_X,
+                                              KinematicAttribute::VEL_Y>;
 
-using AttributeVectorB = StateAttributeVector<StateAttribute::POS_Y,
-                                              StateAttribute::POS_X,
-                                              StateAttribute::VEL_Y,
-                                              StateAttribute::VEL_X>;
+using AttributeVectorB = KinematicAttributeVector<KinematicAttribute::POS_Y,
+                                              KinematicAttribute::POS_X,
+                                              KinematicAttribute::VEL_Y,
+                                              KinematicAttribute::VEL_X>;
 
 TEST(ObservationMatrixBuilder, CreateObservationMatrix)
 {
   using BuilderType = ObservationMatrixBuilder<AttributeVectorA, AttributeVectorB>;
   using MatrixType = ObservationMatrix<AttributeVectorA, AttributeVectorB>;
+
 
   for (std::size_t row = 0; row < MatrixType::rows; ++row) {
     for (std::size_t col = 0; col < MatrixType::cols; ++col) {

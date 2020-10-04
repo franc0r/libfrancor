@@ -1,5 +1,5 @@
 /**
- * This file defines a builder class to create an observation matrix from StateAttributeVector.
+ * This file defines a builder class to create an observation matrix from KinematicAttributeVector.
  * \author Christian Wendt (knueppl@gmx.de)
  * \date 3. October 2020
  */
@@ -18,8 +18,8 @@ namespace mapping {
 template <typename, typename>
 struct ObservationMatrix;
 
-template <StateAttribute... AttributesA, StateAttribute... AttributesB>
-struct ObservationMatrix<StateAttributeVector<AttributesA...>, StateAttributeVector<AttributesB...>>
+template <KinematicAttribute... AttributesA, KinematicAttribute... AttributesB>
+struct ObservationMatrix<KinematicAttributeVector<AttributesA...>, KinematicAttributeVector<AttributesB...>>
 {
   static constexpr std::size_t rows = sizeof...(AttributesA);
   static constexpr std::size_t cols = sizeof...(AttributesB);
@@ -28,7 +28,7 @@ struct ObservationMatrix<StateAttributeVector<AttributesA...>, StateAttributeVec
 
 private:
 
-  struct Array {
+  static constexpr struct Array {
     constexpr Array() : data{0}
     {
       this->initializeData(std::make_index_sequence<rows>{}, std::make_index_sequence<cols>{});
@@ -37,8 +37,8 @@ private:
     template <std::size_t Row, std::size_t Col>
     static constexpr double estimateMatrixElementValue()
     {
-      constexpr auto attribute_a = StateAttributeVector<AttributesA...>::template getAttributeByIndex<Row>();
-      constexpr auto attribute_b = StateAttributeVector<AttributesB...>::template getAttributeByIndex<Col>();
+      constexpr auto attribute_a = KinematicAttributeVector<AttributesA...>::template getAttributeByIndex<Row>();
+      constexpr auto attribute_b = KinematicAttributeVector<AttributesB...>::template getAttributeByIndex<Col>();
 
       return attribute_a == attribute_b ? 1.0 : 0.0;
     }
@@ -56,9 +56,7 @@ private:
     }
 
     double data[rows][cols];
-  };
-
-  static constexpr Array _values{};
+  } _values{};
 };
 
 // } // end namespace impl
@@ -66,8 +64,8 @@ private:
 template <class VectorA, class VectorB>
 struct ObservationMatrixBuilder;
 
-template <StateAttribute... AttributesA, StateAttribute... AttributesB>
-struct ObservationMatrixBuilder<StateAttributeVector<AttributesA...>, StateAttributeVector<AttributesB...>>
+template <KinematicAttribute... AttributesA, KinematicAttribute... AttributesB>
+struct ObservationMatrixBuilder<KinematicAttributeVector<AttributesA...>, KinematicAttributeVector<AttributesB...>>
 {
   using MatrixType = base::Matrix<double, sizeof...(AttributesA), sizeof...(AttributesB)>;
 

@@ -11,7 +11,7 @@ namespace francor {
 
 namespace mapping {
 
-enum class StateAttribute : std::uint8_t {
+enum class KinematicAttribute : std::uint8_t {
   POS_X = 0,
   POS_Y,
   VEL_X,
@@ -29,19 +29,19 @@ enum class StateAttribute : std::uint8_t {
 namespace impl {
 
 /**
- * \brief This template struct can hold a set of StateAttributes. It provides methods to check if an attributes is contained or not
+ * \brief This template struct can hold a set of KinematicAttributes. It provides methods to check if an attributes is contained or not
  *        and to get the index of an attribute.
  */
-template <std::size_t Index, StateAttribute... Attributes>
-struct StateAttributeVector;
+template <std::size_t Index, KinematicAttribute... Attributes>
+struct KinematicAttributeVector;
 
 /**
  * \brief Specialization for the top level struct (no state attribute is left).
  */
 template <std::size_t Index>
-struct StateAttributeVector<Index>
+struct KinematicAttributeVector<Index>
 {
-  template <StateAttribute RequestAttribute>
+  template <KinematicAttribute RequestAttribute>
   static constexpr bool hasAttribute() { /* returns false in case RequestedAttribute is in this vector */ return false; }
 
   static inline constexpr std::size_t count() { return Index; }
@@ -51,8 +51,8 @@ struct StateAttributeVector<Index>
  * \brief Specialization for core functionality. It is needed to seprate the first element of the expansion pack. This specialization
  *        actually also implement the methods hasAttributes() and getAttributeIndex().
  */
-template <std::size_t Index, StateAttribute HeadAttribute, StateAttribute... TailAttributes>
-struct StateAttributeVector<Index, HeadAttribute, TailAttributes...> : public StateAttributeVector<Index + 1, TailAttributes...>
+template <std::size_t Index, KinematicAttribute HeadAttribute, KinematicAttribute... TailAttributes>
+struct KinematicAttributeVector<Index, HeadAttribute, TailAttributes...> : public KinematicAttributeVector<Index + 1, TailAttributes...>
 {
   /**
    * \brief Checks if a state attribute is contained.
@@ -60,14 +60,14 @@ struct StateAttributeVector<Index, HeadAttribute, TailAttributes...> : public St
    * \tparam TargetAttribute TargetAttribute is the attribute that will be search.
    * \return true if the TargetAttribute is contained.
    */
-  template <StateAttribute TargetAttribute>
+  template <KinematicAttribute TargetAttribute>
   static constexpr bool hasAttribute()
   {
     if constexpr (TargetAttribute == HeadAttribute) {
       return true;
     }
     else {
-      return StateAttributeVector<Index + 1, TailAttributes...>::template hasAttribute<TargetAttribute>();
+      return KinematicAttributeVector<Index + 1, TailAttributes...>::template hasAttribute<TargetAttribute>();
     }
   }
 
@@ -78,14 +78,14 @@ struct StateAttributeVector<Index, HeadAttribute, TailAttributes...> : public St
    * \tparam TargetAttribute The index of this attribute will be returned.
    * \return Index of the given attribute.
    */
-  template <StateAttribute TargetAttribute>
+  template <KinematicAttribute TargetAttribute>
   static constexpr std::size_t getAttributeIndex()
   {
     if constexpr (TargetAttribute == HeadAttribute) {
       return Index;
     }
     else {
-      return StateAttributeVector<Index + 1, TailAttributes...>::template getAttributeIndex<TargetAttribute>();
+      return KinematicAttributeVector<Index + 1, TailAttributes...>::template getAttributeIndex<TargetAttribute>();
     }
 
     // assert if the requested attribute isn't contained in this vector
@@ -96,13 +96,13 @@ struct StateAttributeVector<Index, HeadAttribute, TailAttributes...> : public St
   }
 
   template <std::size_t TargetIndex>
-  static constexpr StateAttribute getAttributeByIndex()
+  static constexpr KinematicAttribute getAttributeByIndex()
   {
     if constexpr (TargetIndex == Index) {
       return HeadAttribute;
     }
     else {
-      return StateAttributeVector<Index + 1, TailAttributes...>::template getAttributeByIndex<TargetIndex>();
+      return KinematicAttributeVector<Index + 1, TailAttributes...>::template getAttributeByIndex<TargetIndex>();
     }
 
     // assert if target index is out of range
@@ -114,15 +114,15 @@ struct StateAttributeVector<Index, HeadAttribute, TailAttributes...> : public St
 
   static inline constexpr std::size_t count()
   {
-    return StateAttributeVector<Index + 1, TailAttributes...>::count();
+    return KinematicAttributeVector<Index + 1, TailAttributes...>::count();
   }
 };
 
 } // end namespace impl
 
 // create state attribute vector using an alias
-template <StateAttribute... Attributes>
-using StateAttributeVector = impl::StateAttributeVector<0, Attributes...>;
+template <KinematicAttribute... Attributes>
+using KinematicAttributeVector = impl::KinematicAttributeVector<0, Attributes...>;
 
 } // end namespace mapping
 

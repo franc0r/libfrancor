@@ -8,49 +8,49 @@
 
 #include "francor_mapping/state_attributes.h"
 
-using francor::mapping::StateAttribute;
-using francor::mapping::StateAttributeVector;
+using francor::mapping::KinematicAttribute;
+using francor::mapping::KinematicAttributeVector;
 
 // defines attribute vector that is used for the unit tests
-using TestAttributeVector = StateAttributeVector<StateAttribute::ACC_X,
-                                                 StateAttribute::ACC_Y,
-                                                 StateAttribute::POS_X,
-                                                 StateAttribute::POS_Y>;
+using TestAttributeVector = KinematicAttributeVector<KinematicAttribute::ACC_X,
+                                                 KinematicAttribute::ACC_Y,
+                                                 KinematicAttribute::POS_X,
+                                                 KinematicAttribute::POS_Y>;
 
 /**
- * \brief Checks the method hasAttribute() of StateAttributeVector.
+ * \brief Checks the method hasAttribute() of KinematicAttributeVector.
  */
-TEST(StateAttributeVector, hasAttribute)
+TEST(KinematicAttributeVector, hasAttribute)
 {
   // first test positive requests
-  EXPECT_TRUE(TestAttributeVector::hasAttribute<StateAttribute::ACC_X>());
-  EXPECT_TRUE(TestAttributeVector::hasAttribute<StateAttribute::ACC_Y>());
-  EXPECT_TRUE(TestAttributeVector::hasAttribute<StateAttribute::POS_X>());
-  EXPECT_TRUE(TestAttributeVector::hasAttribute<StateAttribute::POS_Y>());
+  EXPECT_TRUE(TestAttributeVector::hasAttribute<KinematicAttribute::ACC_X>());
+  EXPECT_TRUE(TestAttributeVector::hasAttribute<KinematicAttribute::ACC_Y>());
+  EXPECT_TRUE(TestAttributeVector::hasAttribute<KinematicAttribute::POS_X>());
+  EXPECT_TRUE(TestAttributeVector::hasAttribute<KinematicAttribute::POS_Y>());
 
   // then all negative request
-  EXPECT_FALSE(TestAttributeVector::hasAttribute<StateAttribute::VEL_X>());
-  EXPECT_FALSE(TestAttributeVector::hasAttribute<StateAttribute::VEL_Y>());
-  EXPECT_FALSE(TestAttributeVector::hasAttribute<StateAttribute::ROLL>());
-  EXPECT_FALSE(TestAttributeVector::hasAttribute<StateAttribute::PITCH>());
-  EXPECT_FALSE(TestAttributeVector::hasAttribute<StateAttribute::YAW>());
-  EXPECT_FALSE(TestAttributeVector::hasAttribute<StateAttribute::ROLL_RATE>());
-  EXPECT_FALSE(TestAttributeVector::hasAttribute<StateAttribute::PITCH_RATE>());
-  EXPECT_FALSE(TestAttributeVector::hasAttribute<StateAttribute::YAW_RATE>());
+  EXPECT_FALSE(TestAttributeVector::hasAttribute<KinematicAttribute::VEL_X>());
+  EXPECT_FALSE(TestAttributeVector::hasAttribute<KinematicAttribute::VEL_Y>());
+  EXPECT_FALSE(TestAttributeVector::hasAttribute<KinematicAttribute::ROLL>());
+  EXPECT_FALSE(TestAttributeVector::hasAttribute<KinematicAttribute::PITCH>());
+  EXPECT_FALSE(TestAttributeVector::hasAttribute<KinematicAttribute::YAW>());
+  EXPECT_FALSE(TestAttributeVector::hasAttribute<KinematicAttribute::ROLL_RATE>());
+  EXPECT_FALSE(TestAttributeVector::hasAttribute<KinematicAttribute::PITCH_RATE>());
+  EXPECT_FALSE(TestAttributeVector::hasAttribute<KinematicAttribute::YAW_RATE>());
 }
 
 /**
- * \brief Checks the method getAttributeIndex() of StateAttributeVector 
+ * \brief Checks the method getAttributeIndex() of KinematicAttributeVector 
  *        using the defined TestAttributeVector.
  */
-TEST(StateAttributeVector, getAttributeIndex)
+TEST(KinematicAttributeVector, getAttributeIndex)
 {
-  EXPECT_EQ(0, TestAttributeVector::getAttributeIndex<StateAttribute::ACC_X>());
-  EXPECT_EQ(1, TestAttributeVector::getAttributeIndex<StateAttribute::ACC_Y>());
-  EXPECT_EQ(2, TestAttributeVector::getAttributeIndex<StateAttribute::POS_X>());
-  EXPECT_EQ(3, TestAttributeVector::getAttributeIndex<StateAttribute::POS_Y>());
+  EXPECT_EQ(0, TestAttributeVector::getAttributeIndex<KinematicAttribute::ACC_X>());
+  EXPECT_EQ(1, TestAttributeVector::getAttributeIndex<KinematicAttribute::ACC_Y>());
+  EXPECT_EQ(2, TestAttributeVector::getAttributeIndex<KinematicAttribute::POS_X>());
+  EXPECT_EQ(3, TestAttributeVector::getAttributeIndex<KinematicAttribute::POS_Y>());
 
-  // EXPECT_EQ(0, TestAttributeVector::getAttributeIndex<StateAttribute::VEL_X>());
+  // EXPECT_EQ(0, TestAttributeVector::getAttributeIndex<KinematicAttribute::VEL_X>());
   // compilation fails because of an static assert.
   // @todo override somehow static_assert for this test. Somehow it should be possible...
 }
@@ -58,7 +58,7 @@ TEST(StateAttributeVector, getAttributeIndex)
 /**
  * \brief Checks the method getNumberOfAttributes() using defined TestAttributeVector.
  */
-TEST(StateAttributeVector, getNumberOfAttributes)
+TEST(KinematicAttributeVector, getNumberOfAttributes)
 {
   EXPECT_EQ(4, TestAttributeVector::count());
 }
