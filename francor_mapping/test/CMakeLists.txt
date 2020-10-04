@@ -102,3 +102,20 @@ add_test(
   NAME test-state-attribute-vector
   COMMAND unit-test-state-attribute-vector
 )
+
+
+# unit test observation matrix builder
+add_executable(unit-test-observation-matrix-builder
+  src/unit_test_observation_matrix_builder.cpp
+)
+
+target_link_libraries(unit-test-observation-matrix-builder
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-mapping
+)
+
+add_test(
+  NAME test-observation-matrix-builder
+  COMMAND unit-test-observation-matrix-builder
+)

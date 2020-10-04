@@ -55,6 +55,14 @@ TEST(StateAttributeVector, getAttributeIndex)
   // @todo override somehow static_assert for this test. Somehow it should be possible...
 }
 
+/**
+ * \brief Checks the method getNumberOfAttributes() using defined TestAttributeVector.
+ */
+TEST(StateAttributeVector, getNumberOfAttributes)
+{
+  EXPECT_EQ(4, TestAttributeVector::count());
+}
+
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);

@@ -43,6 +43,8 @@ struct StateAttributeVector<Index>
 {
   template <StateAttribute RequestAttribute>
   static constexpr bool hasAttribute() { /* returns false in case RequestedAttribute is in this vector */ return false; }
+
+  static inline constexpr std::size_t count() { return Index; }
 };
 
 /**
@@ -91,6 +93,28 @@ struct StateAttributeVector<Index, HeadAttribute, TailAttributes...> : public St
                   ||
                   (sizeof...(TailAttributes) > 0),
                   "Requested index for the given attribute doesn't exists.");
+  }
+
+  template <std::size_t TargetIndex>
+  static constexpr StateAttribute getAttributeByIndex()
+  {
+    if constexpr (TargetIndex == Index) {
+      return HeadAttribute;
+    }
+    else {
+      return StateAttributeVector<Index + 1, TailAttributes...>::template getAttributeByIndex<TargetIndex>();
+    }
+
+    // assert if target index is out of range
+    static_assert((sizeof...(TailAttributes) == 0 && TargetIndex == Index)
+                  ||
+                  (sizeof...(TailAttributes) > 0),
+                  "Given index is out of range.");
+  }
+
+  static inline constexpr std::size_t count()
+  {
+    return StateAttributeVector<Index + 1, TailAttributes...>::count();
   }
 };
 
