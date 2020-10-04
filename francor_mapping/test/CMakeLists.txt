@@ -119,3 +119,20 @@ add_test(
   NAME test-observation-matrix-builder
   COMMAND unit-test-observation-matrix-builder
 )
+
+
+# unit test observation matrix builder
+add_executable(unit-test-kinematic-state-vector
+  src/unit_test_kinematic_state_vector.cpp
+)
+
+target_link_libraries(unit-test-kinematic-state-vector
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-mapping
+)
+
+add_test(
+  NAME test-kinematic-state-vector
+  COMMAND unit-test-kinematic-state-vector
+)

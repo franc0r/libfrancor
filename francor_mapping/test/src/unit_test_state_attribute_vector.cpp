@@ -6,7 +6,7 @@
  */
 #include <gtest/gtest.h>
 
-#include "francor_mapping/state_attributes.h"
+#include "francor_mapping/kinematic_attributes.h"
 
 using francor::mapping::KinematicAttribute;
 using francor::mapping::KinematicAttributePack;

@@ -161,7 +161,7 @@ public:
 
 } // end namespace impl
 
-// create state attribute vector using an alias
+// create kinematic attribute vector using an alias
 template <KinematicAttribute... Attributes>
 using KinematicAttributePack = impl::KinematicAttributePack<0, Attributes...>;
 

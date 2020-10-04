@@ -5,7 +5,7 @@
  */
 #pragma once
 
-#include "francor_mapping/state_attributes.h"
+#include "francor_mapping/kinematic_attributes.h"
 #include <francor_base/matrix.h>
 
 namespace francor {
