@@ -35,30 +35,6 @@ namespace impl {
 template <std::size_t Index, KinematicAttribute... Attributes>
 struct KinematicAttributePack;
 
-template <typename DataType>
-class KinematicAttributeValueBase
-{
-public:
-  using data_type = DataType;
-
-protected:
-  constexpr KinematicAttributeValueBase() { }
-  inline constexpr operator const DataType&() const { return _value; }
-  inline constexpr KinematicAttributeValueBase& operator=(const DataType& new_value) { _value = new_value; }
-
-protected:
-  DataType _value;
-};
-
-template <std::size_t Index, KinematicAttribute Attribute>
-class KinematicAttributeValue;
-
-template <std::size_t Index, KinematicAttribute Attribute>
-class KinematicAttributeValue : public KinematicAttributeValueBase<double> { };
-
-template <std::size_t Index>
-class KinematicAttributeValue<Index, KinematicAttribute::ROLL> : public KinematicAttributeValueBase<double> { };
-
 /**
  * \brief Specialization for the top level struct (no state attribute is left).
  */
@@ -66,10 +42,9 @@ template <std::size_t Index>
 struct KinematicAttributePack<Index>
 {
   template <KinematicAttribute RequestAttribute>
-  static constexpr bool hasAttribute() { /* returns false in case RequestedAttribute is in this vector */ return false; }
-  template <KinematicAttribute Attribute>
-  static constexpr std::size_t countQuantityOfAttribute() { return 0; }
-  static inline constexpr std::size_t count() { return Index; }
+  inline static constexpr bool hasAttribute() { /* returns false in case RequestedAttribute is in this vector */ return false; }
+
+  inline static constexpr std::size_t count() { return Index; }
 };
 
 /**
@@ -83,13 +58,11 @@ protected:
   template <KinematicAttribute Attribute>
   static constexpr std::size_t countQuantityOfAttribute()
   {
-    std::size_t count = 0;
+    std::size_t count = (Attribute == HeadAttribute ? 1 : 0);
 
-    if constexpr (Attribute == HeadAttribute) {
-      ++count;
-    }
+    ( (Attribute == TailAttributes ? ++count : 0), ... );
 
-    return count + KinematicAttributePack<Index + 1, TailAttributes...>::template countQuantityOfAttribute<Attribute>();
+    return count;
   }
 
   static_assert(countQuantityOfAttribute<HeadAttribute>() == 1, "Each attribute must be exist only one time.");
@@ -102,7 +75,7 @@ public:
    * \return true if the TargetAttribute is contained.
    */
   template <KinematicAttribute TargetAttribute>
-  static constexpr bool hasAttribute()
+  inline static constexpr bool hasAttribute()
   {
     if constexpr (TargetAttribute == HeadAttribute) {
       return true;
@@ -120,7 +93,7 @@ public:
    * \return Index of the given attribute.
    */
   template <KinematicAttribute TargetAttribute>
-  static constexpr std::size_t getAttributeIndex()
+  inline static constexpr std::size_t getAttributeIndex()
   {
     if constexpr (TargetAttribute == HeadAttribute) {
       return Index;
@@ -137,7 +110,7 @@ public:
   }
 
   template <std::size_t TargetIndex>
-  static constexpr KinematicAttribute getAttributeByIndex()
+  inline static constexpr KinematicAttribute getAttributeByIndex()
   {
     if constexpr (TargetIndex == Index) {
       return HeadAttribute;
