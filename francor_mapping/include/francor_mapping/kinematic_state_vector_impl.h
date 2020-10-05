@@ -24,8 +24,8 @@ template <> struct resolve_type<KinematicAttribute::PITCH_RATE> { using type = f
 template <> struct resolve_type<KinematicAttribute::YAW_RATE>   { using type = francor::base::NormalizedAngle; };
 
 // @todo configure value for memory alignment properly
-template <KinematicAttribute Attribute, typename DataType = typename resolve_type<Attribute>::type>
-class alignas(16) KinematicStateVectorDataStoreage
+template <KinematicAttribute Attribute, std::size_t DataAlignment = 16, typename DataType = typename resolve_type<Attribute>::type>
+class alignas(DataAlignment) KinematicStateVectorDataStoreage
 {
 protected:
   using type = DataType;
@@ -57,6 +57,26 @@ public:
 };
 
 template <>
+class KinematicStateVectorData<KinematicAttribute::VEL_X> : public KinematicStateVectorDataStoreage<KinematicAttribute::VEL_X>
+{
+  using DataType = typename KinematicStateVectorDataStoreage<KinematicAttribute::VEL_X>::type;
+
+public:
+  inline constexpr DataType& velocityX() { return KinematicStateVectorDataStoreage<KinematicAttribute::VEL_X>::data; }
+  inline constexpr const DataType& velocityX() const { return KinematicStateVectorDataStoreage<KinematicAttribute::VEL_X>::data; }
+};
+
+template <>
+class KinematicStateVectorData<KinematicAttribute::VEL_Y> : public KinematicStateVectorDataStoreage<KinematicAttribute::VEL_Y>
+{
+  using DataType = typename KinematicStateVectorDataStoreage<KinematicAttribute::VEL_Y>::type;
+
+public:
+  inline constexpr DataType& velocityY() { return KinematicStateVectorDataStoreage<KinematicAttribute::VEL_Y>::data; }
+  inline constexpr const DataType& velocityY() const { return KinematicStateVectorDataStoreage<KinematicAttribute::VEL_Y>::data; }
+};
+
+template <>
 class KinematicStateVectorData<KinematicAttribute::ACC_X> : public KinematicStateVectorDataStoreage<KinematicAttribute::ACC_X>
 {
   using DataType = typename KinematicStateVectorDataStoreage<KinematicAttribute::ACC_X>::type;
@@ -84,6 +104,56 @@ class KinematicStateVectorData<KinematicAttribute::YAW> : public KinematicStateV
 public:
   inline constexpr DataType& yaw() { return KinematicStateVectorDataStoreage<KinematicAttribute::YAW>::data; }
   inline constexpr const DataType& yaw() const { return KinematicStateVectorDataStoreage<KinematicAttribute::YAW>::data; }
+};
+
+template <>
+class KinematicStateVectorData<KinematicAttribute::ROLL> : public KinematicStateVectorDataStoreage<KinematicAttribute::ROLL>
+{
+  using DataType = typename KinematicStateVectorDataStoreage<KinematicAttribute::ROLL>::type;
+
+public:
+  inline constexpr DataType& roll() { return KinematicStateVectorDataStoreage<KinematicAttribute::ROLL>::data; }
+  inline constexpr const DataType& roll() const { return KinematicStateVectorDataStoreage<KinematicAttribute::ROLL>::data; }
+};
+
+template <>
+class KinematicStateVectorData<KinematicAttribute::PITCH> : public KinematicStateVectorDataStoreage<KinematicAttribute::PITCH>
+{
+  using DataType = typename KinematicStateVectorDataStoreage<KinematicAttribute::PITCH>::type;
+
+public:
+  inline constexpr DataType& pitch() { return KinematicStateVectorDataStoreage<KinematicAttribute::PITCH>::data; }
+  inline constexpr const DataType& pitch() const { return KinematicStateVectorDataStoreage<KinematicAttribute::PITCH>::data; }
+};
+
+template <>
+class KinematicStateVectorData<KinematicAttribute::ROLL_RATE> : public KinematicStateVectorDataStoreage<KinematicAttribute::ROLL_RATE>
+{
+  using DataType = typename KinematicStateVectorDataStoreage<KinematicAttribute::ROLL_RATE>::type;
+
+public:
+  inline constexpr DataType& rollRate() { return KinematicStateVectorDataStoreage<KinematicAttribute::ROLL_RATE>::data; }
+  inline constexpr const DataType& rollRate() const { return KinematicStateVectorDataStoreage<KinematicAttribute::ROLL_RATE>::data; }
+};
+
+template <>
+class KinematicStateVectorData<KinematicAttribute::PITCH_RATE> : public KinematicStateVectorDataStoreage<KinematicAttribute::PITCH_RATE>
+{
+  using DataType = typename KinematicStateVectorDataStoreage<KinematicAttribute::PITCH_RATE>::type;
+
+public:
+  inline constexpr DataType& pitchRate() { return KinematicStateVectorDataStoreage<KinematicAttribute::PITCH_RATE>::data; }
+  inline constexpr const DataType& pitchRate() const { return KinematicStateVectorDataStoreage<KinematicAttribute::PITCH_RATE>::data; }
+};
+
+template <>
+class KinematicStateVectorData<KinematicAttribute::YAW_RATE> : public KinematicStateVectorDataStoreage<KinematicAttribute::YAW_RATE>
+{
+  using DataType = typename KinematicStateVectorDataStoreage<KinematicAttribute::YAW_RATE>::type;
+
+public:
+  inline constexpr DataType& yawRate() { return KinematicStateVectorDataStoreage<KinematicAttribute::YAW_RATE>::data; }
+  inline constexpr const DataType& yawRate() const { return KinematicStateVectorDataStoreage<KinematicAttribute::YAW_RATE>::data; }
 };
 
 template <std::size_t Index, KinematicAttribute... Attributes>
