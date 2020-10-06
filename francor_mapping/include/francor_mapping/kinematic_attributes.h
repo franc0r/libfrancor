@@ -55,6 +55,11 @@ template <std::size_t Index, KinematicAttribute HeadAttribute, KinematicAttribut
 struct KinematicAttributePack<Index, HeadAttribute, TailAttributes...> : public KinematicAttributePack<Index + 1, TailAttributes...>
 {
 protected:
+  /**
+   * \brief Counts the quantity of given attribute in this class and all parent classes.
+   * \tparam Attribute Counts quantity of this attribute.
+   * \return Quantity of given attribute.
+   */
   template <KinematicAttribute Attribute>
   static constexpr std::size_t countQuantityOfAttribute()
   {
@@ -65,6 +70,8 @@ protected:
     return count;
   }
 
+  // Checks if the attribute of this class exists only once. It starts at index 0 and works like:
+  // i0 == i1, i0 == i2, ..., i0 == in-1, i1 == i2, i1 == i3, ..., i1 == in-1, ..., in-1 == in-1
   static_assert(countQuantityOfAttribute<HeadAttribute>() == 1, "Each attribute must be exist only one time.");
 
 public:
@@ -109,6 +116,11 @@ public:
                   "Requested index for the given attribute doesn't exists.");
   }
 
+  /**
+   * \brief Returns attribute of given index. Compilation fails if given index doesn't exist.
+   * \tparam TargetIndex Index of wanted attribute.
+   * \return Attribute of given index.
+   */
   template <std::size_t TargetIndex>
   inline static constexpr KinematicAttribute getAttributeByIndex()
   {
@@ -126,6 +138,10 @@ public:
                   "Given index is out of range.");
   }
 
+  /**
+   * \brief Return the quantity of attributes of this class and all parent classes.
+   * \return Count of attributes.
+   */
   static inline constexpr std::size_t count()
   {
     return KinematicAttributePack<Index + 1, TailAttributes...>::count();
