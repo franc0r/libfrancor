@@ -13,9 +13,7 @@ namespace mapping {
 
 namespace impl {
 
-template <KinematicAttribute Attribute>
-struct resolve_type { using type = double; };
-
+// specialization for resolve types to uses specific data type for some attributes
 template <> struct resolve_type<KinematicAttribute::ROLL>       { using type = francor::base::NormalizedAngle; };
 template <> struct resolve_type<KinematicAttribute::PITCH>      { using type = francor::base::NormalizedAngle; };
 template <> struct resolve_type<KinematicAttribute::YAW>        { using type = francor::base::NormalizedAngle; };
@@ -23,19 +21,7 @@ template <> struct resolve_type<KinematicAttribute::ROLL_RATE>  { using type = f
 template <> struct resolve_type<KinematicAttribute::PITCH_RATE> { using type = francor::base::NormalizedAngle; };
 template <> struct resolve_type<KinematicAttribute::YAW_RATE>   { using type = francor::base::NormalizedAngle; };
 
-// @todo configure value for memory alignment properly
-template <KinematicAttribute Attribute, std::size_t DataAlignment = 16, typename DataType = typename resolve_type<Attribute>::type>
-class alignas(DataAlignment) KinematicStateVectorDataStoreage
-{
-protected:
-  using type = DataType;
-
-  DataType data{};
-};
-
-template <KinematicAttribute Attribute>
-class KinematicStateVectorData : public KinematicStateVectorDataStoreage<Attribute> { };
-
+// specialization for state vector data to enable specific methods like x() for position x
 template <>
 class KinematicStateVectorData<KinematicAttribute::POS_X> : public KinematicStateVectorDataStoreage<KinematicAttribute::POS_X>
 {
@@ -156,44 +142,7 @@ public:
   inline constexpr const DataType& yawRate() const { return KinematicStateVectorDataStoreage<KinematicAttribute::YAW_RATE>::data; }
 };
 
-template <std::size_t Index, KinematicAttribute... Attributes>
-class KinematicStateVectorValue;
-
-template <std::size_t Index>
-class KinematicStateVectorValue<Index> { };
-
-template <std::size_t Index, KinematicAttribute HeadAttribute, KinematicAttribute... TailAttributes>
-class KinematicStateVectorValue<Index, HeadAttribute, TailAttributes...> 
-  : public KinematicStateVectorValue<Index + 1, TailAttributes...>
-  , public KinematicStateVectorData<HeadAttribute>
-{
-public:
-  template <KinematicAttribute Attribute>
-  inline constexpr const typename resolve_type<Attribute>::type& value() const
-  {
-    if constexpr (Attribute == HeadAttribute) {
-      return KinematicStateVectorData<HeadAttribute>::data;
-    }
-    else {
-      return KinematicStateVectorValue<Index + 1, TailAttributes...>::template value<Attribute>();
-    }
-  }
-  template <KinematicAttribute Attribute>
-  inline constexpr typename resolve_type<Attribute>::type& value()
-  {
-    if constexpr (Attribute == HeadAttribute) {
-      return KinematicStateVectorData<HeadAttribute>::data;
-    }
-    else {
-      return KinematicStateVectorValue<Index + 1, TailAttributes...>::template value<Attribute>();
-    }
-  }
-};
-
 } // end namespace impl
-
-template <KinematicAttribute... Attributes>
-using KinematicStateVectorValue = impl::KinematicStateVectorValue<0, Attributes...>;
 
 } // end namespace mapping
 
