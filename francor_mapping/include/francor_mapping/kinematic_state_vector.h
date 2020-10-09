@@ -5,6 +5,8 @@
  */
 #pragma once
 
+#include <francor_base/vector.h>
+
 #include "francor_mapping/kinematic_attributes.h"
 
 namespace francor {
@@ -77,7 +79,24 @@ class KinematicStateVector<KinematicAttributePack<Attributes...>>
   , public KinematicStateVectorValue<Attributes...>
 {
 public:
+  static constexpr std::size_t size = KinematicAttributePack<Attributes...>::count();
+  using type = double;
 
+  operator base::VectorX<type, size>() const
+  {
+    base::VectorX<type, size> data;
+    std::size_t i = 0;
+    ((data[i++] = static_cast<type>(this->template value<Attributes>())), ...);
+
+    return data;
+  }
+
+  KinematicStateVector<KinematicAttributePack<Attributes...>>& operator=(const base::VectorX<type, size>& rhs)
+  {
+    std::size_t i = 0;
+    ((this->template value<Attributes>() = rhs[i++]), ...);
+    return *this;
+  }
 };
 
 } // end namespace mapping

@@ -87,20 +87,20 @@ add_test(
 )
 
 
-# unit test state attribute vector
-add_executable(unit-test-state-attribute-vector
-  src/unit_test_state_attribute_vector.cpp
+# unit test kinematic attribute pack
+add_executable(unit-test-kinematic-attribute-pack
+  src/unit_test_kinematic_attribute_pack.cpp
 )
 
-target_link_libraries(unit-test-state-attribute-vector
+target_link_libraries(unit-test-kinematic-attribute-pack
   PRIVATE GTest::GTest
   PRIVATE GTest::Main
   PRIVATE francor-mapping
 )
 
 add_test(
-  NAME test-state-attribute-vector
-  COMMAND unit-test-state-attribute-vector
+  NAME test-kinematic-attribute-pack
+  COMMAND unit-test-kinematic-attribute-pack
 )
 
 
@@ -121,7 +121,7 @@ add_test(
 )
 
 
-# unit test observation matrix builder
+# unit test kinematic state vector
 add_executable(unit-test-kinematic-state-vector
   src/unit_test_kinematic_state_vector.cpp
 )
