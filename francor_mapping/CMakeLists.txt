@@ -11,6 +11,7 @@ add_library(${PROJECT_NAME} SHARED
   src/pipeline_stage_ego_object.cpp
   src/pipeline_stage_occupancy_grid.cpp
   src/pipeline_occupancy_grid.cpp
+  src/ego_kalman_filter_model.cpp
 )
 
 target_include_directories(${PROJECT_NAME}

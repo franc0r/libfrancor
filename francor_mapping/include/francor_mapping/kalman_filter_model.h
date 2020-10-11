@@ -33,12 +33,21 @@ public:
   using data_type = typename StateVector::type;
   using Matrix = francor::base::Matrix<data_type, dimension, dimension>;
 
+  constexpr KalmanFilterModel() { }
+
   /**
    * \brief Provides a matrix that can be used to predict in time the current state.
    * \param delta_time Is delta t. The state wil be predicted by this time step.
    * \return Prediction matrix with dimension of this model.
    */
-  virtual Matrix getPredictionMatrix(const double delta_time) const = 0;
+  virtual Matrix getPredictionMatrix(const StateVector& current_state, const double delta_time) const = 0;
+
+  /**
+   * \brief Creates the system noise covariance matrix based on delta t.
+   * \param delta_time Is delta t. The created noise covariance matrix will reflect this time period.
+   * \return System noise covariance matrix.
+   */
+  virtual Matrix getSystemNoiseMatrix(const double delta_time) const = 0;
 };
 
 } // end namespace mapping

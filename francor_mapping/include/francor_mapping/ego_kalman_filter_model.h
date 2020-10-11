@@ -17,23 +17,15 @@ using EgoModelKalmanAttributes = KinematicAttributePack<KinematicAttribute::POS_
                                                         KinematicAttribute::VEL_X,
                                                         KinematicAttribute::VEL_Y,
                                                         KinematicAttribute::ACC_X,
-                                                        KinematicAttribute::ACC_Y,
-                                                        KinematicAttribute::ROLL,
-                                                        KinematicAttribute::PITCH,
                                                         KinematicAttribute::YAW,
-                                                        KinematicAttribute::ROLL_RATE,
-                                                        KinematicAttribute::PITCH_RATE,
                                                         KinematicAttribute::YAW_RATE>;
 
 class EgoKalmanFilterModel : public KalmanFilterModel<EgoModelKalmanAttributes>
 {
 public:
-  EgoKalmanFilterModel();
 
-  Matrix getPredictionMatrix(const double delta_time) const override;
-
-private:
-  
+  Matrix getPredictionMatrix(const StateVector& current_state, const double delta_time) const override;
+  Matrix getSystemNoiseMatrix(const double delta_time) const override;
 };
 
 } // end namespace mapping

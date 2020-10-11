@@ -81,8 +81,9 @@ class KinematicStateVector<KinematicAttributePack<Attributes...>>
 public:
   static constexpr std::size_t size = KinematicAttributePack<Attributes...>::count();
   using type = double;
+  using Vector = francor::base::VectorX<type, size>;
 
-  operator base::VectorX<type, size>() const
+  operator Vector() const
   {
     base::VectorX<type, size> data;
     std::size_t i = 0;
@@ -91,7 +92,7 @@ public:
     return data;
   }
 
-  KinematicStateVector<KinematicAttributePack<Attributes...>>& operator=(const base::VectorX<type, size>& rhs)
+  KinematicStateVector<KinematicAttributePack<Attributes...>>& operator=(const Vector& rhs)
   {
     std::size_t i = 0;
     ((this->template value<Attributes>() = rhs[i++]), ...);
