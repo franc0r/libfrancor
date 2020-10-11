@@ -136,3 +136,20 @@ add_test(
   NAME test-kinematic-state-vector
   COMMAND unit-test-kinematic-state-vector
 )
+
+
+# unit test kalman filter
+add_executable(unit-test-kalman-filter
+  src/unit_test_kalman_filter.cpp
+)
+
+target_link_libraries(unit-test-kalman-filter
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-mapping
+)
+
+add_test(
+  NAME test-kalman-filter
+  COMMAND unit-test-kalman-filter
+)
