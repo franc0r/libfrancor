@@ -21,8 +21,10 @@ using TestAttributes = KinematicAttributePack<KinematicAttribute::ACC_X,
 
 using AllAttributes = KinematicAttributePack<KinematicAttribute::POS_X,
                                              KinematicAttribute::POS_Y,
+                                             KinematicAttribute::VEL,
                                              KinematicAttribute::VEL_X,
                                              KinematicAttribute::VEL_Y,
+                                             KinematicAttribute::ACC,
                                              KinematicAttribute::ACC_X,
                                              KinematicAttribute::ACC_Y,
                                              KinematicAttribute::ROLL,
@@ -83,8 +85,10 @@ TEST(KinematicStateVector, CheckMemoryAlignment)
   // get addresses of data members
   data_addresses[status_vector.getAttributeIndex<KinematicAttribute::POS_X>()] = reinterpret_cast<const std::uint8_t*>(&status_vector.x());
   data_addresses[status_vector.getAttributeIndex<KinematicAttribute::POS_Y>()] = reinterpret_cast<const std::uint8_t*>(&status_vector.y());
+  data_addresses[status_vector.getAttributeIndex<KinematicAttribute::VEL  >()] = reinterpret_cast<const std::uint8_t*>(&status_vector.velocity());
   data_addresses[status_vector.getAttributeIndex<KinematicAttribute::VEL_X>()] = reinterpret_cast<const std::uint8_t*>(&status_vector.velocityX());
   data_addresses[status_vector.getAttributeIndex<KinematicAttribute::VEL_Y>()] = reinterpret_cast<const std::uint8_t*>(&status_vector.velocityY());
+  data_addresses[status_vector.getAttributeIndex<KinematicAttribute::ACC  >()] = reinterpret_cast<const std::uint8_t*>(&status_vector.acceleration());
   data_addresses[status_vector.getAttributeIndex<KinematicAttribute::ACC_X>()] = reinterpret_cast<const std::uint8_t*>(&status_vector.accelerationX());
   data_addresses[status_vector.getAttributeIndex<KinematicAttribute::ACC_Y>()] = reinterpret_cast<const std::uint8_t*>(&status_vector.accelerationY());
 

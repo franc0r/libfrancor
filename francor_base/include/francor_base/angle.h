@@ -48,7 +48,6 @@ protected:
   double _value;
 };
 
-
 class NormalizedAngle : public Angle
 {
 public:
@@ -78,6 +77,37 @@ public:
 
   inline constexpr NormalizedAngle& operator=(const Angle& operant) { Angle::operator=(operant); this->normalize(); return *this; }
   inline constexpr NormalizedAngle& operator=(const double operant) { Angle::operator=(operant); this->normalize(); return *this; }
+};
+
+class NormalizedAngle2 : public Angle
+{
+public:
+  constexpr NormalizedAngle2(const double radian = 0.0) : Angle(radian) { this->normalize(); }
+  constexpr NormalizedAngle2(const Angle& angle) : Angle(angle) { this->normalize(); }
+  ~NormalizedAngle2() = default;
+
+  constexpr void normalize()
+  {
+    // add or sub pi/2 from angle until it is in range of [-pi/2, pi/2]
+    while (_value >   M_PI) _value -= 2.0 * M_PI;
+    while (_value <= -M_PI) _value += 2.0 * M_PI;
+  }
+
+  inline constexpr void setRadian(const double value) noexcept { Angle::setRadian(value); this->normalize(); }
+  inline constexpr void setDegree(const double value) noexcept { Angle::setDegree(value); this->normalize(); }
+
+  inline constexpr NormalizedAngle2 operator+(const Angle& operant) const noexcept { return { Angle::operator+(operant) }; }
+  inline constexpr NormalizedAngle2 operator+(const double operant) const noexcept { return { Angle::operator+(operant) }; }
+  inline constexpr NormalizedAngle2 operator-(const Angle& operant) const noexcept { return { Angle::operator-(operant) }; }
+  inline constexpr NormalizedAngle2 operator-(const double operant) const noexcept { return { Angle::operator-(operant) }; }
+
+  inline constexpr NormalizedAngle2& operator+=(const Angle& operant) { Angle::operator+=(operant); this->normalize(); return *this;}
+  inline constexpr NormalizedAngle2& operator+=(const double operant) { Angle::operator+=(operant); this->normalize(); return *this;}
+  inline constexpr NormalizedAngle2& operator-=(const Angle& operant) { Angle::operator-=(operant); this->normalize(); return *this;}
+  inline constexpr NormalizedAngle2& operator-=(const double operant) { Angle::operator-=(operant); this->normalize(); return *this;}
+
+  inline constexpr NormalizedAngle2& operator=(const Angle& operant) { Angle::operator=(operant); this->normalize(); return *this; }
+  inline constexpr NormalizedAngle2& operator=(const double operant) { Angle::operator=(operant); this->normalize(); return *this; }
 };
 
 } // end namespace base

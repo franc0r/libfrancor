@@ -14,8 +14,10 @@ namespace mapping {
 enum class KinematicAttribute : std::uint8_t {
   POS_X = 0,
   POS_Y,
+  VEL,
   VEL_X,
   VEL_Y,
+  ACC,
   ACC_X,
   ACC_Y,
   ROLL,

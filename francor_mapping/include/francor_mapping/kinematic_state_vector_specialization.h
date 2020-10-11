@@ -14,12 +14,12 @@ namespace mapping {
 namespace impl {
 
 // specialization for resolve types to uses specific data type for some attributes
-template <> struct resolve_type<KinematicAttribute::ROLL>       { using type = francor::base::NormalizedAngle; };
-template <> struct resolve_type<KinematicAttribute::PITCH>      { using type = francor::base::NormalizedAngle; };
-template <> struct resolve_type<KinematicAttribute::YAW>        { using type = francor::base::NormalizedAngle; };
-template <> struct resolve_type<KinematicAttribute::ROLL_RATE>  { using type = francor::base::NormalizedAngle; };
-template <> struct resolve_type<KinematicAttribute::PITCH_RATE> { using type = francor::base::NormalizedAngle; };
-template <> struct resolve_type<KinematicAttribute::YAW_RATE>   { using type = francor::base::NormalizedAngle; };
+template <> struct resolve_type<KinematicAttribute::ROLL>       { using type = francor::base::NormalizedAngle2; };
+template <> struct resolve_type<KinematicAttribute::PITCH>      { using type = francor::base::NormalizedAngle2; };
+template <> struct resolve_type<KinematicAttribute::YAW>        { using type = francor::base::NormalizedAngle2; };
+template <> struct resolve_type<KinematicAttribute::ROLL_RATE>  { using type = francor::base::Angle; };
+template <> struct resolve_type<KinematicAttribute::PITCH_RATE> { using type = francor::base::Angle; };
+template <> struct resolve_type<KinematicAttribute::YAW_RATE>   { using type = francor::base::Angle; };
 
 // specialization for state vector data to enable specific methods like x() for position x
 template <>
@@ -60,6 +60,26 @@ class KinematicStateVectorData<KinematicAttribute::VEL_Y> : public KinematicStat
 public:
   inline constexpr DataType& velocityY() { return KinematicStateVectorDataStoreage<KinematicAttribute::VEL_Y>::data; }
   inline constexpr const DataType& velocityY() const { return KinematicStateVectorDataStoreage<KinematicAttribute::VEL_Y>::data; }
+};
+
+template <>
+class KinematicStateVectorData<KinematicAttribute::VEL> : public KinematicStateVectorDataStoreage<KinematicAttribute::VEL>
+{
+  using DataType = typename KinematicStateVectorDataStoreage<KinematicAttribute::VEL>::type;
+
+public:
+  inline constexpr DataType& velocity() { return KinematicStateVectorDataStoreage<KinematicAttribute::VEL>::data; }
+  inline constexpr const DataType& velocity() const { return KinematicStateVectorDataStoreage<KinematicAttribute::VEL>::data; }
+};
+
+template <>
+class KinematicStateVectorData<KinematicAttribute::ACC> : public KinematicStateVectorDataStoreage<KinematicAttribute::ACC>
+{
+  using DataType = typename KinematicStateVectorDataStoreage<KinematicAttribute::ACC>::type;
+
+public:
+  inline constexpr DataType& acceleration() { return KinematicStateVectorDataStoreage<KinematicAttribute::ACC>::data; }
+  inline constexpr const DataType& acceleration() const { return KinematicStateVectorDataStoreage<KinematicAttribute::ACC>::data; }
 };
 
 template <>

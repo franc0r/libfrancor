@@ -14,9 +14,10 @@ namespace mapping {
 
 using EgoModelKalmanAttributes = KinematicAttributePack<KinematicAttribute::POS_X,
                                                         KinematicAttribute::POS_Y,
+                                                        KinematicAttribute::VEL,
                                                         KinematicAttribute::VEL_X,
                                                         KinematicAttribute::VEL_Y,
-                                                        KinematicAttribute::ACC_X,
+                                                        KinematicAttribute::ACC,
                                                         KinematicAttribute::YAW,
                                                         KinematicAttribute::YAW_RATE>;
 
