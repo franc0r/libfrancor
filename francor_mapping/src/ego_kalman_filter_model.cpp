@@ -32,11 +32,13 @@ EgoKalmanFilterModel::Matrix EgoKalmanFilterModel::getPredictionMatrix(const Sta
   // prediction_matrix(POS_Y, VEL) = delta_time * std::cos(current_state.yaw());
   prediction_matrix(POS_Y, ACC) = 0.5 * delta_time * delta_time * std::sin(current_state.yaw());
 
-  prediction_matrix(VEL, ACC) = delta_time * 0.5;
-  prediction_matrix(VEL_X, ACC) = delta_time * std::cos(current_state.yaw());
-  // prediction_matrix(VEL_X, VEL) = delta_time * std::cos(current_state.yaw());
-  prediction_matrix(VEL_Y, ACC) = delta_time * std::sin(current_state.yaw());
-  // prediction_matrix(VEL_Y, VEL) = delta_time * std::sin(current_state.yaw());
+  prediction_matrix(VEL  , ACC  ) = delta_time;
+  prediction_matrix(VEL_X, VEL_X) = -current_state.velocityX();
+  prediction_matrix(VEL_X, ACC  ) = delta_time * std::cos(current_state.yaw());
+  prediction_matrix(VEL_X, VEL  ) = std::cos(current_state.yaw());
+  prediction_matrix(VEL_Y, VEL_Y) = -current_state.velocityY();
+  prediction_matrix(VEL_Y, ACC  ) = delta_time * std::sin(current_state.yaw());
+  prediction_matrix(VEL_Y, VEL  ) = std::sin(current_state.yaw());
 
   prediction_matrix(YAW, YAW_RATE) = delta_time;
 

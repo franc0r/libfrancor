@@ -40,8 +40,8 @@ public:
                                            KinematicStateVector<KinematicAttributePack<SensorAttributes...>>::size,
                                            KinematicStateVector<KinematicAttributePack<SensorAttributes...>>::size>& measurement_covariances,
                const base::Matrix<typename FilterModel::data_type,
-                                           FilterModel::dimension,
-                                           KinematicStateVector<KinematicAttributePack<SensorAttributes...>>::size>& observation_matrix)
+                                           KinematicStateVector<KinematicAttributePack<SensorAttributes...>>::size,
+                                           FilterModel::dimension>& observation_matrix)
   {
     if (false == _is_initialized) {
       base::LogError() << "KalmanFilter isn't initialized. The filter must be intialized before it can be used."
@@ -97,6 +97,9 @@ public:
     _is_initialized = true;
   }
 
+  const StateVector& states() const { return _state; }
+  const Matrix& covariances() const { return _corvariances; }
+
 private:
   template <KinematicAttribute... SensorAttributes>
   void update(const double time_stamp,
@@ -107,28 +110,26 @@ private:
               const StateVector& predicted_state,
               const Matrix& predicted_covariances,
               const base::Matrix<typename FilterModel::data_type,
-                                 FilterModel::dimension,
-                                 KinematicStateVector<KinematicAttributePack<SensorAttributes...>>::size>& observation_matrix)
+                                 KinematicStateVector<KinematicAttributePack<SensorAttributes...>>::size,
+                                 FilterModel::dimension>& observation_matrix)
   {
     using SensorMatrix = base::Matrix<typename FilterModel::data_type,
                                       KinematicStateVector<KinematicAttributePack<SensorAttributes...>>::size,
                                       KinematicStateVector<KinematicAttributePack<SensorAttributes...>>::size>;
-    using TransformMatrix = base::Matrix<typename FilterModel::data_type,
-                                         FilterModel::dimension,
-                                         KinematicStateVector<KinematicAttributePack<SensorAttributes...>>::size>;                                      
-    using SensorVector = typename StateVector::Vector;
+    using SensorVector = typename KinematicStateVector<KinematicAttributePack<SensorAttributes...>>::Vector;
 
-    const auto identity_matrix = TransformMatrix::Identity();
+    const auto identity_matrix = Matrix::Identity();
 
     // reduce predicted covariances to sensor dimension space using observation matrix
-    const SensorMatrix predicted_covariances_sensor_space = observation_matrix * predicted_covariances * observation_matrix.transpose();
+    const auto predicted_covariances_sensor_space = observation_matrix * predicted_covariances * observation_matrix.transpose();
+    const auto predicted_state_sensor_space = observation_matrix * static_cast<typename StateVector::Vector>(predicted_state);
 
     // calculate the innovation and its covariances
-    const SensorVector innovation = static_cast<SensorVector>(measurements) - static_cast<SensorVector>(predicted_state);
+    const SensorVector innovation = static_cast<SensorVector>(measurements) - predicted_state_sensor_space;
     const SensorMatrix innovation_covariances = predicted_covariances_sensor_space + measurement_covariances;
 
     // calculate kalman gain matrix and update the state and state covariances
-    const Matrix kalman_gain = predicted_covariances * observation_matrix.transpose() * innovation_covariances.inverse();
+    const auto kalman_gain = predicted_covariances * observation_matrix.transpose() * innovation_covariances.inverse();
 
     _state = static_cast<typename StateVector::Vector>(predicted_state) + kalman_gain * innovation;
     _corvariances = (identity_matrix - kalman_gain * observation_matrix) * predicted_covariances;
