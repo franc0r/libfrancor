@@ -54,7 +54,7 @@ public:
 
     // predict internal states and covariances to given time stamp
     if (false == this->predictToTime(time_stamp, predicted_state, predicted_covariances)) {
-      base::LogWarn() << "KalmanFilter::predict(): cancel prediction and keep previous state.";
+      base::LogWarn() << "KalmanFilter::process(): cancel prediction and keep previous state.";
       return false;
     }
 
@@ -63,7 +63,26 @@ public:
     
     return true;
   }               
-  
+
+  bool predictToTime(const double time_stamp)
+  {
+    StateVector predicted_state;
+    Matrix predicted_covariances;
+
+    // predict internal states and covariances to given time stamp
+    if (false == this->predictToTime(time_stamp, predicted_state, predicted_covariances)) {
+      base::LogWarn() << "KalmanFilter::predictToTime(): cancel prediction and keep previous state.";
+      return false;
+    }
+
+    // take predicted values as new state
+    _state        = predicted_state;
+    _corvariances = predicted_covariances;
+    _time_stamp   = time_stamp;
+
+    return true;
+  } 
+
   bool predictToTime(const double time_stamp, StateVector& predicted_state, Matrix& predicted_covariances) const
   {
     if (false == _is_initialized) {
@@ -125,17 +144,11 @@ private:
     const SensorVector predicted_state_sensor_space = observation_matrix * static_cast<typename StateVector::Vector>(predicted_state);
 
     // calculate the innovation and its covariances
-    std::cout << "predicted covariance:" << std::endl << predicted_covariances << std::endl;
-    std::cout << "observation matrix:" << std::endl << observation_matrix << std::endl;
-    std::cout << "predicted state sensor space:" << std::endl << predicted_state_sensor_space << std::endl;
-    std::cout << "predicted state:" << std::endl << static_cast<typename StateVector::Vector>(predicted_state) << std::endl;
     const SensorVector innovation = static_cast<SensorVector>(measurements) - predicted_state_sensor_space;
-    std::cout << "innovation:" << std::endl << innovation << std::endl;
     const SensorMatrix innovation_covariances = predicted_covariances_sensor_space + measurement_covariances;
 
     // calculate kalman gain matrix and update the state and state covariances
     const auto kalman_gain = predicted_covariances * observation_matrix.transpose() * innovation_covariances.inverse();
-    std::cout << "kalman gain:" << std::endl << kalman_gain << std::endl;
     _state = static_cast<typename StateVector::Vector>(predicted_state) + kalman_gain * innovation;
     _corvariances = (identity_matrix - kalman_gain * observation_matrix) * predicted_covariances;
 

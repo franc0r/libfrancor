@@ -14,8 +14,6 @@ EgoKalmanFilterModel::Matrix EgoKalmanFilterModel::getPredictionMatrix(const Sta
     POS_X    = StateVector::getAttributeIndex<KinematicAttribute::POS_X   >(),
     POS_Y    = StateVector::getAttributeIndex<KinematicAttribute::POS_Y   >(),
     VEL      = StateVector::getAttributeIndex<KinematicAttribute::VEL     >(),
-    // VEL_X    = StateVector::getAttributeIndex<KinematicAttribute::VEL_X   >(),
-    // VEL_Y    = StateVector::getAttributeIndex<KinematicAttribute::VEL_Y   >(),
     ACC      = StateVector::getAttributeIndex<KinematicAttribute::ACC     >(),
     YAW      = StateVector::getAttributeIndex<KinematicAttribute::YAW     >(),
     YAW_RATE = StateVector::getAttributeIndex<KinematicAttribute::YAW_RATE>(),
@@ -66,7 +64,7 @@ EgoKalmanFilterModel::Matrix EgoKalmanFilterModel::getSystemNoiseMatrix(const St
     noise_matrix += yaw_acceleration_variance * noise_vector * noise_vector.transpose();
 
   }
-  std::cout << "system noise matrix:" << std::endl << noise_matrix << std::endl;
+
   return noise_matrix;
 }                                                                        
 
