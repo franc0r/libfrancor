@@ -15,8 +15,8 @@ namespace mapping {
 using EgoModelKalmanAttributes = KinematicAttributePack<KinematicAttribute::POS_X,
                                                         KinematicAttribute::POS_Y,
                                                         KinematicAttribute::VEL,
-                                                        KinematicAttribute::VEL_X,
-                                                        KinematicAttribute::VEL_Y,
+                                                        // KinematicAttribute::VEL_X,
+                                                        // KinematicAttribute::VEL_Y,
                                                         KinematicAttribute::ACC,
                                                         KinematicAttribute::YAW,
                                                         KinematicAttribute::YAW_RATE>;
@@ -26,7 +26,7 @@ class EgoKalmanFilterModel : public KalmanFilterModel<EgoModelKalmanAttributes>
 public:
 
   Matrix getPredictionMatrix(const StateVector& current_state, const double delta_time) const override;
-  Matrix getSystemNoiseMatrix(const double delta_time) const override;
+  Matrix getSystemNoiseMatrix(const StateVector& current_state, const double delta_time) const override;
 };
 
 } // end namespace mapping

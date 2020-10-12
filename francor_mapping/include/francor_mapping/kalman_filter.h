@@ -84,7 +84,7 @@ public:
     // std::cout << "prediction matrix:" << std::endl << prediction_matrix << std::endl;
     predicted_state       = prediction_matrix * static_cast<typename StateVector::Vector>(_state);
     predicted_covariances = prediction_matrix * _corvariances * prediction_matrix.transpose() +
-                            model.getSystemNoiseMatrix(delta_time);
+                            model.getSystemNoiseMatrix(_state, delta_time);
 
     return true;
   }
@@ -121,16 +121,21 @@ private:
     const auto identity_matrix = Matrix::Identity();
 
     // reduce predicted covariances to sensor dimension space using observation matrix
-    const auto predicted_covariances_sensor_space = observation_matrix * predicted_covariances * observation_matrix.transpose();
-    const auto predicted_state_sensor_space = observation_matrix * static_cast<typename StateVector::Vector>(predicted_state);
+    const SensorMatrix predicted_covariances_sensor_space = observation_matrix * predicted_covariances * observation_matrix.transpose();
+    const SensorVector predicted_state_sensor_space = observation_matrix * static_cast<typename StateVector::Vector>(predicted_state);
 
     // calculate the innovation and its covariances
+    std::cout << "predicted covariance:" << std::endl << predicted_covariances << std::endl;
+    std::cout << "observation matrix:" << std::endl << observation_matrix << std::endl;
+    std::cout << "predicted state sensor space:" << std::endl << predicted_state_sensor_space << std::endl;
+    std::cout << "predicted state:" << std::endl << static_cast<typename StateVector::Vector>(predicted_state) << std::endl;
     const SensorVector innovation = static_cast<SensorVector>(measurements) - predicted_state_sensor_space;
+    std::cout << "innovation:" << std::endl << innovation << std::endl;
     const SensorMatrix innovation_covariances = predicted_covariances_sensor_space + measurement_covariances;
 
     // calculate kalman gain matrix and update the state and state covariances
     const auto kalman_gain = predicted_covariances * observation_matrix.transpose() * innovation_covariances.inverse();
-
+    std::cout << "kalman gain:" << std::endl << kalman_gain << std::endl;
     _state = static_cast<typename StateVector::Vector>(predicted_state) + kalman_gain * innovation;
     _corvariances = (identity_matrix - kalman_gain * observation_matrix) * predicted_covariances;
 

@@ -47,7 +47,7 @@ public:
    * \param delta_time Is delta t. The created noise covariance matrix will reflect this time period.
    * \return System noise covariance matrix.
    */
-  virtual Matrix getSystemNoiseMatrix(const double delta_time) const = 0;
+  virtual Matrix getSystemNoiseMatrix(const StateVector& current_state, const double delta_time) const = 0;
 };
 
 } // end namespace mapping
