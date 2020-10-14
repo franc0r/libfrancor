@@ -153,3 +153,20 @@ add_test(
   NAME test-kalman-filter
   COMMAND unit-test-kalman-filter
 )
+
+
+# unit test pose sensor model
+add_executable(unit-test-pose-sensor-model
+  src/unit_test_pose_sensor_model.cpp
+)
+
+target_link_libraries(unit-test-pose-sensor-model
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-mapping
+)
+
+add_test(
+  NAME test-pose-sensor-model
+  COMMAND unit-test-pose-sensor-model
+)

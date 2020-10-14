@@ -23,8 +23,22 @@ struct ObservationMatrix<KinematicAttributePack<AttributesA...>, KinematicAttrib
 {
   static constexpr std::size_t rows = sizeof...(AttributesA);
   static constexpr std::size_t cols = sizeof...(AttributesB);
+  using data_type = double;
+  using matrix_type = base::Matrix<data_type, rows, cols>;
 
   static inline constexpr double element(const std::size_t row, const std::size_t col) { return _values.data[row][col]; }
+  static matrix_type matrix()
+  {
+    matrix_type mat;
+
+    for (std::size_t row = 0; row < rows; ++row) {
+      for (std::size_t col = 0; col < cols; ++col) {
+        mat(row, col) = _values.data[row][col];
+      }
+    }
+
+    return mat;
+  }
 
 private:
 
