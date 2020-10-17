@@ -7,11 +7,14 @@
 #include <gtest/gtest.h>
 
 #include "francor_mapping/observation_matrix_builder.h"
+#include "francor_mapping/observation_matrix.h"
 
 using francor::mapping::KinematicAttribute;
 using francor::mapping::KinematicAttributePack;
 using francor::mapping::ObservationMatrix;
+using francor::mapping::impl::ObservationMatrix2;
 using francor::mapping::ObservationMatrixBuilder;
+using francor::mapping::KinematicStateVector;
 
 using AttributeVectorA = KinematicAttributePack<KinematicAttribute::ACC_X,
                                               KinematicAttribute::ACC_Y,
@@ -24,6 +27,29 @@ using AttributeVectorB = KinematicAttributePack<KinematicAttribute::POS_Y,
                                               KinematicAttribute::POS_X,
                                               KinematicAttribute::VEL_Y,
                                               KinematicAttribute::VEL_X>;
+
+TEST(ObservationMatrix, Instansiate)
+{
+  ObservationMatrix2<AttributeVectorA, AttributeVectorB> matrix;
+  // francor::base::Matrix<double, 6, 6> covariance = francor::base::Matrix<double, 6, 6>::Identity();
+
+  // const auto result = matrix * covariance;
+
+  // std::cout << "result:" << std::endl << covariance << std::endl;
+  KinematicStateVector<AttributeVectorA> state_vector;
+  state_vector.accelerationX() = 1.0;
+  state_vector.accelerationY() = 2.0;
+  state_vector.x() = 3.0;
+  state_vector.y() = 4.0;
+  state_vector.velocityX() = 5.0;
+  state_vector.velocityY() = 6.0;
+
+  KinematicStateVector<AttributeVectorB> sensor_measurement;
+
+  sensor_measurement = matrix * state_vector;
+
+  std::cout << "sensor measurement:" << std::endl << static_cast<KinematicStateVector<AttributeVectorB>::Vector>(sensor_measurement) << std::endl;
+}
 
 TEST(ObservationMatrixBuilder, CreateObservationMatrix)
 {
