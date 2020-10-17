@@ -20,9 +20,24 @@ using PoseSensorModel = SensorModel<base::PoseSensorData,
                                                                                 KinematicAttribute::YAW>>>;
                                                                               
 template<>
-PoseSensorModel::StateVector PoseSensorModel::transformSensorData(const base::PoseSensorData& sensor_data) const
+PoseSensorModel::StateVector
+PoseSensorModel::transformSensorData(const base::PoseSensorData& sensor_data) const
 {
-  return { };
+  StateVector measurement;
+
+  measurement.x() = sensor_data.pose().position().x();
+  measurement.y() = sensor_data.pose().position().y();
+
+  measurement.yaw() = sensor_data.pose().orientation();
+
+  return measurement;
+}
+
+template<>
+PoseSensorModel::CovarianceMatrix
+PoseSensorModel::transformCovariances(const base::PoseSensorData& sensor_data) const
+{
+  return sensor_data.covariances();
 }
 
 
