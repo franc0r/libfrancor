@@ -11,23 +11,27 @@
 
 #include "francor_base/angle.h"
 #include "francor_base/pose.h"
+#include "francor_base/sensor_data.h"
 
 namespace francor {
 
 namespace base {
 
-class LaserScan
+class LaserScan : public SensorData
 {
 public:
-  LaserScan() = default;
+  LaserScan(char const* const sensor_name = "unkown") : SensorData(sensor_name, 0.0) { }
   LaserScan(const std::vector<double>& distances,
             const Pose2d& pose,
             const Angle phiMin,
             const Angle phiMax,
             const Angle phiStep,
             const double range,
-            const Angle divergence = 0.0)
-    : _distances(distances),
+            const Angle divergence = 0.0,
+            char const* const sensor_name = "unkown",
+            const double time_stamp = 0.0)
+    : SensorData(sensor_name, time_stamp),
+      _distances(distances),
       _pose(pose),
       _phi_step(phiStep),
       _phi_min(phiMin),

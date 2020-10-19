@@ -23,6 +23,13 @@ public:
   char const* const sensorName() const { return _sensor_name; }
   double timeStamp() const { return _time_stamp; }
 
+  SensorData& operator=(const SensorData& rhs) 
+  {
+    _sensor_name = rhs._sensor_name;
+    _time_stamp = rhs._time_stamp;
+    return *this;
+  }
+
 private:
   char const* const _sensor_name;
   const double _time_stamp;

@@ -48,7 +48,10 @@ private:
 
 TEST(KalmanFilter, Instansitate)
 {
-  KalmanFilter<EgoKalmanFilterModel> kalman_filter;
+  double time_stamp = 0.0
+  KalmanFilter<EgoKalmanFilterModel>::StateVector state_vector;
+  KalmanFilter<EgoKalmanFilterModel>::Matrix covariances;
+  KalmanFilter<EgoKalmanFilterModel> kalman_filter(time_stamp, state_vector, covariances);
 }
 
 TEST(KalmanFilter, TimePredictOnInitialValues_Circle)
@@ -67,7 +70,10 @@ TEST(KalmanFilter, TimePredictOnInitialValues_Circle)
 
   KalmanFilter<EgoKalmanFilterModel>::Matrix initial_covariances = KalmanFilter<EgoKalmanFilterModel>::Matrix::Identity() * 0.1;
 
-  KalmanFilter<EgoKalmanFilterModel> kalman_filter;
+  double time_stamp = 0.0
+  KalmanFilter<EgoKalmanFilterModel>::StateVector state_vector;
+  KalmanFilter<EgoKalmanFilterModel>::Matrix covariances;
+  KalmanFilter<EgoKalmanFilterModel> kalman_filter(time_stamp, state_vector, covariances);
   constexpr double time_step = 0.01;
   const CsvWriter<KalmanFilter<EgoKalmanFilterModel>::StateVector> csv_writer(kalman_filter.states());
   
@@ -123,7 +129,10 @@ TEST(KalmanFilter, Update_Circle)
 
   KalmanFilter<EgoKalmanFilterModel>::Matrix initial_covariances = KalmanFilter<EgoKalmanFilterModel>::Matrix::Identity() * 10.0 * 10.0;
 
-  KalmanFilter<EgoKalmanFilterModel> kalman_filter;
+  double time_stamp = 0.0
+  KalmanFilter<EgoKalmanFilterModel>::StateVector state_vector;
+  KalmanFilter<EgoKalmanFilterModel>::Matrix covariances;
+  KalmanFilter<EgoKalmanFilterModel> kalman_filter(time_stamp, state_vector, covariances);
   const CsvWriter<KalmanFilter<EgoKalmanFilterModel>::StateVector> csv_writer(kalman_filter.states());
   constexpr double time_step = 0.01;
   constexpr Angle phi_step((velocity * time_step) / circle_radius);

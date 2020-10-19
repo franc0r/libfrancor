@@ -17,82 +17,55 @@ namespace mapping {
 
 namespace impl {
 
-template <KinematicAttribute InputAttribute, KinematicAttribute OutputAttribute>
-struct transform_attribute {
-  using input_type  = typename resolve_type<InputAttribute>::type;
+template <KinematicAttribute, KinematicAttribute, class>
+struct transform_attribute;
+template <KinematicAttribute InputAttribute, KinematicAttribute OutputAttribute, KinematicAttribute... InputAttributes>
+struct transform_attribute<InputAttribute, OutputAttribute, mapping::KinematicStateVector<mapping::KinematicAttributePack<InputAttributes...>>> {
   using output_type = typename resolve_type<OutputAttribute>::type;
 
-  template <KinematicAttribute... InputAttributes>
   inline static constexpr output_type f(const mapping::KinematicStateVector<mapping::KinematicAttributePack<InputAttributes...>>&)
   {
     return static_cast<output_type>(0);
   }
 };
 
-template <KinematicAttribute Attribute>
-struct transform_attribute<Attribute, Attribute> {
-  using input_type  = typename resolve_type<Attribute>::type;
+template <KinematicAttribute Attribute, KinematicAttribute... InputAttributes>
+struct transform_attribute<Attribute, Attribute, mapping::KinematicStateVector<mapping::KinematicAttributePack<InputAttributes...>>> {
   using output_type = typename resolve_type<Attribute>::type;
 
-  template <KinematicAttribute... InputAttributes>
   inline static constexpr output_type f(const mapping::KinematicStateVector<mapping::KinematicAttributePack<InputAttributes...>>& input)
   {
     return input.template value<Attribute>();
   }
 };
 
-template <>
-struct transform_attribute<KinematicAttribute::VEL, KinematicAttribute::VEL_X> {
-  using input_type  = typename resolve_type<KinematicAttribute::VEL>::type;
+template <KinematicAttribute... InputAttributes>
+struct transform_attribute<KinematicAttribute::VEL, KinematicAttribute::VEL_X, mapping::KinematicStateVector<mapping::KinematicAttributePack<InputAttributes...>>> {
   using output_type = typename resolve_type<KinematicAttribute::VEL_X>::type;
 
-  template <KinematicAttribute... InputAttributes>
   inline static constexpr output_type f(const mapping::KinematicStateVector<mapping::KinematicAttributePack<InputAttributes...>>& input)
   {
-    static_assert(input.template hasAttribute<KinematicAttribute::YAW>(), "Transformation from VEL to VEL_X requires attribute yaw in input state vector.");
-    return input.template value<input_type>() * std::cos(input.template value<KinematicAttribute::YAW>());
+    return input.velocity() * std::cos(input.yaw());
   }
 };
 
-template <>
-struct transform_attribute<KinematicAttribute::VEL, KinematicAttribute::VEL_Y> {
-  using input_type  = typename resolve_type<KinematicAttribute::VEL>::type;
+template <KinematicAttribute... InputAttributes>
+struct transform_attribute<KinematicAttribute::VEL, KinematicAttribute::VEL_Y, mapping::KinematicStateVector<mapping::KinematicAttributePack<InputAttributes...>>> {
   using output_type = typename resolve_type<KinematicAttribute::VEL_Y>::type;
 
-  template <KinematicAttribute... InputAttributes>
   inline static constexpr output_type f(const mapping::KinematicStateVector<mapping::KinematicAttributePack<InputAttributes...>>& input)
   {
-    static_assert(input.template hasAttribute<KinematicAttribute::YAW>(), "Transformation from VEL to VEL_X requires attribute yaw in input state vector.");
-    return input.template value<input_type>() * std::sin(input.template value<KinematicAttribute::YAW>());
+    return input.velocity() * std::sin(input.yaw());
   }
 };
 
-// template <KinematicAttribute RowAttribute, KinematicAttribute... ColAttributes>
-// class ObservationMatrixRow
-// {
-// private:
-//   using RowTransformOperators = std::tuple<transform_attribute<RowAttribute, ColAttributes>...>;
 
-// public:
-//   template <std::size_t Col>
-//   using TransformOperator = typename std::tuple_element_t<Col, RowTransformOperators>::f;
-// };
-
-
-
-// template <std::size_t Row,
-//           std::size_t Col,
-//           KinematicAttribute RowAttribute,
-//           KinematicAttribute HeadColAttribute,
-//           KinematicAttribute... TailColAttributes>
-// class ObservationMatrixRowImpl<Row, Col, RowAttribute, HeadColAttribute, TailColAttributes...>
-//   : public ObservationMatrixRowImpl<Row, Col, RowAttribute, HeadColAttribute, TailColAttributes...>
 
 template <typename, typename>
 class ObservationMatrix2;
 
-template <KinematicAttribute... RowAttributes, KinematicAttribute... ColAttributes>
-class ObservationMatrix2<mapping::KinematicAttributePack<RowAttributes...>, mapping::KinematicAttributePack<ColAttributes...>>
+template <KinematicAttribute... ColAttributes, KinematicAttribute... RowAttributes>
+class ObservationMatrix2<mapping::KinematicAttributePack<ColAttributes...>, mapping::KinematicAttributePack<RowAttributes...>>
 {
 private:
   // using Rows = std::tuple<ObservationMatrixRow<RowAttributes, ColAttributes...> ...>;
@@ -103,63 +76,39 @@ public:
 
   constexpr ObservationMatrix2() { }
 
-  template <typename DataType>
-  base::Matrix<DataType, cols, cols> operator*(const base::Matrix<DataType, rows, rows>& matrix) const
+  template <typename DataType, std::size_t InputMatrixCols>
+  base::Matrix<DataType, rows, InputMatrixCols> transform(const base::Matrix<DataType, cols, InputMatrixCols>& matrix) const
   {
-    base::Matrix<DataType, cols, cols> result;
-
-    // transform<DataType, MatrixCols>(matrix, result, std::make_index_sequence<cols>{});
-    return result;
+    base::Matrix<DataType, rows, InputMatrixCols> output;
+    return { };
   }
 
-  mapping::KinematicStateVector<mapping::KinematicAttributePack<ColAttributes...>>
-  operator*(const mapping::KinematicStateVector<mapping::KinematicAttributePack<RowAttributes...>>& input) const
+  template <typename DataType>
+  base::Matrix<DataType, cols, cols> transform(const base::Matrix<DataType, rows, rows>& matrix) const
   {
-    mapping::KinematicStateVector<mapping::KinematicAttributePack<ColAttributes...>> output;
+    return { };
+  }
 
-    ((output.template value<ColAttributes>() = static_cast<typename resolve_type<ColAttributes>::type>(0.0)), ...);
-    ((transformAttributeValue<RowAttributes>(input, output)), ...);
+  mapping::KinematicStateVector<mapping::KinematicAttributePack<RowAttributes...>>
+  operator*(const mapping::KinematicStateVector<mapping::KinematicAttributePack<ColAttributes...>>& input) const
+  {
+    mapping::KinematicStateVector<mapping::KinematicAttributePack<RowAttributes...>> output;
+
+    ((output.template value<RowAttributes>() = static_cast<typename resolve_type<RowAttributes>::type>(0.0)), ...);
+    (transformStateVector<ColAttributes>(input, output), ...);
   
     return output;
   }
 
 private:
-  template <KinematicAttribute InputAttribute, KinematicAttribute... OutputAttributes>
-  inline static void transformAttributeValue(const mapping::KinematicStateVector<mapping::KinematicAttributePack<RowAttributes...>>& input,
-                                             mapping::KinematicStateVector<mapping::KinematicAttributePack<OutputAttributes...>>& output)
+  using ColStateVector = mapping::KinematicStateVector<mapping::KinematicAttributePack<ColAttributes...>>;
+
+  template <KinematicAttribute ColAttribute, KinematicAttribute... OutputAttributes>
+  inline static void transformStateVector(const ColStateVector& input,
+                                          mapping::KinematicStateVector<mapping::KinematicAttributePack<OutputAttributes...>>& output)
   {
-    ((output.template value<OutputAttributes>() += transform_attribute<InputAttribute, OutputAttributes>::f(input)), ...);
+    ((output.template value<OutputAttributes>() += transform_attribute<ColAttribute, OutputAttributes, ColStateVector>::f(input)), ...);
   }                                                                                    
-
-  // template <std::size_t Row, std::size_t Col, typename DataType, std::size_t MatrixCols, std::size_t... Indices>
-  // inline static DataType transformElement(const base::Matrix<DataType, cols, MatrixCols>& input, std::index_sequence<Indices...>)
-  // {
-  //   DataType result(static_cast<DataType>(0));
-
-  //   ((result += f<Row, Indices>(input(Indices, Col))), ...);
-    
-  //   return result;
-  // }
-
-  // template <std::size_t Row, typename DataType, std::size_t MatrixCols, std::size_t... ColIndices>
-  // inline static void transformRow(const base::Matrix<DataType, cols, MatrixCols>& input,
-  //                                 base::Matrix<DataType, rows, MatrixCols>& result,
-  //                                 std::index_sequence<ColIndices...>)
-  // {
-  //   ((result(Row, ColIndices) = transformElement<Row, ColIndices, DataType, MatrixCols>(input, std::make_index_sequence<cols>{})), ...);
-  // }
-
-  // template <typename DataType, std::size_t... RowIndices>
-  // inline static void transform(const base::Matrix<DataType, rows, rows>& input,
-  //                              base::Matrix<DataType, cols, cols>& result,
-  //                              std::index_sequence<RowIndices...>)
-  // {
-  //   (transformRow<RowIndices, DataType, cols>(input, std::make_index_sequence<cols>{}), ...);
-  // }
-
-
-  // template <std::size_t Row, std::size_t Col>
-  // using f = typename std::tuple_element_t<Row, Rows>::template TransformOperator<Col>;
 };
 
 } // end namespace impl

@@ -27,11 +27,12 @@ template <class ModelType>
 class KalmanFilter
 {
 public:
-
   using FilterModel = ModelType;
   using StateVector = typename FilterModel::StateVector;
   using Matrix = typename FilterModel::Matrix;
 
+  KalmanFilter(double& time_stamp, StateVector& state_vector, Matrix& covariances)
+    : _time_stamp(time_stamp), _state(state_vector), _corvariances(covariances) { }
 
   template <KinematicAttribute... SensorAttributes>
   bool process(const double time_stamp,
@@ -43,12 +44,6 @@ public:
                                            KinematicStateVector<KinematicAttributePack<SensorAttributes...>>::size,
                                            FilterModel::dimension>& observation_matrix)
   {
-    if (false == _is_initialized) {
-      base::LogError() << "KalmanFilter isn't initialized. The filter must be intialized before it can be used."
-                          " Cancel process() method.";
-      return false;
-    }
-
     StateVector predicted_state;
     Matrix predicted_covariances;
 
@@ -85,11 +80,6 @@ public:
 
   bool predictToTime(const double time_stamp, StateVector& predicted_state, Matrix& predicted_covariances) const
   {
-    if (false == _is_initialized) {
-      base::LogError() << "KalmanFilter isn't initialized. The filter must be intialized before it can be used."
-                          " Cancel predictToTime() method.";
-      return false;
-    }
     if (time_stamp < _time_stamp) {
       base::LogError() << "KalmanFilter::predictToTime(): requested prediction of given time stamp failed."
                        << " Given time stamp is in the past."
@@ -113,7 +103,6 @@ public:
     _state = initial_state;
     _corvariances = initial_covariances;
     _time_stamp = start_time;
-    _is_initialized = true;
   }
 
   const StateVector& states() const { return _state; }
@@ -166,10 +155,9 @@ private:
     } 
   }
 
-  double _time_stamp{0};
-  bool _is_initialized{false};
-  StateVector _state;
-  Matrix _corvariances;
+  double _time_stamp;
+  StateVector& _state;
+  Matrix& _corvariances;
 };
 
 } // end namespace mapping

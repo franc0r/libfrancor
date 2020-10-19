@@ -17,16 +17,18 @@ using francor::mapping::ObservationMatrixBuilder;
 using francor::mapping::KinematicStateVector;
 
 using AttributeVectorA = KinematicAttributePack<KinematicAttribute::ACC_X,
-                                              KinematicAttribute::ACC_Y,
-                                              KinematicAttribute::POS_X,
-                                              KinematicAttribute::POS_Y,
-                                              KinematicAttribute::VEL_X,
-                                              KinematicAttribute::VEL_Y>;
+                                                KinematicAttribute::ACC_Y,
+                                                KinematicAttribute::POS_X,
+                                                KinematicAttribute::POS_Y,
+                                                // KinematicAttribute::VEL_X,
+                                                KinematicAttribute::VEL,
+                                                KinematicAttribute::YAW>;
 
 using AttributeVectorB = KinematicAttributePack<KinematicAttribute::POS_Y,
-                                              KinematicAttribute::POS_X,
-                                              KinematicAttribute::VEL_Y,
-                                              KinematicAttribute::VEL_X>;
+                                                KinematicAttribute::POS_X,
+                                                KinematicAttribute::VEL_X,
+                                                KinematicAttribute::VEL_Y,
+                                                KinematicAttribute::YAW>;
 
 TEST(ObservationMatrix, Instansiate)
 {
@@ -41,8 +43,9 @@ TEST(ObservationMatrix, Instansiate)
   state_vector.accelerationY() = 2.0;
   state_vector.x() = 3.0;
   state_vector.y() = 4.0;
-  state_vector.velocityX() = 5.0;
-  state_vector.velocityY() = 6.0;
+  state_vector.velocity() = 5.0;
+  // state_vector.velocityY() = 6.0;
+  state_vector.yaw() = francor::base::Angle::createFromDegree(0);
 
   KinematicStateVector<AttributeVectorB> sensor_measurement;
 
