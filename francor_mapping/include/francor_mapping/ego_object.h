@@ -7,6 +7,7 @@
 
 #include <francor_base/pose.h>
 
+#include "francor_mapping/kalman_filter.h"
 #include "francor_mapping/ego_kalman_filter_model.h"
 
 namespace francor {
@@ -16,33 +17,45 @@ namespace mapping {
 class EgoObject
 {
 public:
+  using StateModel = KalmanFilter<EgoKalmanFilterModel>;
+
   EgoObject(const base::Pose2d& pose = base::Pose2d())
+    : _state_model(0.0)
   {
-    _state.x() = pose.position().x();
-    _state.y() = pose.position().y();
-
-    _state.yaw() = pose.orientation();
+    setPose(pose);
+  }
+  EgoObject(const StateModel::StateVector& initial_state,
+            const StateModel::Matrix& initial_covariances,
+            const double time_stamp = 0.0)
+    : _state_model(0.0)            
+  {
+    _state_model.initialize(initial_state, initial_covariances, time_stamp);
   }
 
-  inline constexpr base::Pose2d pose() const noexcept { return {{_state.x(), _state.y()}, _state.yaw()}; }
-  inline constexpr void setPose(const base::Pose2d& value)
+  inline base::Pose2d pose() const
   {
-    _state.x() = value.position().x();
-    _state.y() = value.position().y();
+    return { {_state_model.state().x(), _state_model.state().y()}, _state_model.state().yaw() };
+  }
+  inline void setPose(const base::Pose2d& value)
+  {
+    StateModel::StateVector state;
+    StateModel::Matrix covariances = StateModel::Matrix::Identity() * 0.1;
 
-    _state.yaw() = value.orientation();
+    state.x() = value.position().x();
+    state.y() = value.position().y();
+
+    state.yaw() = value.orientation();
+
+    _state_model.initialize(state, covariances, _state_model.timeStamp());
   }
 
-  inline EgoKalmanFilterModel::Matrix& covariances() { return _covariances; }
-  inline const EgoKalmanFilterModel::Matrix& covariances() const { return _covariances; }
-
-  inline EgoKalmanFilterModel::StateVector& stateVector() { return _state; }
-  inline double& timeStamp() { return _time_stamp; }
+  inline const StateModel::Matrix& covariances() const { return _state_model.covariances(); }
+  inline const StateModel::StateVector& stateVector() const { return _state_model.state(); }
+  inline double timeStamp() { return _state_model.timeStamp(); }
+  inline StateModel& model() { return _state_model; }
 
 private:
-  double _time_stamp{0};
-  EgoKalmanFilterModel::StateVector _state;
-  EgoKalmanFilterModel::Matrix _covariances;
+  StateModel _state_model;
 };
 
 } // end namespace mapping

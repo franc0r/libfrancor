@@ -31,8 +31,8 @@ public:
   using StateVector = typename FilterModel::StateVector;
   using Matrix = typename FilterModel::Matrix;
 
-  KalmanFilter(double& time_stamp, StateVector& state_vector, Matrix& covariances)
-    : _time_stamp(time_stamp), _state(state_vector), _corvariances(covariances) { }
+  KalmanFilter(const double time_stamp)
+    : _time_stamp(time_stamp) { }
 
   template <KinematicAttribute... SensorAttributes>
   bool process(const double time_stamp,
@@ -105,8 +105,9 @@ public:
     _time_stamp = start_time;
   }
 
-  const StateVector& states() const { return _state; }
-  const Matrix& covariances() const { return _corvariances; }
+  inline const StateVector& state() const { return _state; }
+  inline const Matrix& covariances() const { return _corvariances; }
+  inline double timeStamp() const { return _time_stamp; }
 
 private:
   template <KinematicAttribute... SensorAttributes>
@@ -156,8 +157,8 @@ private:
   }
 
   double _time_stamp;
-  StateVector& _state;
-  Matrix& _corvariances;
+  StateVector _state;
+  Matrix _corvariances;
 };
 
 } // end namespace mapping

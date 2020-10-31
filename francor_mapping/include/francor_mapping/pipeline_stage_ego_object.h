@@ -54,8 +54,7 @@ class StageUpdateEgo final : public processing::ProcessingStage<EgoObject>
 {
 public:
   enum Inputs {
-    IN_SENSOR_POSE = 0,
-    IN_TRANSFORM,
+    IN_SENSOR_DATA = 0,
     COUNT_INPUTS
   };
   enum Outputs {

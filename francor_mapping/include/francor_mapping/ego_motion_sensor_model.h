@@ -16,7 +16,7 @@ namespace mapping {
 
 using EgoMotionSensorModel = SensorModel<base::EgoMotionSensorData,
                                          KinematicStateVector<KinematicAttributePack<KinematicAttribute::VEL,
-                                                                                     KinematicAttribute::YAW_RATE>>;
+                                                                                     KinematicAttribute::YAW_RATE>>>;
                                                                               
 template<>
 EgoMotionSensorModel::StateVector
@@ -25,7 +25,7 @@ EgoMotionSensorModel::transformSensorData(const base::EgoMotionSensorData& senso
   StateVector measurement;
 
   measurement.velocity() = sensor_data.velocity();
-  measurement.yawRate()  = sensor_data.rawRate();
+  measurement.yawRate()  = sensor_data.yawRate();
 
   return measurement;
 }

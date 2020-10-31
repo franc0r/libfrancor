@@ -32,20 +32,32 @@ bool StageEstimateLaserScannerPose::doProcess(EgoObject& ego)
 
   const auto time_stamp = this->input(IN_SCAN).data<base::LaserScan>().timeStamp();
 
+  // predict to given time stamp without updating ego object
   if (ego.timeStamp() < time_stamp) {
     LogDebug() << this->name() << ": predict ego object state to time = " << time_stamp;
-    KalmanFilter<EgoKalmanFilterModel> kalman_filter(ego.timeStamp(), ego.stateVector(), ego.covariances());
-    
-    if (false == kalman_filter.predictToTime(time_stamp)) {
+    EgoObject::StateModel::StateVector predicted_state;
+    EgoObject::StateModel::Matrix predicted_covariance;
+
+    if (false == ego.model().predictToTime(time_stamp, predicted_state, predicted_covariance)) {
       LogError() << this->name() << ": time prediction of ego object failed.";
       return false;
     }
-  }
 
-  _ego_pose = ego.pose();
+    EgoObject predicted_ego_object(predicted_state, predicted_covariance, time_stamp);
+    _ego_pose = predicted_ego_object.pose();
+  }
+  // target time is in the past
+  else {
+    LogDebug() << this->name() << ": target time = " << time_stamp << ", is in the past. Skip prediction.";
+  }
 
   return true;
 }
+
+// bool StageEstimateLaserScannerPose::validateInputData()
+// {
+
+// }
 
 bool StageEstimateLaserScannerPose::doInitialization()
 {
@@ -76,7 +88,7 @@ bool StageUpdateEgo::doProcess(EgoObject& ego)
 {
   using francor::base::LogDebug;
 
-  base::Transform2d transform = this->input(IN_TRANSFORM).data<base::Transform2d>();
+  const auto sensor_data = this->input(IN_SENSOR_DATA).data<std::shared_ptr<base::SensorData>>();
 
   LogDebug() << this->name() << ": update ego pose = " << ego.pose();
   LogDebug() << this->name() << ": new ego pose = " << ego.pose();
@@ -91,8 +103,7 @@ bool StageUpdateEgo::doInitialization()
 
 bool StageUpdateEgo::initializePorts()
 {
-  this->initializeInputPort<base::Pose2d>     (IN_SENSOR_POSE, "sensor pose");
-  this->initializeInputPort<base::Transform2d>(IN_TRANSFORM  , "transform"  );
+  this->initializeInputPort<std::shared_ptr<base::SensorData>>(IN_SENSOR_DATA, "sensor data");
 
   return true;
 }

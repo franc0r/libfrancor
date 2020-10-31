@@ -48,10 +48,8 @@ private:
 
 TEST(KalmanFilter, Instansitate)
 {
-  double time_stamp = 0.0
-  KalmanFilter<EgoKalmanFilterModel>::StateVector state_vector;
-  KalmanFilter<EgoKalmanFilterModel>::Matrix covariances;
-  KalmanFilter<EgoKalmanFilterModel> kalman_filter(time_stamp, state_vector, covariances);
+  double time_stamp = 0.0;
+  KalmanFilter<EgoKalmanFilterModel> kalman_filter(time_stamp);
 }
 
 TEST(KalmanFilter, TimePredictOnInitialValues_Circle)
@@ -70,12 +68,10 @@ TEST(KalmanFilter, TimePredictOnInitialValues_Circle)
 
   KalmanFilter<EgoKalmanFilterModel>::Matrix initial_covariances = KalmanFilter<EgoKalmanFilterModel>::Matrix::Identity() * 0.1;
 
-  double time_stamp = 0.0
-  KalmanFilter<EgoKalmanFilterModel>::StateVector state_vector;
-  KalmanFilter<EgoKalmanFilterModel>::Matrix covariances;
-  KalmanFilter<EgoKalmanFilterModel> kalman_filter(time_stamp, state_vector, covariances);
+  double time_stamp = 0.0;
+  KalmanFilter<EgoKalmanFilterModel> kalman_filter(time_stamp);
   constexpr double time_step = 0.01;
-  const CsvWriter<KalmanFilter<EgoKalmanFilterModel>::StateVector> csv_writer(kalman_filter.states());
+  const CsvWriter<KalmanFilter<EgoKalmanFilterModel>::StateVector> csv_writer(kalman_filter.state());
   
   kalman_filter.initialize(initial_state, initial_covariances);
   
@@ -129,11 +125,9 @@ TEST(KalmanFilter, Update_Circle)
 
   KalmanFilter<EgoKalmanFilterModel>::Matrix initial_covariances = KalmanFilter<EgoKalmanFilterModel>::Matrix::Identity() * 10.0 * 10.0;
 
-  double time_stamp = 0.0
-  KalmanFilter<EgoKalmanFilterModel>::StateVector state_vector;
-  KalmanFilter<EgoKalmanFilterModel>::Matrix covariances;
-  KalmanFilter<EgoKalmanFilterModel> kalman_filter(time_stamp, state_vector, covariances);
-  const CsvWriter<KalmanFilter<EgoKalmanFilterModel>::StateVector> csv_writer(kalman_filter.states());
+  double time_stamp = 0.0;
+  KalmanFilter<EgoKalmanFilterModel> kalman_filter(time_stamp);
+  const CsvWriter<KalmanFilter<EgoKalmanFilterModel>::StateVector> csv_writer(kalman_filter.state());
   constexpr double time_step = 0.01;
   constexpr Angle phi_step((velocity * time_step) / circle_radius);
   std::size_t counter = 0;
