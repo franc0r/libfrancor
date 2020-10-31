@@ -110,7 +110,7 @@ bool StageUpdateEgo::initializePorts()
 
 bool StageUpdateEgo::isReady() const
 {
-  return this->input(IN_TRANSFORM).numOfConnections() > 0;
+  return this->input(IN_SENSOR_DATA).numOfConnections() > 0;
 }
 
 } // end namespace mapping

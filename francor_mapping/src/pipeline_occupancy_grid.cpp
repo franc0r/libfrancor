@@ -95,7 +95,7 @@ bool PipeLocalizeAndUpdateEgo::configureStages()
   ret &= std::get<3>(_stages).input(algorithm::StageEstimateTransformBetweenPoints::IN_POINTS_B)
                              .connect(std::get<1>(_stages).output(algorithm::StageConvertLaserScanToPoints::OUT_POINTS));
 
-  ret &= std::get<4>(_stages).input(StageUpdateEgo::IN_TRANSFORM)
+  ret &= std::get<4>(_stages).input(StageUpdateEgo::IN_SENSOR_DATA)
                              .connect(std::get<3>(_stages).output(algorithm::StageEstimateTransformBetweenPoints::OUT_TRANSFORM));
 
   return ret;

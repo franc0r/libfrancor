@@ -17,12 +17,13 @@ namespace base {
 class PoseSensorData : public SensorData
 {
 public:
+  PoseSensorData(char const* const sensor_name = "unkown")
+    : SensorData(sensor_name, 0.0) { }
   PoseSensorData(const double time_stamp, const Pose2d& pose,
                  const Matrix3d& covariances, char const* const sensor_name = "unkown")
     : SensorData(sensor_name, time_stamp),
       _pose(pose),
-      _covariances(covariances)
-  { }
+      _covariances(covariances) { }
 
   const Pose2d& pose() const { return _pose; }
   const Matrix3d& covariances() const { return _covariances; }
