@@ -83,6 +83,12 @@ public:
   using type = double;
   using Vector = francor::base::VectorX<type, size>;
 
+  KinematicStateVector() = default;
+  explicit KinematicStateVector(const Vector& state_vector)
+  {
+    operator=(state_vector);
+  }
+
   operator Vector() const
   {
     base::VectorX<type, size> data;
@@ -97,6 +103,13 @@ public:
     std::size_t i = 0;
     ((this->template value<Attributes>() = rhs[i++]), ...);
     return *this;
+  }
+  KinematicStateVector<KinematicAttributePack<Attributes...>>
+  operator-(const KinematicStateVector<KinematicAttributePack<Attributes...>>& rhs) const
+  {
+    KinematicStateVector<KinematicAttributePack<Attributes...>> result;
+    ((result.template value<Attributes>() = this->template value<Attributes>() - rhs.template value<Attributes>()), ...);
+    return result;
   }
 };
 

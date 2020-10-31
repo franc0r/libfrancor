@@ -125,23 +125,25 @@ private:
     using SensorMatrix = base::Matrix<typename FilterModel::data_type,
                                       KinematicStateVector<KinematicAttributePack<SensorAttributes...>>::size,
                                       KinematicStateVector<KinematicAttributePack<SensorAttributes...>>::size>;
-    using SensorVector = typename KinematicStateVector<KinematicAttributePack<SensorAttributes...>>::Vector;
+    using SensorStateVector = KinematicStateVector<KinematicAttributePack<SensorAttributes...>>;                            
+    using SensorVector = typename SensorStateVector::Vector;
 
     const auto identity_matrix = Matrix::Identity();
 
     // reduce predicted covariances to sensor dimension space using observation matrix
     const SensorMatrix predicted_covariances_sensor_space = observation_matrix * predicted_covariances * observation_matrix.transpose();
-    const SensorVector predicted_state_sensor_space = observation_matrix * static_cast<typename StateVector::Vector>(predicted_state);
+    SensorStateVector predicted_state_sensor_space(observation_matrix * static_cast<typename StateVector::Vector>(predicted_state));
 
     // calculate the innovation and its covariances
-    const SensorVector innovation = static_cast<SensorVector>(measurements) - predicted_state_sensor_space;
+    const SensorVector innovation = static_cast<SensorVector>(measurements - predicted_state_sensor_space);
     const SensorMatrix innovation_covariances = predicted_covariances_sensor_space + measurement_covariances;
 
     // calculate kalman gain matrix and update the state and state covariances
     const auto kalman_gain = predicted_covariances * observation_matrix.transpose() * innovation_covariances.inverse();
     _state = static_cast<typename StateVector::Vector>(predicted_state) + kalman_gain * innovation;
     _corvariances = (identity_matrix - kalman_gain * observation_matrix) * predicted_covariances;
-
+    std::cout << "KALMAN: state:" << std::endl << static_cast<typename StateVector::Vector>(_state) << std::endl;
+    std::cout << "KALMAN: covariances:" << std::endl << _corvariances << std::endl;
     // set new time stamp
     _time_stamp = time_stamp;
   }              

@@ -41,7 +41,7 @@ EgoKalmanFilterModel::Matrix EgoKalmanFilterModel::getSystemNoiseMatrix(const St
 
   // add jerk system noise
   {
-    constexpr double jerk_variance = 20.0 * 20.0;
+    constexpr double jerk_variance = 1.0 * 1.0;
     StateVector noise_variances;
 
     noise_variances.x() = (delta_time * delta_time * delta_time / 6.0) * std::cos(current_state.yaw());

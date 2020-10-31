@@ -16,9 +16,10 @@ bool StageCreatePoseMeasurement::doProcess(processing::NoDataType&)
 {
   using francor::base::LogDebug;
   
-  const auto delta_pose = this->input(IN_DELTA_POSE).data<base::Transform2d>();
-  const auto ego_pose   = this->input(IN_EGO_POSE).data<base::Pose2d>();
-  const auto time_stamp = this->input(IN_SENSOR_DATA).data<std::shared_ptr<base::SensorData>>()->timeStamp();
+  const auto delta_pose  = this->input(IN_DELTA_POSE).data<base::Transform2d>();
+  const auto ego_pose    = this->input(IN_EGO_POSE).data<base::Pose2d>();
+  const auto time_stamp  = this->input(IN_SENSOR_DATA).data<std::shared_ptr<base::SensorData>>()->timeStamp();
+  // const auto sensor_pose = this->input(IN_SENSOR_DATA).data<std::shared_ptr<base::SensorData>>()->pose();
   LogDebug() << this->name() << ": create pose measurement using delta pose (" << delta_pose << ") and ego pose (" << ego_pose << ")";
 
   const auto estimated_pose = delta_pose * ego_pose;
@@ -26,8 +27,8 @@ bool StageCreatePoseMeasurement::doProcess(processing::NoDataType&)
 
   // @todo add paramter for covariances
   base::Matrix3d covariances = base::Matrix3d::Zero();
-  covariances(0, 0) = 0.5 * 0.5;
-  covariances(1, 1) = 0.5 * 0.5;
+  covariances(0, 0) = 0.3 * 0.3;
+  covariances(1, 1) = 0.3 * 0.3;
   covariances(2, 2) = base::Angle::createFromDegree(10) * base::Angle::createFromDegree(10);
   *_sensor_data = base::PoseSensorData(time_stamp, estimated_pose, covariances, "localization");
 

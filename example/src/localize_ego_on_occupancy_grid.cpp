@@ -36,7 +36,7 @@ using francor::base::PoseSensorData;
 OccupancyGrid _grid;
 EgoObject _ego;
 EgoObject _ego_ground_truth;
-const Pose2d _sensor_pose({ 0.0, 0.0 }, Angle::createFromDegree(90.0));
+const Pose2d _sensor_pose({ 0.0, 0.0 }, Angle::createFromDegree(-90.0));
 
 PipeSimulateLaserScan _pipe_simulator;
 PipeLocalizeOnOccupancyGrid _pipe_localize;
@@ -113,7 +113,7 @@ void drawPointsOnImage(const Point2dVector& points, Image& image)
 void applyGaussianNoise(LaserScan& scan)
 {
   std::default_random_engine generator;
-  std::normal_distribution<double> distribution(0.0, 0.01);
+  std::normal_distribution<double> distribution(0.0, 0.3 * 0.3);
   std::vector<double> modified_distances;
 
   modified_distances.reserve(scan.distances().size());
@@ -140,7 +140,7 @@ bool initialize(const std::string& file_name)
     return false;
   }
 
-  _ego.setPose({ { 25.0, 2.0 }, 0.0 });
+  _ego.setPose({ { 25.0, 2.0 }, Angle::createFromDegree(90) });
   _ego_ground_truth.setPose(_ego.pose());
 
   if (!_pipe_simulator.initialize()) {
@@ -160,9 +160,9 @@ bool initialize(const std::string& file_name)
   return true;
 }
 
-bool processStep(const Vector2d& delta_position)
+bool processStep(const Vector2d& delta_position, const Angle delta_yaw)
 {
-  const Transform2d transform({ Angle::createFromDegree(0.0) }, delta_position);
+  const Transform2d transform({ delta_yaw }, delta_position);
   static double time_stamp = 0.0;
 
   _ego_ground_truth.setPose(transform * _ego_ground_truth.pose());
@@ -243,11 +243,26 @@ int main(int argc, char** argv)
     return 2;
   }
 
+  // drive straight
   for (std::size_t step = 0; step < 500; ++step)
   {
     const Vector2d step_position(0.0, 0.05);
+    const Angle step_yaw(0.0);
 
-    if (!processStep(step_position)) {
+    if (!processStep(step_position, step_yaw)) {
+      LogError() << "terminate application";
+      return 3;
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  // rotate ego on place
+  for (std::size_t step = 0; step < 500; ++step)
+  {
+    const Vector2d step_position(0.0, 0.0);
+    const Angle step_yaw(Angle::createFromDegree(1.0));
+
+    if (!processStep(step_position, step_yaw)) {
       LogError() << "terminate application";
       return 3;
     }
