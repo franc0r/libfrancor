@@ -41,6 +41,7 @@ bool StagePredictEgo::doProcess(EgoObject& ego)
   // target time is in the past
   else {
     LogDebug() << this->name() << ": target time = " << time_stamp << ", is in the past. Skip prediction.";
+    _ego_pose = ego.pose();
   }
 
   return true;
@@ -82,11 +83,27 @@ bool StagePredictEgo::isReady() const
 bool StageUpdateEgo::doProcess(EgoObject& ego)
 {
   using francor::base::LogDebug;
+  using francor::base::LogError;
 
   const auto sensor_data = this->input(IN_SENSOR_DATA).data<std::shared_ptr<base::SensorData>>();
+  LogDebug() << this->name() << ": updating ego object with measurement to time stamp " << sensor_data->timeStamp();
 
-  LogDebug() << this->name() << ": update ego pose = " << ego.pose();
-  LogDebug() << this->name() << ": new ego pose = " << ego.pose();
+  if (nullptr != std::dynamic_pointer_cast<base::PoseSensorData>(sensor_data)) {
+    LogDebug() << this->name() << ": received sensor data of type pose sensor data";
+    const auto pose_measurment = std::static_pointer_cast<base::PoseSensorData>(sensor_data);
+
+    const auto observation_matrix = PoseSensorModel::getObservationMatrix(EgoObject::StateModel::StateVector{});
+    const auto pose_state = PoseSensorModel::transformSensorData(*pose_measurment);
+    const auto pose_covariances = PoseSensorModel::transformCovariances(*pose_measurment);
+
+    if (false == ego.model().process(pose_measurment->timeStamp(), pose_state, pose_covariances, observation_matrix)) {
+      LogError() << this->name() << ": ego object update failed";
+    }
+  }
+  else {
+    LogError() << this->name() << ": sensor data type can't be handled, cancel ego object update";
+    return false;
+  }
 
   return true;
 }
@@ -99,6 +116,18 @@ bool StageUpdateEgo::doInitialization()
 bool StageUpdateEgo::initializePorts()
 {
   this->initializeInputPort<std::shared_ptr<base::SensorData>>(IN_SENSOR_DATA, "sensor data");
+
+  return true;
+}
+
+bool StageUpdateEgo::validateInputData() const
+{
+  using francor::base::LogError;
+
+  if (nullptr == this->input(IN_SENSOR_DATA).data<std::shared_ptr<base::SensorData>>()) {
+    LogError() << this->name() << ": input sensor data pointer is null";
+    return false;
+  }
 
   return true;
 }

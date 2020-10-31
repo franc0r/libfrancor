@@ -81,6 +81,7 @@ private:
   bool doInitialization() final;
   bool initializePorts() final;
   bool isReady() const final;
+  bool validateInputData() const final;  
 
   base::Point2dVector _resulted_points;
 };
@@ -110,6 +111,35 @@ private:
   bool isReady() const final;
 
   std::vector<base::NormalizedAngle> _resulted_normals;
+};
+
+
+
+
+class StageExtractSensorPose final : public processing::ProcessingStage<processing::NoDataType>
+{
+public:
+  enum Inputs {
+    IN_SENSOR_DATA = 0,
+    COUNT_INPUTS
+  };
+  enum Outputs {
+    OUT_SENSOR_POSE = 0,
+    COUNT_OUTPUTS
+  };
+
+  StageExtractSensorPose()
+    : processing::ProcessingStage<processing::NoDataType>("estimate normals from ordered points", COUNT_INPUTS, COUNT_OUTPUTS)
+  { }
+
+private:
+  bool doProcess(processing::NoDataType&) final;
+  bool doInitialization() final;
+  bool initializePorts() final;
+  bool isReady() const final;
+  bool validateInputData() const final; 
+
+  base::Pose2d _sensor_pose;
 };
 
 } // end namespace algorithm

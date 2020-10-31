@@ -144,7 +144,7 @@ bool reconstructPointsFromGrid(const OccupancyGrid& grid, const base::Pose2d& po
 
 bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d& pose_ego, const base::Pose2d& pose_sensor,
                                   const base::Angle phi_min, const base::Angle phi_step, const std::size_t num_beams,
-                                  const double range, base::LaserScan& scan)
+                                  const double range, base::LaserScan& scan, const double time_stamp)
 {
   using francor::base::Angle;
   using francor::base::Line;
@@ -203,7 +203,7 @@ bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d&
     current_phi += phi_step;
   }
 
-  scan = LaserScan(distances, pose_sensor, phi_min, phi_min + phi_step * num_beams, phi_step, range);
+  scan = LaserScan(distances, pose_sensor, phi_min, phi_min + phi_step * num_beams, phi_step, range, 0.0, "unkown", time_stamp);
 
   return true;
 }                                  

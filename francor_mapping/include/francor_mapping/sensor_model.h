@@ -37,12 +37,12 @@ public:
     return observation_matrix;
   }
 
-  StateVector transformSensorData(const SensorData& sensor_data) const;
+  static StateVector transformSensorData(const SensorData& sensor_data);
   // {
   //   static_assert(false, "Template method transformSensorData() has to be specialized.");
   // }
 
-  CovarianceMatrix transformCovariances(const SensorData& sensor_data) const;
+  static CovarianceMatrix transformCovariances(const SensorData& sensor_data);
   // {
   //   static_assert(false, "Template method transformCovariances() has to be specialized.");
   // }

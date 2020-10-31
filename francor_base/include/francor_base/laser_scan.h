@@ -30,9 +30,8 @@ public:
             const Angle divergence = 0.0,
             char const* const sensor_name = "unkown",
             const double time_stamp = 0.0)
-    : SensorData(sensor_name, time_stamp),
+    : SensorData(sensor_name, time_stamp, pose),
       _distances(distances),
-      _pose(pose),
       _phi_step(phiStep),
       _phi_min(phiMin),
       _phi_max(phiMax),
@@ -47,7 +46,6 @@ public:
   inline Angle phiStep() const noexcept { return _phi_step; }
   inline Angle divergence() const noexcept { return _divergence; }
   inline const std::vector<double> distances() const noexcept { return _distances; }
-  inline const Pose2d& pose() const noexcept { return _pose; }
   inline double range() const noexcept { return _range; }
   inline const std::vector<float>& pointExpansions() const noexcept { return _point_diameters; }
 
@@ -62,7 +60,6 @@ private:
   }
 
   std::vector<double> _distances;
-  Pose2d _pose;
   Angle _phi_step{0.0};
   Angle _phi_min{0.0};
   Angle _phi_max{0.0};
@@ -81,6 +78,7 @@ namespace std {
 inline ostream& operator<<(ostream& os, const francor::base::LaserScan& scan)
 {
   os << "### laser scan ###" << std::endl;
+  os << "time stamp : " << scan.timeStamp() << std::endl;
   os << "pose       : " << scan.pose() << std::endl;
   os << "phi min    : " << scan.phiMin() << std::endl;
   os << "phi max    : " << scan.phiMax() << std::endl;

@@ -28,6 +28,7 @@ public:
   enum Inputs {
     IN_SENSOR_POSE = 0,
     IN_EGO_POSE,
+    IN_TIME_STAMP,
     COUNT_INPUTS
   };
   enum Outputs {
@@ -72,6 +73,7 @@ private:
 
 
 using PipeLocalizeOnOccupancyGridParent = processing::ProcessingPipeline<EgoObject,                                   // model type
+                                                                      algorithm::StageExtractSensorPose,
                                                                       StagePredictEgo,                                // predicts ego to laser scan time stamp
                                                                       algorithm::StageConvertLaserScanToPoints,       // convert scan stage
                                                                       StageReconstructPointsFromOccupancyGrid,        // reconstruct points stage

@@ -89,7 +89,7 @@ bool reconstructPointsFromGrid(const OccupancyGrid& grid, const base::Pose2d& po
  */
 bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d& pose_ego, const base::Pose2d& pose_sensor,
                                   const base::Angle phi_min, const base::Angle phi_step, const std::size_t num_beams,
-                                  const double range, base::LaserScan& scan);
+                                  const double range, base::LaserScan& scan, const double time_stamp = 0.0);
 
 /**
  * \brief Updates a occupancy grid cell using formula cell = (value / (1 - value)) * old.value. NOTE: POC!

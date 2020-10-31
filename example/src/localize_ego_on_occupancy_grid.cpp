@@ -30,6 +30,8 @@ using francor::base::Vector2d;
 using francor::base::Vector2i;
 using francor::base::Angle;
 using francor::base::LaserScan;
+using francor::base::SensorData;
+using francor::base::PoseSensorData;
 
 OccupancyGrid _grid;
 EgoObject _ego;
@@ -38,6 +40,7 @@ const Pose2d _sensor_pose({ 0.0, 0.0 }, Angle::createFromDegree(90.0));
 
 PipeSimulateLaserScan _pipe_simulator;
 PipeLocalizeOnOccupancyGrid _pipe_localize;
+PipeUpdateEgoObject _pipe_update_ego;
 
 void drawPose(const Pose2d& pose, Image& image)
 {
@@ -110,7 +113,7 @@ void drawPointsOnImage(const Point2dVector& points, Image& image)
 void applyGaussianNoise(LaserScan& scan)
 {
   std::default_random_engine generator;
-  std::normal_distribution<double> distribution(0.0, 0.05);
+  std::normal_distribution<double> distribution(0.0, 0.01);
   std::vector<double> modified_distances;
 
   modified_distances.reserve(scan.distances().size());
@@ -120,7 +123,7 @@ void applyGaussianNoise(LaserScan& scan)
   }
 
   scan = LaserScan(modified_distances, scan.pose(), scan.phiMin(),
-                   scan.phiMax(), scan.phiStep(), scan.range(), Angle::createFromDegree(1.0));
+                   scan.phiMax(), scan.phiStep(), scan.range(), scan.divergence(), "laser", scan.timeStamp());
 }
 
 bool loadGridFromFile(const std::string& file_name, OccupancyGrid& grid)
@@ -144,26 +147,35 @@ bool initialize(const std::string& file_name)
     LogError() << "Can't initialize \"" << _pipe_simulator.name() << "\" pipeline.";
     return false;
   }
-
   if (!_pipe_localize.initialize()) {
     LogError() << "Can't initialize \"" << _pipe_localize.name() << "\" pipeline.";
     return false;
   }
+  if (!_pipe_update_ego.initialize()) {
+    LogError() << "Can't initialize \"" << _pipe_update_ego.name() << "\" pipeline.";
+    return false;    
+  }
+
 
   return true;
 }
 
 bool processStep(const Vector2d& delta_position)
 {
-  const Transform2d transform({ Angle::createFromDegree(-1.0) }, delta_position);
+  const Transform2d transform({ Angle::createFromDegree(0.0) }, delta_position);
+  static double time_stamp = 0.0;
 
   _ego_ground_truth.setPose(transform * _ego_ground_truth.pose());
   std::cout << "ego ground truth " << _ego_ground_truth.pose() << std::endl;
+  std::cout << "time stamp = " << time_stamp << std::endl;
   _pipe_simulator.input(PipeSimulateLaserScan::IN_SENSOR_POSE).assign(&_sensor_pose);
+  const auto grount_truth_pose = _ego_ground_truth.pose();
+  _pipe_simulator.input(PipeSimulateLaserScan::IN_EGO_POSE).assign(&grount_truth_pose);
+  _pipe_simulator.input(PipeSimulateLaserScan::IN_TIME_STAMP).assign(&time_stamp);
   auto start = std::chrono::system_clock::now();
 
   // generate new laser scan
-  if (!_pipe_simulator.process(_grid, _ego_ground_truth)) {
+  if (!_pipe_simulator.process(_grid)) {
     LogError() << "Error occurred during processing of pipeline \"" << _pipe_simulator.name() << "\".";
     return false;
   }
@@ -173,8 +185,9 @@ bool processStep(const Vector2d& delta_position)
   LogDebug() << "reconstruct laser scan processing time = " << elapsed.count() << " us";
 
   // estimate pose using generated laser scan
-  LaserScan scan(_pipe_simulator.output(PipeSimulateLaserScan::OUT_SCAN).data<LaserScan>());
-  applyGaussianNoise(scan);
+  std::shared_ptr<SensorData> scan = std::make_shared<LaserScan>(_pipe_simulator.output(PipeSimulateLaserScan::OUT_SCAN).data<LaserScan>());
+  std::cout << "time stamp in laser scan = " << scan->timeStamp() << std::endl;
+  applyGaussianNoise(*std::static_pointer_cast<LaserScan>(scan));
   _pipe_localize.input(PipeLocalizeOnOccupancyGrid::IN_SCAN).assign(&scan);
   start = std::chrono::system_clock::now();
 
@@ -187,16 +200,30 @@ bool processStep(const Vector2d& delta_position)
   elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);  
   LogDebug() << "updating ego processing time = " << elapsed.count() << " us";  
 
+  // update ego with localization result
+  std::shared_ptr<SensorData> localization_result =
+    _pipe_localize.output(PipeLocalizeOnOccupancyGrid::OUT_POSE_MEASUREMENT).data<std::shared_ptr<PoseSensorData>>();
+  _pipe_update_ego.input(PipeUpdateEgoObject::IN_SENSOR_DATA).assign(&localization_result);    
+
+  if (!_pipe_update_ego.process(_ego)) {
+    LogError() << "Error occurred during processing of pipeline \"" << _pipe_update_ego.name() << "\".";
+    return false;    
+  }
+
+  // user output
   Image out_grid;
   francor::mapping::algorithm::occupancy::convertGridToImage(_grid, out_grid);
   out_grid.transformTo(ColourSpace::BGR);
-  drawLaserScanOnImage(scan, out_grid);
+  drawLaserScanOnImage(*std::static_pointer_cast<LaserScan>(scan), out_grid);
   drawPose(_ego.pose(), out_grid);
   Point2dVector points;
-  francor::base::algorithm::point::convertLaserScanToPoints(scan, _ego_ground_truth.pose(), points);
+  francor::base::algorithm::point::convertLaserScanToPoints(*std::static_pointer_cast<LaserScan>(scan), _ego_ground_truth.pose(), points);
   drawPointsOnImage(points, out_grid);
   cv::imshow("occupancy grid", out_grid.cvMat());
   cv::waitKey(10);
+
+  // prepare next iteration
+  time_stamp += 0.1; // add 100ms
 
   return true;
 }

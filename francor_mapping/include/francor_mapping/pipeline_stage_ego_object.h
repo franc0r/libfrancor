@@ -69,6 +69,7 @@ private:
   bool doInitialization() final;
   bool initializePorts() final;
   bool isReady() const final;
+  bool validateInputData() const final;  
 };
 
 

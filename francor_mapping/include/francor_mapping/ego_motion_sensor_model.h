@@ -20,7 +20,7 @@ using EgoMotionSensorModel = SensorModel<base::EgoMotionSensorData,
                                                                               
 template<>
 EgoMotionSensorModel::StateVector
-EgoMotionSensorModel::transformSensorData(const base::EgoMotionSensorData& sensor_data) const
+EgoMotionSensorModel::transformSensorData(const base::EgoMotionSensorData& sensor_data)
 {
   StateVector measurement;
 
@@ -32,7 +32,7 @@ EgoMotionSensorModel::transformSensorData(const base::EgoMotionSensorData& senso
 
 template<>
 EgoMotionSensorModel::CovarianceMatrix
-EgoMotionSensorModel::transformCovariances(const base::EgoMotionSensorData& sensor_data) const
+EgoMotionSensorModel::transformCovariances(const base::EgoMotionSensorData& sensor_data)
 {
   return sensor_data.covariances();
 }

@@ -22,6 +22,7 @@ class StageReconstructPointsFromOccupancyGrid final : public processing::Process
 public:
   enum Inputs {
     IN_SENSOR_POSE = 0,
+    IN_EGO_POSE,
     COUNT_INPUTS
   };
   enum Outputs {
@@ -61,6 +62,7 @@ public:
   enum Inputs {
     IN_SENSOR_POSE = 0,
     IN_EGO_POSE,
+    IN_TIME_STAMP,
     COUNT_INPUTS
   };
   enum Outputs {

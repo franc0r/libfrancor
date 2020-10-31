@@ -26,8 +26,8 @@ bool StageCreatePoseMeasurement::doProcess(processing::NoDataType&)
 
   // @todo add paramter for covariances
   base::Matrix3d covariances = base::Matrix3d::Zero();
-  covariances(0, 0) = 0.1 * 0.1;
-  covariances(1, 1) = 0.1 * 0.1;
+  covariances(0, 0) = 0.5 * 0.5;
+  covariances(1, 1) = 0.5 * 0.5;
   covariances(2, 2) = base::Angle::createFromDegree(10) * base::Angle::createFromDegree(10);
   *_sensor_data = base::PoseSensorData(time_stamp, estimated_pose, covariances, "localization");
 

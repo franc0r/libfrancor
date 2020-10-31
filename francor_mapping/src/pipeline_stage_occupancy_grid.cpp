@@ -19,11 +19,15 @@ bool StageReconstructPointsFromOccupancyGrid::doProcess(OccupancyGrid& grid)
   using francor::base::LogDebug;
 
   const auto& sensor_pose = this->input(IN_SENSOR_POSE).data<base::Pose2d>();
+  const auto& ego_pose = this->input(IN_EGO_POSE).data<base::Pose2d>();
+  const base::Pose2d origin(ego_pose.position() + sensor_pose.position(),
+                            ego_pose.orientation() + sensor_pose.orientation()); 
+
   LogDebug() << this->name() << ": start processing.";
-  LogDebug() << this->name() << ": uses sensor pose = " << sensor_pose;
+  LogDebug() << this->name() << ": uses sensor pose = " << origin;
 
   if (!algorithm::occupancy::reconstructPointsFromGrid(grid,
-                                                       sensor_pose,
+                                                       origin,
                                                        _parameter.phi_min,
                                                        _parameter.phi_step,
                                                        _parameter.num_laser_beams,
@@ -45,9 +49,10 @@ bool StageReconstructPointsFromOccupancyGrid::doInitialization()
 
 bool StageReconstructPointsFromOccupancyGrid::initializePorts()
 {
-  this->initializeInputPort<base::Pose2d>(IN_SENSOR_POSE, "sensor pose");
+  this->initializeInputPort<base::Pose2d>(IN_SENSOR_POSE, "sensor_pose");
+  this->initializeInputPort<base::Pose2d>(IN_EGO_POSE, "ego_pose");
 
-  this->initializeOutputPort(OUT_POINTS, "points 2d", &_reconstructed_points);
+  this->initializeOutputPort(OUT_POINTS, "points_2d", &_reconstructed_points);
 
   return true;
 }
@@ -65,9 +70,11 @@ bool StageReconstructLaserScanFromOccupancyGrid::doProcess(OccupancyGrid& grid)
 
   const auto& sensor_pose = this->input(IN_SENSOR_POSE).data<base::Pose2d>();
   const auto& ego_pose    = this->input(IN_EGO_POSE   ).data<base::Pose2d>();
+  const auto  time_stamp  = this->input(IN_TIME_STAMP ).data<double      >();
 
   LogDebug() << this->name() << ": start processing.";
-  LogDebug() << this->name() << ": uses sensor pose = " << sensor_pose << " and ego pose = " << ego_pose;
+  LogDebug() << this->name() << ": uses sensor pose = " << sensor_pose << " and ego pose = " << ego_pose
+             << " at time stamp = " << time_stamp;
 
   if (!algorithm::occupancy::reconstructLaserScanFromGrid(grid,
                                                           ego_pose,
@@ -76,7 +83,8 @@ bool StageReconstructLaserScanFromOccupancyGrid::doProcess(OccupancyGrid& grid)
                                                           _parameter.phi_step,
                                                           _parameter.num_laser_beams,
                                                           _parameter.max_range,
-                                                          _reconstructed_scan))
+                                                          _reconstructed_scan,
+                                                          time_stamp))
   {
     LogError() << this->name() << ": reconstruct points from tsd grid failed.";
     return false;
@@ -94,7 +102,8 @@ bool StageReconstructLaserScanFromOccupancyGrid::doInitialization()
 bool StageReconstructLaserScanFromOccupancyGrid::initializePorts()
 {
   this->initializeInputPort<base::Pose2d>(IN_SENSOR_POSE, "sensor pose");
-  this->initializeInputPort<base::Pose2d>(IN_EGO_POSE   , "ego pose"   );
+  this->initializeInputPort<base::Pose2d>(IN_EGO_POSE, "ego pose");
+  this->initializeInputPort<double>(IN_TIME_STAMP, "time_stamp");
 
   this->initializeOutputPort(OUT_SCAN, "laser scan", &_reconstructed_scan);
 
@@ -103,7 +112,11 @@ bool StageReconstructLaserScanFromOccupancyGrid::initializePorts()
 
 bool StageReconstructLaserScanFromOccupancyGrid::isReady() const
 {
-  return this->input(IN_SENSOR_POSE).numOfConnections() > 0;
+  return this->input(IN_SENSOR_POSE).numOfConnections() > 0
+         &&
+         this->input(IN_EGO_POSE).numOfConnections() > 0
+         &&
+         this->input(IN_TIME_STAMP).numOfConnections() > 0;
 }
 
 

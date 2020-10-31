@@ -69,10 +69,11 @@ bool StageConvertLaserScanToPoints::doProcess(processing::NoDataType&)
 {
   using francor::base::LogDebug;
   using francor::base::LogError;
+  const auto sensor_data = this->input(IN_SCAN).data<std::shared_ptr<base::SensorData>>();
+  const auto& scan       = *std::static_pointer_cast<base::LaserScan>(sensor_data);
+  const auto& ego_pose   = this->input(IN_EGO_POSE).numOfConnections() > 0 ? this->input(IN_EGO_POSE).data<base::Pose2d>() : base::Pose2d();
 
-  const auto& scan     = this->input(IN_SCAN).data    <base::LaserScan>();
-  const auto& ego_pose = this->input(IN_EGO_POSE).numOfConnections() > 0 ? this->input(IN_EGO_POSE).data<base::Pose2d>() : base::Pose2d();
-
+  // @todo replace debug messages with proper one
   LogDebug() << "uses scan pose " << scan.pose();
   LogDebug() << "uses ego pose " << ego_pose;
 
@@ -92,10 +93,27 @@ bool StageConvertLaserScanToPoints::doInitialization()
 
 bool StageConvertLaserScanToPoints::initializePorts()
 {
-  this->initializeInputPort<base::LaserScan>(IN_SCAN    , "laser scan");
-  this->initializeInputPort<base::Pose2d   >(IN_EGO_POSE, "ego pose"  );
+  this->initializeInputPort<std::shared_ptr<base::SensorData>>(IN_SCAN, "laser scan");
+  this->initializeInputPort<base::Pose2d>(IN_EGO_POSE, "ego pose");
 
   this->initializeOutputPort(OUT_POINTS, "points 2d", &_resulted_points);
+
+  return true;
+}
+
+bool StageConvertLaserScanToPoints::validateInputData() const
+{
+  using francor::base::LogError;
+  auto input_sensor_data = this->input(IN_SCAN).data<std::shared_ptr<base::SensorData>>();
+
+  if (nullptr == input_sensor_data) {
+    LogError() << this->name() << ": input sensor data pointer is null";
+    return false;
+  }
+  if (nullptr == std::dynamic_pointer_cast<base::LaserScan>(input_sensor_data)) {
+    LogError() << this->name() << ": input sensor data is not of type laser scan";
+    return false;
+  }
 
   return true;
 }
@@ -143,6 +161,54 @@ bool StageEstimateNormalsFromOrderedPoints::isReady() const
 {
   return this->input(IN_POINTS).numOfConnections() > 0;
 }
+
+
+
+
+bool StageExtractSensorPose::doProcess(processing::NoDataType&)
+{
+  using francor::base::LogDebug;
+
+  const auto sensor_data = this->input(IN_SENSOR_DATA).data<std::shared_ptr<base::SensorData>>();
+  _sensor_pose = sensor_data->pose();
+  LogDebug() << this->name() << ": extracted " << _sensor_pose << " from sensor data of sensor "
+             << sensor_data->sensorName();
+
+  return true;
+}
+
+bool StageExtractSensorPose::doInitialization()
+{
+  return true;
+}
+
+bool StageExtractSensorPose::initializePorts()
+{
+  this->initializeInputPort<std::shared_ptr<base::SensorData>>(IN_SENSOR_DATA, "sensor_data");
+
+  this->initializeOutputPort<base::Pose2d>(OUT_SENSOR_POSE, "extracted sensor pose", &_sensor_pose);
+
+  return true;
+}
+
+bool StageExtractSensorPose::validateInputData() const
+{
+  using francor::base::LogError;
+  auto input_sensor_data = this->input(IN_SENSOR_DATA).data<std::shared_ptr<base::SensorData>>();
+
+  if (nullptr == input_sensor_data) {
+    LogError() << this->name() << ": input sensor data pointer is null";
+    return false;
+  }
+
+  return true;
+}
+
+bool StageExtractSensorPose::isReady() const
+{
+  return this->input(IN_SENSOR_DATA).numOfConnections() > 0;
+}
+
 
 } // end namespace algorithm
 
