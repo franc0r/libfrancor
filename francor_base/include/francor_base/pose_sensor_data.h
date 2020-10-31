@@ -29,8 +29,8 @@ public:
   const Matrix3d& covariances() const { return _covariances; }
 
 private:
-  const Pose2d _pose;
-  const Matrix3d _covariances;
+  Pose2d _pose;
+  Matrix3d _covariances;
 };
 
 } // end namespace base

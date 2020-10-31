@@ -13,7 +13,8 @@
 #include <random>
 
 using francor::mapping::PipeSimulateLaserScan;
-using francor::mapping::PipeLocalizeAndUpdateEgo;
+using francor::mapping::PipeLocalizeOnOccupancyGrid;
+using francor::mapping::PipeUpdateEgoObject;
 using francor::mapping::PipeUpdateOccupancyGrid;
 using francor::mapping::PipeConvertLaserScanToPoints;
 using francor::mapping::OccupancyGrid;
@@ -40,7 +41,7 @@ EgoObject _ego_ground_truth;
 const Pose2d _sensor_pose({ 0.0, 0.0 }, Angle::createFromDegree(90.0));
 
 PipeSimulateLaserScan _pipe_simulator;
-PipeLocalizeAndUpdateEgo _pipe_update_ego;
+PipeLocalizeOnOccupancyGrid _pipe_localize;
 PipeConvertLaserScanToPoints _pipe_convert_scan;
 PipeUpdateOccupancyGrid _pipe_update_grid;
 
@@ -155,8 +156,8 @@ bool initialize(const std::string& file_name)
     return false;
   }
 
-  if (!_pipe_update_ego.initialize()) {
-    LogError() << "Can't initialize \"" << _pipe_update_ego.name() << "\" pipeline.";
+  if (!_pipe_localize.initialize()) {
+    LogError() << "Can't initialize \"" << _pipe_localize.name() << "\" pipeline.";
     return false;
   }
 
@@ -209,11 +210,11 @@ bool processStep(const Vector2d& delta_position)
   static unsigned int counter_localize = 0;
 
   if (counter_localize++ >= 10) {
-    _pipe_update_ego.input(PipeLocalizeAndUpdateEgo::IN_SCAN).assign(&scan);
+    _pipe_localize.input(PipeLocalizeOnOccupancyGrid::IN_SCAN).assign(&scan);
     start = std::chrono::system_clock::now();
 
-    if (!_pipe_update_ego.process(_ego, _grid)) {
-      LogError() << "Error occurred during processing of pipeline \"" << _pipe_update_ego.name() << "\".";
+    if (!_pipe_localize.process(_ego, _grid)) {
+      LogError() << "Error occurred during processing of pipeline \"" << _pipe_localize.name() << "\".";
       return false;
     }      
 
@@ -242,7 +243,7 @@ bool processStep(const Vector2d& delta_position)
   out_grid.transformTo(ColourSpace::BGR);
   drawPose(_ego.pose(), out_grid);
   drawLaserScanOnImage(scan, out_grid);
-  const auto& points = _pipe_update_ego.output(PipeLocalizeAndUpdateEgo::OUT_POINTS).data<Point2dVector>();
+  const auto& points = _pipe_localize.output(PipeLocalizeOnOccupancyGrid::OUT_POINTS).data<Point2dVector>();
   // francor::base::algorithm::point::convertLaserScanToPoints(scan, _ego_ground_truth.pose(), points);
   drawPointsOnImage(points, out_grid);
   cv::Mat scaled;

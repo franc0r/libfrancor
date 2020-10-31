@@ -13,7 +13,8 @@
 #include <random>
 
 using francor::mapping::PipeSimulateLaserScan;
-using francor::mapping::PipeLocalizeAndUpdateEgo;
+using francor::mapping::PipeLocalizeOnOccupancyGrid;
+using francor::mapping::PipeUpdateEgoObject;
 using francor::mapping::OccupancyGrid;
 using francor::mapping::EgoObject;
 using francor::vision::Image;
@@ -36,7 +37,7 @@ EgoObject _ego_ground_truth;
 const Pose2d _sensor_pose({ 0.0, 0.0 }, Angle::createFromDegree(90.0));
 
 PipeSimulateLaserScan _pipe_simulator;
-PipeLocalizeAndUpdateEgo _pipe_update_ego;
+PipeLocalizeOnOccupancyGrid _pipe_localize;
 
 void drawPose(const Pose2d& pose, Image& image)
 {
@@ -144,8 +145,8 @@ bool initialize(const std::string& file_name)
     return false;
   }
 
-  if (!_pipe_update_ego.initialize()) {
-    LogError() << "Can't initialize \"" << _pipe_update_ego.name() << "\" pipeline.";
+  if (!_pipe_localize.initialize()) {
+    LogError() << "Can't initialize \"" << _pipe_localize.name() << "\" pipeline.";
     return false;
   }
 
@@ -174,11 +175,11 @@ bool processStep(const Vector2d& delta_position)
   // estimate pose using generated laser scan
   LaserScan scan(_pipe_simulator.output(PipeSimulateLaserScan::OUT_SCAN).data<LaserScan>());
   applyGaussianNoise(scan);
-  _pipe_update_ego.input(PipeLocalizeAndUpdateEgo::IN_SCAN).assign(&scan);
+  _pipe_localize.input(PipeLocalizeOnOccupancyGrid::IN_SCAN).assign(&scan);
   start = std::chrono::system_clock::now();
 
-  if (!_pipe_update_ego.process(_ego, _grid)) {
-    LogError() << "Error occurred during processing of pipeline \"" << _pipe_update_ego.name() << "\".";
+  if (!_pipe_localize.process(_ego, _grid)) {
+    LogError() << "Error occurred during processing of pipeline \"" << _pipe_localize.name() << "\".";
     return false;
   }      
 

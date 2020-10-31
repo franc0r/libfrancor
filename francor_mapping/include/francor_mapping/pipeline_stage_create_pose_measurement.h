@@ -6,7 +6,8 @@
 #pragma once
 
 #include "francor_mapping/ego_object.h"
-#include <francor_base/sensor_data.h>
+
+#include <francor_base/pose_sensor_data.h>
 
 #include <francor_processing/data_processing_pipeline_stage.h>
 
@@ -19,21 +20,21 @@ namespace mapping {
  *        pipeline concept requires such a extra calculation step.
  */
 // \todo invent a base class for all sensor data classes so this stage can be more generic usable
-class StateCreatePoseMeasurement final : public processing::ProcessingStage<processing::NoDataType>
+class StageCreatePoseMeasurement final : public processing::ProcessingStage<processing::NoDataType>
 {
 public:
   enum Inputs {
-    IN_DELTA_POSE = 0,
-    IN_EGO_POSE,
-    IN_SENSOR_DATA,
+    IN_DELTA_POSE = 0, // delta pose as transformation
+    IN_EGO_POSE,       // ego pose
+    IN_SENSOR_DATA,    // any sensor data used to get the current time stamp
     COUNT_INPUTS
   };
   enum Outputs {
-    OUT_SENSOR_DATA = 0,
+    OUT_SENSOR_DATA = 0, // created pose measurement
     COUNT_OUTPUTS
   };
 
-  StateCreatePoseMeasurement()
+  StageCreatePoseMeasurement()
     : processing::ProcessingStage<processing::NoDataType>("estimate laser scanner pose", COUNT_INPUTS, COUNT_OUTPUTS)
   { }  
 
@@ -44,7 +45,7 @@ private:
   bool isReady() const final;
   bool validateInputData() const final;
 
-  std::shared_ptr<base::SensorData> _sensor_data;
+  std::shared_ptr<base::PoseSensorData> _sensor_data;
 };
 
 } // end namespace mapping

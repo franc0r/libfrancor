@@ -5,14 +5,14 @@
  */
 
 #include "francor_mapping/pipeline_stage_create_pose_measurement.h"
+
 #include <francor_base/transform.h>
-#include <francor_base/pose_sensor_data.h>
 
 namespace francor {
 
 namespace mapping {
 
-bool StateCreatePoseMeasurement::doProcess(processing::NoDataType&)
+bool StageCreatePoseMeasurement::doProcess(processing::NoDataType&)
 {
   using francor::base::LogDebug;
   
@@ -24,6 +24,7 @@ bool StateCreatePoseMeasurement::doProcess(processing::NoDataType&)
   const auto estimated_pose = delta_pose * ego_pose;
   LogDebug() << this->name() << ": estimated pose = " << estimated_pose << ", valid for time stamp = " << time_stamp;
 
+  // @todo add paramter for covariances
   base::Matrix3d covariances = base::Matrix3d::Zero();
   covariances(0, 0) = 0.1 * 0.1;
   covariances(1, 1) = 0.1 * 0.1;
@@ -33,13 +34,13 @@ bool StateCreatePoseMeasurement::doProcess(processing::NoDataType&)
   return true;
 }
 
-bool StateCreatePoseMeasurement::doInitialization()
+bool StageCreatePoseMeasurement::doInitialization()
 {
   _sensor_data = std::make_shared<base::PoseSensorData>("localization");
   return true;
 }
 
-bool StateCreatePoseMeasurement::initializePorts()
+bool StageCreatePoseMeasurement::initializePorts()
 {
   this->initializeInputPort<base::Transform2d>(IN_DELTA_POSE, "delta_pose");
   this->initializeInputPort<base::Pose2d>(IN_EGO_POSE, "ego_pose");
@@ -50,7 +51,7 @@ bool StateCreatePoseMeasurement::initializePorts()
   return true;
 }
 
-bool StateCreatePoseMeasurement::validateInputData() const
+bool StageCreatePoseMeasurement::validateInputData() const
 {
   using francor::base::LogError;
 
@@ -62,7 +63,7 @@ bool StateCreatePoseMeasurement::validateInputData() const
   return true;
 }
 
-bool StateCreatePoseMeasurement::isReady() const
+bool StageCreatePoseMeasurement::isReady() const
 {
   return this->input(IN_DELTA_POSE).numOfConnections() > 0
          &&

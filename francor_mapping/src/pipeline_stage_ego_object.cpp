@@ -17,20 +17,12 @@ namespace francor {
 
 namespace mapping {
 
-bool StageEstimateLaserScannerPose::doProcess(EgoObject& ego)
+bool StagePredictEgo::doProcess(EgoObject& ego)
 {
   using francor::base::LogDebug;
   using francor::base::LogError;
   
-  const auto pose(this->input(IN_SENSOR_POSE).numOfConnections() > 0   ?
-                  this->input(IN_SENSOR_POSE).data<base::Pose2d>()     :
-                  this->input(IN_SCAN).data<base::LaserScan>().pose());
-
-  base::Transform2d t_laser_ego({ pose.orientation() }, { pose.position().x(), pose.position().y() });
-  _estimated_pose = t_laser_ego * ego.pose();
-  LogDebug() << this->name() << ": estimated " << _estimated_pose;
-
-  const auto time_stamp = this->input(IN_SCAN).data<base::LaserScan>().timeStamp();
+  const auto time_stamp = this->input(IN_SENSOR_DATA).data<std::shared_ptr<base::SensorData>>()->timeStamp();
 
   // predict to given time stamp without updating ego object
   if (ego.timeStamp() < time_stamp) {
@@ -54,32 +46,35 @@ bool StageEstimateLaserScannerPose::doProcess(EgoObject& ego)
   return true;
 }
 
-// bool StageEstimateLaserScannerPose::validateInputData()
-// {
-
-// }
-
-bool StageEstimateLaserScannerPose::doInitialization()
+bool StagePredictEgo::doInitialization()
 {
   return true;
 }
 
-bool StageEstimateLaserScannerPose::initializePorts()
+bool StagePredictEgo::initializePorts()
 {
-  this->initializeInputPort<base::LaserScan>(IN_SCAN       , "laser scan" );
-  this->initializeInputPort<base::Pose2d>   (IN_SENSOR_POSE, "sensor pose");
+  this->initializeInputPort<std::shared_ptr<base::SensorData>>(IN_SENSOR_DATA, "sensor_data");
 
-  this->initializeOutputPort(OUT_POSE, "pose", &_estimated_pose);
-  this->initializeOutputPort(OUT_EGO_POSE, "ego pose", &_ego_pose);
+  this->initializeOutputPort(OUT_EGO_POSE, "predicted_ego pose", &_ego_pose);
 
   return true;
 }
 
-bool StageEstimateLaserScannerPose::isReady() const
+bool StagePredictEgo::validateInputData() const
 {
-  return this->input(IN_SCAN).numOfConnections() > 0
-         ||
-         this->input(IN_SENSOR_POSE).numOfConnections() > 0;
+  using francor::base::LogError;
+
+  if (nullptr == this->input(IN_SENSOR_DATA).data<std::shared_ptr<base::SensorData>>()) {
+    LogError() << this->name() << ": input sensor data pointer is null";
+    return false;
+  }
+
+  return true;
+}
+
+bool StagePredictEgo::isReady() const
+{
+  return this->input(IN_SENSOR_DATA).numOfConnections() > 0;
 }
 
 
