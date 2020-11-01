@@ -186,7 +186,6 @@ bool processStep(const Vector2d& delta_position, const Angle delta_yaw)
 
   // estimate pose using generated laser scan
   std::shared_ptr<SensorData> scan = std::make_shared<LaserScan>(_pipe_simulator.output(PipeSimulateLaserScan::OUT_SCAN).data<LaserScan>());
-  std::cout << "time stamp in laser scan = " << scan->timeStamp() << std::endl;
   applyGaussianNoise(*std::static_pointer_cast<LaserScan>(scan));
   _pipe_localize.input(PipeLocalizeOnOccupancyGrid::IN_SCAN).assign(&scan);
   start = std::chrono::system_clock::now();

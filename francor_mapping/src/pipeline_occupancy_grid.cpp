@@ -145,7 +145,7 @@ bool PipeConvertLaserScanToPoints::configureStages()
 
 bool PipeConvertLaserScanToPoints::initializePorts()
 {
-  this->initializeInputPort<base::LaserScan>(IN_SCAN, "laser scan");
+  this->initializeInputPort<std::shared_ptr<base::SensorData>>(IN_SCAN, "laser scan");
 
   this->initializeOutputPort<base::Point2dVector>(OUT_POINTS, "points 2d");
   this->initializeOutputPort<std::vector<base::NormalizedAngle>>(OUT_NORMALS, "normals");

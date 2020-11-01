@@ -147,6 +147,7 @@ public:
       return false;
     }
 
+    base::LogDebug() << "ProcessingStage (name = " << _name << "): finished processing";
     return true;
   }
   bool initialize()
