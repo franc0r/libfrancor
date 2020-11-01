@@ -141,6 +141,38 @@ template <class GridType>
 void registerLaserBeam(GridType& grid,
                        const base::Point2d& origin,
                        const base::AnglePiToPi phi,
+                       const double distance,
+                       const typename GridType::cell_type& cell_value_free,
+                       const typename GridType::cell_type& cell_value_occupied)
+{
+  using francor::algorithm::Ray2d;
+
+  // create a ray and walk through the map to set cells to free
+  const auto origin_idx_x = grid.getIndexX(origin.x());
+  const auto origin_idx_y = grid.getIndexX(origin.y());
+  Ray2d ray_caster(Ray2d::create(origin_idx_x,
+                                 origin_idx_y,
+                                 grid.getNumCellsX(),
+                                 grid.getNumCellsY(),
+                                 grid.getCellSize(),
+                                 origin,
+                                 base::algorithm::line::calculateV(phi),
+                                 distance));
+
+  for (; ray_caster; ++ray_caster) {
+    const auto idx = ray_caster.getCurrentIndex();
+    grid(idx.x(), idx.y()) = cell_value_free;
+  }                                      
+  // set cell value to occupied if it wasn't set to free before
+  if (cell_value_free != grid(ray_caster.getCurrentIndex().x(), ray_caster.getCurrentIndex().y())) {
+    grid(ray_caster.getCurrentIndex().x(), ray_caster.getCurrentIndex().y()) = cell_value_occupied;
+  }
+}                                              
+
+template <class GridType>
+void registerLaserBeam(GridType& grid,
+                       const base::Point2d& origin,
+                       const base::AnglePiToPi phi,
                        const base::Angle divergence,
                        const double distance,
                        const typename GridType::cell_type& cell_value_free,
@@ -153,8 +185,7 @@ void registerLaserBeam(GridType& grid,
   const double cell_width = grid.getCellSize() / std::max(std::abs(std::cos(phi)), std::abs(std::sin(phi)));
   const std::size_t number_of_rays = static_cast<std::size_t>((beam_width / cell_width) + 2.0);
   const base::Angle phi_step = divergence / static_cast<double>(std::max(number_of_rays - 1, 1lu));
-  const auto origin_idx_x = grid.getIndexX(origin.x());
-  const auto origin_idx_y = grid.getIndexX(origin.y());
+
 
   std::cout << "beam width = " << beam_width << std::endl;
   std::cout << "cell width = " << cell_width << std::endl;
@@ -162,54 +193,11 @@ void registerLaserBeam(GridType& grid,
   std::cout << "phi step   = " << phi_step << std::endl;
   std::cout << "phi        = " << phi << std::endl;
 
-  if (number_of_rays % 2 == 0) {
-    // start from the beam border and go to the middle
-    base::AnglePiToPi current_phi = phi - divergence_2;
+  // start from the beam border and go to the middle
+  base::AnglePiToPi current_phi = phi - divergence_2;
 
-    for (std::size_t i = 0; i < number_of_rays; ++i, current_phi += phi_step) {
-      // create a ray and walk through the map to set cells to free
-      Ray2d ray_caster(Ray2d::create(origin_idx_x,
-                                     origin_idx_y,
-                                     grid.getNumCellsX(),
-                                     grid.getNumCellsY(),
-                                     grid.getCellSize(),
-                                     origin,
-                                     base::algorithm::line::calculateV(current_phi),
-                                     distance));
-
-      for (; ray_caster; ++ray_caster) {
-        const auto idx = ray_caster.getCurrentIndex();
-        grid(idx.x(), idx.y()) = cell_value_free;
-      }                                      
-      // set cell value to occupied if it wasn't set to free before
-      if (cell_value_free != grid(ray_caster.getCurrentIndex().x(), ray_caster.getCurrentIndex().y())) {
-        grid(ray_caster.getCurrentIndex().x(), ray_caster.getCurrentIndex().y()) = cell_value_occupied;
-      }
-    }
-  }
-  else {
-    // place one in the middle and go the beam border
-    base::AnglePiToPi current_phi = phi - divergence_2;
-
-    for (std::size_t i = 0; i < number_of_rays; ++i, current_phi += phi_step) {
-      Ray2d ray_caster(Ray2d::create(origin_idx_x,
-                                     origin_idx_y,
-                                     grid.getNumCellsX(),
-                                     grid.getNumCellsY(),
-                                     grid.getCellSize(),
-                                     origin,
-                                     base::algorithm::line::calculateV(current_phi),
-                                     distance));
-
-      for (; ray_caster; ++ray_caster) {
-        const auto idx = ray_caster.getCurrentIndex();
-        grid(idx.x(), idx.y()) = cell_value_free;
-      }                                      
-      // set cell value to occupied if it wasn't set to free before
-      if (cell_value_free != grid(ray_caster.getCurrentIndex().x(), ray_caster.getCurrentIndex().y())) {
-        grid(ray_caster.getCurrentIndex().x(), ray_caster.getCurrentIndex().y()) = cell_value_occupied;
-      }
-    }
+  for (std::size_t i = 0; i < number_of_rays; ++i, current_phi += phi_step) {
+    registerLaserBeam(grid, origin, current_phi, distance, cell_value_free, cell_value_occupied);
   }
 }
 

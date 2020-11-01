@@ -100,7 +100,7 @@ TEST(registerLaserBeam, Function)
 {
   Grid<std::uint8_t> grid;
 
-  ASSERT_TRUE(grid.init(100, 100, 0.1, 0));
+  ASSERT_TRUE(grid.init(250, 250, 0.1, 0));
 
   // mark laser beam border
   const auto origin = grid.getCellPosition(grid.getNumCellsX() / 2, grid.getNumCellsY() / 2);

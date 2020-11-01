@@ -91,6 +91,14 @@ bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d&
                                   const base::Angle phi_min, const base::Angle phi_step, const std::size_t num_beams,
                                   const double range, base::LaserScan& scan, const double time_stamp = 0.0);
 
+double reconstructLaserBeam(const OccupancyGrid& grid, const base::Point2d& origin, const base::Vector2i& origin_idx,
+                            const base::AnglePiToPi phi, const double range, const base::Angle divergence,
+                            const double beam_width_max_range);
+
+base::LaserScan reconstructLaserScan(const OccupancyGrid& grid, const base::Pose2d& pose_ego, const base::Pose2d& pose_sensor,
+                                     const base::Angle phi_min, const base::Angle phi_step, const std::size_t num_beams,
+                                     const double range, const double time_stamp, const base::Angle divergence);
+
 /**
  * \brief Updates a occupancy grid cell using formula cell = (value / (1 - value)) * old.value. NOTE: POC!
  * 

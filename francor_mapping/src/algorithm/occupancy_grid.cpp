@@ -21,6 +21,7 @@
 #include <francor_vision/image.h>
 
 #include <algorithm>
+#include <numeric>
 
 namespace francor {
 
@@ -141,6 +142,71 @@ bool reconstructPointsFromGrid(const OccupancyGrid& grid, const base::Pose2d& po
   return true;
 }
 
+double reconstructLaserBeam(const OccupancyGrid& grid, const base::Point2d& origin, const base::Vector2i& origin_idx,
+                            const base::AnglePiToPi phi, const double range, const base::Angle divergence,
+                            const double beam_width_max_range)
+{
+  using francor::algorithm::Ray2d;
+
+  const base::Angle divergence_2 = divergence * 0.5;  
+  const double cell_width = grid.getCellSize() / std::max(std::abs(std::cos(phi)), std::abs(std::sin(phi)));
+  const std::size_t number_of_rays = static_cast<std::size_t>((beam_width_max_range / cell_width) + 2.0);
+  const base::Angle phi_step = divergence / static_cast<double>(std::max(number_of_rays - 1, 1lu));
+
+  // start from the beam border of laser beam and go to the middle of it
+  base::AnglePiToPi current_phi = phi - divergence_2;
+  std::vector<double> distances;
+  distances.reserve(number_of_rays);
+
+  for (std::size_t i = 0; i < number_of_rays; ++i, current_phi += phi_step) {
+    const auto direction = base::algorithm::line::calculateV(current_phi);
+    Ray2d ray(Ray2d::create(origin_idx.x(), origin_idx.y(), grid.getNumCellsX(),
+                            grid.getNumCellsY(), grid.getCellSize(), origin, direction, range));
+
+    for (const auto& idx : ray) {
+      if (grid(idx.x(), idx.y()).value >= 0.8) {
+        distances.push_back((grid.getCellPosition(idx.x(), idx.y()) - origin).norm());
+      }
+    }
+  }
+
+  if (0 == distances.size()) {
+    return std::numeric_limits<double>::infinity();
+  }
+  else {
+    return std::accumulate(distances.begin(), distances.end(), 0.0) / static_cast<double>(distances.size());
+  }
+}                            
+
+base::LaserScan reconstructLaserScan(const OccupancyGrid& grid, const base::Pose2d& pose_ego, const base::Pose2d& pose_sensor,
+                                     const base::Angle phi_min, const base::Angle phi_step, const std::size_t num_beams,
+                                     const double range, const double time_stamp, const base::Angle divergence)
+{
+  using francor::base::Pose2d;
+  using francor::base::Transform2d;
+  using francor::base::Angle;
+  using francor::base::AnglePiToPi;
+  using francor::base::Vector2i;
+  using francor::base::LaserScan;
+
+  const Transform2d transform({ pose_ego.orientation() }, { pose_ego.position().x(), pose_ego.position().y() });
+  const Pose2d pose(transform * pose_sensor);
+
+  const Angle divergence_2 = divergence / 2.0;
+  const double beam_width = range * std::tan(divergence_2) * 2.0;
+  const Vector2i origin_idx(grid.getIndexX(pose.position().x()), grid.getIndexY(pose.position().y()));
+
+  AnglePiToPi current_phi = pose.orientation() + phi_min;
+  std::vector<double> distances;
+  distances.resize(num_beams);
+
+  for (std::size_t beam = 0; beam < num_beams; ++beam) {
+    distances[beam] = reconstructLaserBeam(grid, pose.position(), origin_idx, current_phi, range, divergence, beam_width);
+  }
+
+  return LaserScan(distances, pose_sensor, phi_min, phi_min + phi_step * static_cast<double>(num_beams),
+                   phi_step, range, 0.0, "unkown", time_stamp);
+}
 
 bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d& pose_ego, const base::Pose2d& pose_sensor,
                                   const base::Angle phi_min, const base::Angle phi_step, const std::size_t num_beams,

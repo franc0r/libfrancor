@@ -7,30 +7,46 @@
 #include <gtest/gtest.h>
 
 #include <francor_base/angle.h>
+#include <francor_base/pose.h>
 
 #include "francor_mapping/occupancy_grid.h"
 #include "francor_mapping/algorithm/occupancy_grid.h"
 
-TEST(OccupancyGridAlgorithm, PushPoint)
+#include <francor_vision/image.h>
+#include <francor_vision/io.h>
+
+using francor::mapping::OccupancyGrid;
+using francor::mapping::algorithm::occupancy::createGridFromImage;
+using francor::vision::Image;
+using francor::vision::ColourSpace;
+using francor::vision::loadImageFromFile;
+using francor::base::Pose2d;
+using francor::base::Vector2i;
+using francor::base::Angle;
+using francor::mapping::algorithm::occupancy::reconstructLaserBeam;
+
+TEST(OccupancyGridAlgorithm, RegisterLaserBeamInGrid)
 {
-  using francor::mapping::OccupancyGrid;
-  using francor::mapping::algorithm::occupancy::pushLaserPointToGrid;
-
+  Image map_image = loadImageFromFile("/home/knueppl/repos/francor/libfrancor/example/data/occupancy-grid-example-simpler.png",
+                                      ColourSpace::GRAY);
   OccupancyGrid grid;
+  ASSERT_TRUE(createGridFromImage(map_image, 0.03, grid));                                      
 
-  ASSERT_TRUE(grid.init(10, 10, 0.1));
+  // construct a pose for origin of beam
+  Pose2d sensor_pose(grid.getCellPosition(grid.getNumCellsX() / 2, grid.getNumCellsY() / 2), Angle::createFromDegree(180.0));
 
-  std::cout << grid << std::endl;
-      pushLaserPointToGrid(grid, 5, 5, 7, francor::base::Angle::createFromDegree(0.0));
+  // construct necessary paramter for reconstruction function
+  Angle divergence(Angle::createFromDegree(1.0));
+  const double range = grid.getSizeX() * 0.4;
+  const Angle divergence_2 = divergence / 2.0;
+  const double beam_width = range * std::tan(divergence_2) * 2.0;
+  const Vector2i origin_idx(grid.getIndexX(sensor_pose.position().x()), grid.getIndexY(sensor_pose.position().y()));
 
-  // for (std::size_t x = 0; x < grid.getNumCellsX(); ++x) {
-    // for (std::size_t y = 0; y < 1; ++y) {
-      // pushLaserPointToGrid(grid, x, x, 5, francor::base::Angle::createFromDegree(-45.0));
-    // }
-  // }
-  
-  std::cout << "after update:" << std::endl;
-  std::cout << grid << std::endl;
+  // expect a distance of (500 - 178) * 0.03
+  const double distance = reconstructLaserBeam(grid, sensor_pose.position(), origin_idx, sensor_pose.orientation(),
+                                               range, divergence, beam_width);
+
+  EXPECT_NEAR(distance, 9.67, 0.01);                                         
 }
 
 int main(int argc, char **argv)
