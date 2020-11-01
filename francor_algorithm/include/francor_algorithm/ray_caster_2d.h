@@ -50,27 +50,29 @@ public:
 
   iterator& operator++()
   {
-    if (_side_dist.x() < _side_dist.y())
-    // move in x direction
-    {
+    if (_side_dist.x() < _side_dist.y()) {
+    // move in x direction 
       _side_dist.x() += _delta_dist.x();
 
-      if      (_operation & Operation::MOVE_RIGHT)
+      if (_operation & Operation::MOVE_RIGHT) {
         ++_current_idx.x();
-      else if (_operation & Operation::MOVE_LEFT)
+      }
+      else if (_operation & Operation::MOVE_LEFT) {
         --_current_idx.x();
+      }
       // else
       // no operation should be done
     }
-    else
+    else {
     // move in y direction
-    {
       _side_dist.y() += _delta_dist.y();
 
-      if      (_operation & Operation::MOVE_DOWN)
+      if (_operation & Operation::MOVE_DOWN) {
         ++_current_idx.y();
-      else if (_operation & Operation::MOVE_UP)
+      }
+      else if (_operation & Operation::MOVE_UP) {
         --_current_idx.y();
+      }
       // else
       // no operation should be done
     }
@@ -104,33 +106,35 @@ public:
 
   inline operator bool() const
   {
-    // return true until a operation is in process
+    // return true if an operation is in progress
     return _operation != 0;
   }
 
   inline Ray2d& operator++()
   {
-    if (_side_dist.x() < _side_dist.y())
+    if (_side_dist.x() < _side_dist.y()) {
     // move in x direction
-    {
       _side_dist.x() += _delta_dist.x();
 
-      if      (_operation & Operation::MOVE_RIGHT)
+      if (_operation & Operation::MOVE_RIGHT) {
         ++_current_idx.x();
-      else if (_operation & Operation::MOVE_LEFT)
+      }
+      else if (_operation & Operation::MOVE_LEFT) {
         --_current_idx.x();
+      }
       // else
       // no operation should be done
     }
-    else
+    else {
     // move in y direction
-    {
       _side_dist.y() += _delta_dist.y();
 
-      if      (_operation & Operation::MOVE_DOWN)
+      if (_operation & Operation::MOVE_DOWN) {
         ++_current_idx.y();
-      else if (_operation & Operation::MOVE_UP)
+      }
+      else if (_operation & Operation::MOVE_UP) {
         --_current_idx.y();
+      }
       // else
       // no operation should be done
     }

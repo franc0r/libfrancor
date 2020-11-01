@@ -7,7 +7,7 @@
 
 #include <francor_base/laser_scan.h>
 #include <francor_base/log.h>
-#include <francor_base/pose.h>
+#include <francor_base/point.h>
 #include <francor_base/algorithm/math.h>
 
 #include <francor_algorithm/ray_caster_2d.h>
@@ -22,187 +22,84 @@ namespace algorithm {
 
 namespace grid {
 
-template <std::size_t SizeX, std::size_t SizeY, typename Type = float>
-class PointDistribution
-{
-public:
-  constexpr PointDistribution()
-  {
-    using base::algorithm::math::BinomialDistribution;
-    constexpr BinomialDistribution<SizeX - 1, Type> distribution_x(0.5);
-    constexpr BinomialDistribution<SizeY - 1, Type> distribution_y(0.5);
-
-    for (std::size_t x = 0; x < SizeX / 2; ++x) {
-      for (std::size_t y = 0; y < SizeY; ++y) {
-        _data[x][y] = std::min(distribution_x.pm(x) * distribution_y.pm(y) + static_cast<Type>(0.5), static_cast<Type>(0.95));
-      }
-    }
-
-    for (std::size_t x = SizeX / 2; x < SizeX; ++x) {
-      for (std::size_t y = 0; y < SizeY; ++y) {
-        _data[x][y] = std::min(distribution_x.pm(x) * distribution_y.pm(y) + static_cast<Type>(0.5), static_cast<Type>(0.95));
-      }
-    }
-  }
-
-  inline constexpr Type operator()(const std::size_t x, const std::size_t y) const noexcept { return _data[x][y]; }
-
-private:
-  Type _data[SizeX][SizeY] = { };
-};
-
-
-
-template<std::size_t SizeX, std::size_t SizeY, typename Type, template <std::size_t, std::size_t, typename> class Distribution>
-class UpdateMatrix
-{
-public:
-  constexpr UpdateMatrix(const base::Angle yaw = base::Angle::createFromDegree(0.0))
-    : _sin_yaw(std::sin(yaw)),
-      _cos_yaw(std::cos(yaw))
-  { 
-
-  }
-
-  template <class GridType, typename UpdateFunction>
-  constexpr void update(GridType& grid, const int center_x, const int center_y) const
-  {
-    for (int x = 0; x < static_cast<int>(SizeX); ++x) {
-      for (int y = 0; y < static_cast<int>(SizeY); ++y) {
-        const std::size_t current_x = static_cast<std::size_t>(center_x
-                                                               + _cos_yaw * (static_cast<float>(x) + 0.5f - static_cast<float>(SizeX) * 0.5f) 
-                                                               - _sin_yaw * (static_cast<float>(y) + 0.5f - static_cast<float>(SizeY) * 0.5f));
-        const std::size_t current_y = static_cast<std::size_t>(center_y 
-                                                               + _sin_yaw * (static_cast<float>(x) + 0.5f - static_cast<float>(SizeX) * 0.5f)
-                                                               + _cos_yaw * (static_cast<float>(y) + 0.5f - static_cast<float>(SizeY) * 0.5f));
-        UpdateFunction(grid(current_x, current_y), _distribution(x, y));
-      }
-    }
-  }
-
-private:
-  const float _sin_yaw;
-  const float _cos_yaw;
-
-  static constexpr Distribution<SizeX, SizeY, Type> _distribution{};
-};
-
-
 /**
- * \brief Pushes a point respecting its variance into a grid. The shape of the point is
- *        according gaussian distribution.
+ * \brief Marks the border of the laser beam in a map with given value.
  * 
- * \param grid Occupancy grid.
- * \param center_x X coordinate on grid.
- * \param center_y y coordinate on grid.
- * \param point_size Size of the laser point in grid cells.
- * \tparam GridCellType The type of each grid cell.
- * \tparam UpdateFunction The function used to update each grid cell.
- * \tparam PointSizeX Point size in x dimension.
+ * \param grid The laser beam border will be marked in this map.
+ * \param phi Absolute orientation in map of the laser beam.
+ * \param distance The distance of the laser measurement.
+ * \param cell_value This value will be used to draw the border.
  */
-template <typename GridType, typename UpdateFunction, std::size_t PointSizeX>
-void pushPoint(GridType& grid, const std::size_t center_x, const std::size_t center_y,
-               const std::size_t point_size_y, const base::Angle point_yaw = base::Angle::createFromDegree(0.0))
+template <class GridType>
+inline void markLaserBeamBorder(GridType& grid,
+                                const base::Point2d& origin,
+                                const base::AnglePiToPi phi,
+                                const base::Angle divergence,
+                                const double distance,
+                                const typename GridType::cell_type& cell_value_free,
+                                const typename GridType::cell_type& cell_value_occupied)
 {
-  static_assert(PointSizeX % 2 == 1);
-  assert(point_size_y % 2 == 1);
-  constexpr int side_size_x = PointSizeX / 2;
-  const int side_size_y = point_size_y / 2;
+  using francor::algorithm::Ray2d;
+  using francor::base::LogError;
 
-  // do nothing if point is out of range including point size
-  if (static_cast<int>(center_x) - static_cast<int>(side_size_x) < 0 || center_x + side_size_x >= grid.getNumCellsX()) {
-    return;
+  const auto divergence_2 = divergence / 2.0;
+  const auto direction_upper = base::algorithm::line::calculateV(phi + divergence_2);
+  const auto direction_lower = base::algorithm::line::calculateV(phi - divergence_2);
+  const auto origin_idx_x = grid.getIndexX(origin.x());
+  const auto origin_idx_y = grid.getIndexY(origin.y());
+
+  // create two rays for upper and lower border
+  Ray2d upper_border(Ray2d::create(origin_idx_x,
+                                   origin_idx_y,
+                                   grid.getNumCellsX(),
+                                   grid.getNumCellsY(),
+                                   grid.getCellSize(),
+                                   origin,
+                                   direction_upper,
+                                   distance));
+  Ray2d lower_border(Ray2d::create(origin_idx_x,
+                                   origin_idx_y,
+                                   grid.getNumCellsX(),
+                                   grid.getNumCellsY(),
+                                   grid.getCellSize(),
+                                   origin,
+                                   direction_lower,
+                                   distance));
+
+  // iterate along rays and mark grid cell with given value
+  // the final indices of both rays will be used for last border
+  for (; upper_border; ++upper_border) {
+    grid(upper_border.getCurrentIndex().x(), upper_border.getCurrentIndex().y()) = cell_value_free;
   }
-  if (static_cast<int>(center_y) - static_cast<int>(side_size_y) < 0 || center_y + side_size_y >= grid.getNumCellsY()) {
-    return;
-  }
-
-  switch (point_size_y)
-  {
-  case 1:
-    {
-      const UpdateMatrix<PointSizeX, 3, float, PointDistribution> update_matrix(point_yaw);
-      update_matrix.template update<GridType, UpdateFunction>(grid, center_x, center_y);
-    }
-    break;
-  
-  case 3:
-    {
-      const UpdateMatrix<PointSizeX, 3, float, PointDistribution> update_matrix(point_yaw);
-      update_matrix.template update<GridType, UpdateFunction>(grid, center_x, center_y);
-  }
-  break;
-
-  case 5:
-    {
-      const UpdateMatrix<PointSizeX, 5, float, PointDistribution> update_matrix(point_yaw);      
-      update_matrix.template update<GridType, UpdateFunction>(grid, center_x, center_y);
-    }
-    break;
-
-  case 7:
-    {
-      const UpdateMatrix<PointSizeX, 7, float, PointDistribution> update_matrix(point_yaw);      
-      update_matrix.template update<GridType, UpdateFunction>(grid, center_x, center_y);
-    }
-    break;
-
-    case 9:
-    {
-      const UpdateMatrix<PointSizeX, 9, float, PointDistribution> update_matrix(point_yaw);      
-      update_matrix.template update<GridType, UpdateFunction>(grid, center_x, center_y);
-    }
-    break;
-
-  default:
-    francor::base::LogError() << "pushPoint(): point size y = " << point_size_y << " isn't supported.";
-    break;
+  for (; lower_border; ++lower_border) {
+    grid(lower_border.getCurrentIndex().x(), lower_border.getCurrentIndex().y()) = cell_value_free;
   }
 
-}
+  // create last ray to close the shape
+  const auto upper_end_idx_x = upper_border.getCurrentIndex().x();
+  const auto upper_end_idx_y = upper_border.getCurrentIndex().y();
+  const auto upper_end_point = grid.getCellPosition(upper_end_idx_x, upper_end_idx_y);
+  const auto lower_end_point = grid.getCellPosition(lower_border.getCurrentIndex().x(), lower_border.getCurrentIndex().y());
+  const double distance_head = (lower_end_point - upper_end_point).norm() + grid.getCellSize() * 0.9;
 
-/**
- * \brief Pushes an laser scan to an grid. The laser scan pose will be transformed by ego pose.
- * 
- * \param grid The grid the laser scan will be pushed to.
- * \param scan The input laser scan.
- * \param pose_ego The pose of the ego object in frame map
- * \tparam GridCellType The type of each grid cell.
- * \tparam UpdateFunction The function used to update each grid cell.
- */
-// template <typename GridCellType, typename UpdateFunction>
-// void pushLaserScanToGrid(Grid<GridCellType>& grid, const base::LaserScan& scan, const base::Pose2d& pose_ego)
-// {
-//   static_assert(std::is_function(UpdateFunction), "The template argument \"UpdateFunction\" must be a function.");
+  Ray2d head_border(Ray2d::create(upper_end_idx_x,
+                                  upper_end_idx_y,
+                                  grid.getNumCellsX(),
+                                  grid.getNumCellsY(),
+                                  grid.getCellSize(),
+                                  upper_end_point,
+                                  base::algorithm::line::calculateV(lower_end_point, upper_end_point),
+                                  distance_head));
 
-//   using francor::base::Point2d;
-//   using francor::base::Angle;
-//   using francor::base::Line;
-//   using francor::algorithm::Ray2d;
+  for (; head_border; ++head_border) {
+    grid(head_border.getCurrentIndex().x(), head_border.getCurrentIndex().y()) = cell_value_occupied;
+  }
 
-//   Angle current_phi = laser_scan.phiMin();
-//   const std::size_t start_index_x = grid.getIndexX(laser_scan.pose().position().x() + pose_ego.position().x());
-//   const std::size_t start_index_y = grid.getIndexY(laser_scan.pose().position().y() + pose_ego.position().y());
-//   const double max_truncation = grid.getMaxTruncation();
-
-//   for (const auto& distance : laser_scan.distances())
-//   {
-//     const Point2d position = laser_scan.pose().position() + pose_ego.position();
-//     const Angle phi = current_phi + laser_scan.pose().orientation() + pose_ego.orientation();
-//     const auto direction = base::algorithm::line::calculateV(phi);
-
-//     Ray2d ray(Ray2d::create(start_index_x, start_index_y, grid.getNumCellsX(), grid.getNumCellsY(), grid.getCellSize(), position, direction, distance));
-
-//     for (const auto& idx : ray)
-//     {
-//       UpdateFunction(grid(idx.x(), idx.y()), )
-//       const auto sdf = algorithm::tsd::calculateSdf(grid.getCellPosition(idx.x(), idx.y()), position, distance);
-//       algorithm::tsd::updateTsdCell(grid(idx.x(), idx.y()), sdf, max_truncation); // \todo replace constant value with tsd calculation function
-//     }
-
-//     current_phi += laser_scan.phiStep();
-//   }
-// }
+  // check if end points are equal otherwise something went wrong
+  // if (lower_border.getCurrentIndex() != head_border.getCurrentIndex()) {
+  //   LogError() << "markLaserBeamBorder(): end point of lower and head border are different. This shouldn't happend!";
+  // }
+}                         
 
 } // end namespace grid
 

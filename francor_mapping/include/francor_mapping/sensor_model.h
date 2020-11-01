@@ -38,14 +38,7 @@ public:
   }
 
   static StateVector transformSensorData(const SensorData& sensor_data);
-  // {
-  //   static_assert(false, "Template method transformSensorData() has to be specialized.");
-  // }
-
   static CovarianceMatrix transformCovariances(const SensorData& sensor_data);
-  // {
-  //   static_assert(false, "Template method transformCovariances() has to be specialized.");
-  // }
 };
 
 } // end namespace mapping

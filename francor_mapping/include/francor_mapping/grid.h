@@ -16,6 +16,8 @@ template<typename CellType>
 class Grid
 {
 public:
+  using cell_type = CellType;
+
   /**
    * \brief Default constructor. Constructs an empty invalid grid.
    */
@@ -60,9 +62,13 @@ public:
    * \param munCellsX number of cells in x direction.
    * \param numCellsY number of cells in y direction.
    * \param cellSize size (edge length) of each cell in meter.
+   * \param initial_cell_value Each cell is initialized with this value.
    * \return true if grid was successfully initialized.
    */
-  bool init(const std::size_t numCellsX, const std::size_t numCellsY, const double cellSize)
+  bool init(const std::size_t numCellsX,
+            const std::size_t numCellsY,
+            const double cellSize,
+            const cell_type& initial_cell_value = {})
   {
     if (cellSize <= std::numeric_limits<double>::min())
     {
@@ -71,7 +77,7 @@ public:
     }
 
     // allocate grid data
-    _data.resize(numCellsX * numCellsY);
+    _data.resize(numCellsX * numCellsY, initial_cell_value);
 
     _num_cells_x = numCellsX;
     _num_cells_y = numCellsY;
@@ -84,42 +90,6 @@ public:
     return true;
   }
 
-  /**
-   * \brief Initialize this grid using the given arguments. The size is given in meters in x and y direction.
-   * 
-   * \param sizeX length of the grid in x direction. The length is adjusted depending an the cell size, so it fits
-   *              to fully cells.
-   * \param sizeY length of the grid in y direction. The length is adjusted depending an the cell size, so it fits
-   *              to fully cells.
-   * \param cellSize size (edge length) of each cell in meter. 
-   * \return true if grid was successfully initialized.
-   */
-  //
-  // TODO: is ambiguous. Check if this method is really necessary.
-  //
-  // bool init(const double sizeX, const double sizeY, const double cellSize)
-  // {
-  //   if (cellSize <= std::numeric_limits<double>::min())
-  //   {
-  //     base::LogError() << "Grid: cell size must be greater than zero. Can't initialize grid. cell size = " << cellSize;
-  //     return false;
-  //   }
-  //   if (sizeX <= std::numeric_limits<double>::min())
-  //   {
-  //     base::LogError() << "Grid: size x must be greater than zero. Can't initialize grid. size x = " << sizeX;
-  //     return false;
-  //   }
-  //   if (sizeY <= std::numeric_limits<double>::min())
-  //   {
-  //     base::LogError() << "Grid: size y must be greater than zero. Can't initialize grid. size y = " << sizeY;
-  //     return false;
-  //   }
-
-  //   const auto numCellsX = static_cast<std::size_t>(sizeX / cellSize);
-  //   const auto numCellsY = static_cast<std::size_t>(sizeY / cellSize);
-
-  //   return this->init(numCellsX, numCellsY, cellSize);
-  // }
 
   /**
    * \brief Resets this grid. The grid will be empty and invalid.
@@ -207,7 +177,7 @@ public:
    */
   inline base::Point2d getCellPosition(const std::size_t x, const std::size_t y) const
   {
-    return { x * _cell_size + 0.5 * _cell_size, y * _cell_size + 0.5 * _cell_size };
+    return { (static_cast<double>(x) + 0.5) * _cell_size, (static_cast<double>(y) + 0.5) * _cell_size };
   }
   /**
    * \brief Returns the origin of this grid. The origin is located at cell (0, 0).
