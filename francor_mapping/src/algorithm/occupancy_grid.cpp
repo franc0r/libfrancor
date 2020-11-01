@@ -166,6 +166,7 @@ double reconstructLaserBeam(const OccupancyGrid& grid, const base::Point2d& orig
     for (const auto& idx : ray) {
       if (grid(idx.x(), idx.y()).value >= 0.8) {
         distances.push_back((grid.getCellPosition(idx.x(), idx.y()) - origin).norm());
+        break;
       }
     }
   }
@@ -200,12 +201,12 @@ base::LaserScan reconstructLaserScan(const OccupancyGrid& grid, const base::Pose
   std::vector<double> distances;
   distances.resize(num_beams);
 
-  for (std::size_t beam = 0; beam < num_beams; ++beam) {
+  for (std::size_t beam = 0; beam < num_beams; ++beam, current_phi += phi_step) {
     distances[beam] = reconstructLaserBeam(grid, pose.position(), origin_idx, current_phi, range, divergence, beam_width);
   }
 
   return LaserScan(distances, pose_sensor, phi_min, phi_min + phi_step * static_cast<double>(num_beams),
-                   phi_step, range, 0.0, "unkown", time_stamp);
+                   phi_step, range, divergence, "unkown", time_stamp);
 }
 
 bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d& pose_ego, const base::Pose2d& pose_sensor,
