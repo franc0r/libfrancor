@@ -48,19 +48,22 @@ protected:
   double _value;
 };
 
+
+namespace impl {
+
+enum class AngleRange {
+  PI_TO_PI,
+  NULL_TO_2PI,
+  PI_2_TO_PI_2,
+};
+
+template<AngleRange Range>
 class NormalizedAngle : public Angle
 {
 public:
   constexpr NormalizedAngle(const double radian = 0.0) : Angle(radian) { this->normalize(); }
   constexpr NormalizedAngle(const Angle& angle) : Angle(angle) { this->normalize(); }
   ~NormalizedAngle() = default;
-
-  constexpr void normalize()
-  {
-    // add or sub pi/2 from angle until it is in range of [-pi/2, pi/2]
-    while (_value >   M_PI_2) _value -= M_PI;
-    while (_value <= -M_PI_2) _value += M_PI;
-  }
 
   inline constexpr void setRadian(const double value) noexcept { Angle::setRadian(value); this->normalize(); }
   inline constexpr void setDegree(const double value) noexcept { Angle::setDegree(value); this->normalize(); }
@@ -77,38 +80,39 @@ public:
 
   inline constexpr NormalizedAngle& operator=(const Angle& operant) { Angle::operator=(operant); this->normalize(); return *this; }
   inline constexpr NormalizedAngle& operator=(const double operant) { Angle::operator=(operant); this->normalize(); return *this; }
+
+  constexpr void normalize();
 };
 
-class NormalizedAngle2 : public Angle
+template<>
+inline constexpr void NormalizedAngle<AngleRange::PI_2_TO_PI_2>::normalize()
 {
-public:
-  constexpr NormalizedAngle2(const double radian = 0.0) : Angle(radian) { this->normalize(); }
-  constexpr NormalizedAngle2(const Angle& angle) : Angle(angle) { this->normalize(); }
-  ~NormalizedAngle2() = default;
+  // add or sub pi/2 from angle until it is in range of [-pi/2, pi/2]
+  while (_value >   M_PI_2) _value -= M_PI;
+  while (_value <= -M_PI_2) _value += M_PI;
+}
 
-  constexpr void normalize()
-  {
-    // add or sub pi/2 from angle until it is in range of [-pi/2, pi/2]
-    while (_value >   M_PI) _value -= 2.0 * M_PI;
-    while (_value <= -M_PI) _value += 2.0 * M_PI;
-  }
+template<>
+inline constexpr void NormalizedAngle<AngleRange::PI_TO_PI>::normalize()
+{
+  // add or sub 2pi from angle until it is in range of ]-pi, pi]
+  while (_value >   M_PI) _value -= 2.0 * M_PI;
+  while (_value <= -M_PI) _value += 2.0 * M_PI;
+}
 
-  inline constexpr void setRadian(const double value) noexcept { Angle::setRadian(value); this->normalize(); }
-  inline constexpr void setDegree(const double value) noexcept { Angle::setDegree(value); this->normalize(); }
+template<>
+inline constexpr void NormalizedAngle<AngleRange::NULL_TO_2PI>::normalize()
+{
+  // add or sub 2pi from angle until it is in range of [0, pi[
+  while (_value >= 2.0 * M_PI) _value -= 2.0 * M_PI;
+  while (_value  <        0.0) _value += 2.0 * M_PI;
+}
 
-  inline constexpr NormalizedAngle2 operator+(const Angle& operant) const noexcept { return { Angle::operator+(operant) }; }
-  inline constexpr NormalizedAngle2 operator+(const double operant) const noexcept { return { Angle::operator+(operant) }; }
-  inline constexpr NormalizedAngle2 operator-(const Angle& operant) const noexcept { return { Angle::operator-(operant) }; }
-  inline constexpr NormalizedAngle2 operator-(const double operant) const noexcept { return { Angle::operator-(operant) }; }
+} // end namespace impl
 
-  inline constexpr NormalizedAngle2& operator+=(const Angle& operant) { Angle::operator+=(operant); this->normalize(); return *this;}
-  inline constexpr NormalizedAngle2& operator+=(const double operant) { Angle::operator+=(operant); this->normalize(); return *this;}
-  inline constexpr NormalizedAngle2& operator-=(const Angle& operant) { Angle::operator-=(operant); this->normalize(); return *this;}
-  inline constexpr NormalizedAngle2& operator-=(const double operant) { Angle::operator-=(operant); this->normalize(); return *this;}
-
-  inline constexpr NormalizedAngle2& operator=(const Angle& operant) { Angle::operator=(operant); this->normalize(); return *this; }
-  inline constexpr NormalizedAngle2& operator=(const double operant) { Angle::operator=(operant); this->normalize(); return *this; }
-};
+using AnglePiToPi   = impl::NormalizedAngle<impl::AngleRange::PI_TO_PI>;
+using AnglePi2ToPi2 = impl::NormalizedAngle<impl::AngleRange::PI_2_TO_PI_2>;
+using Angle0To2Pi   = impl::NormalizedAngle<impl::AngleRange::NULL_TO_2PI>;
 
 } // end namespace base
 

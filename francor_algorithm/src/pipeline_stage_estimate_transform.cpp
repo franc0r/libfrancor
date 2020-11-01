@@ -152,7 +152,7 @@ bool StageEstimateNormalsFromOrderedPoints::initializePorts()
 {
   this->initializeInputPort<base::Point2dVector>(IN_POINTS, "points 2d");
 
-  this->initializeOutputPort<std::vector<base::NormalizedAngle>>(OUT_NORMALS, "normals 2d", &_resulted_normals);
+  this->initializeOutputPort<std::vector<base::AnglePiToPi>>(OUT_NORMALS, "normals 2d", &_resulted_normals);
 
   return true;
 }

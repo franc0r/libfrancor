@@ -208,7 +208,7 @@ bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d&
   return true;
 }                                  
 
-void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan, const base::Pose2d& pose_ego, const std::vector<base::NormalizedAngle>& normals)
+void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan, const base::Pose2d& pose_ego, const std::vector<base::AnglePiToPi>& normals)
 {
   using francor::base::Point2d;
   using francor::base::Vector2d;
@@ -267,7 +267,7 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& laser_scan,
   }
 }
 
-bool pushPointsToGrid(OccupancyGrid& grid, const base::Point2dVector& points, const base::Pose2d& pose_ego, const std::vector<base::NormalizedAngle>& normals)
+bool pushPointsToGrid(OccupancyGrid& grid, const base::Point2dVector& points, const base::Pose2d& pose_ego, const std::vector<base::AnglePiToPi>& normals)
 {
   if (points.size() != normals.size()) {
     base::LogError() << "pushPointsToGrid(): number of points and normals isn't equal. Cancel push to grid.";
@@ -286,7 +286,7 @@ bool pushPointsToGrid(OccupancyGrid& grid, const base::Point2dVector& points, co
 
 void pushLaserPointToGrid(OccupancyGrid& grid, const std::size_t x, const std::size_t y, const std::size_t point_size, const base::Angle point_yaw)
 {
-  grid::pushPoint<OccupancyGrid, updateGridCell, 5>(grid, x, y, point_size, point_yaw);
+  // grid::pushPoint<OccupancyGrid, updateGridCell, 5>(grid, x, y, point_size, point_yaw);
 }
 
 

@@ -28,7 +28,7 @@ base::LineSegment fittingLineSegmentFromPoints(const base::Point2dVector& points
  * \param n Uses n points for normal estimation. The number of points must be odd.
  * \return the resulting normal stored in a vector if it was successfull otherwise false.
  */
-std::optional<std::vector<base::NormalizedAngle>> estimateNormalsFromOrderedPoints(const base::Point2dVector& points, const int n = 3);
+std::optional<std::vector<base::AnglePiToPi>> estimateNormalsFromOrderedPoints(const base::Point2dVector& points, const int n = 3);
 
 } // end namespace algorithm
 

@@ -67,7 +67,7 @@ bool PipeUpdateOccupancyGrid::configureStages()
 bool PipeUpdateOccupancyGrid::initializePorts()
 {
   this->initializeInputPort<base::LaserScan>(IN_SCAN, "laser scan");
-  this->initializeInputPort<std::vector<base::NormalizedAngle>>(IN_NORMALS, "normals");
+  this->initializeInputPort<std::vector<base::AnglePiToPi>>(IN_NORMALS, "normals");
   this->initializeInputPort<base::Pose2d>(IN_EGO_POSE, "ego_pose");
 
   return true;
@@ -148,7 +148,7 @@ bool PipeConvertLaserScanToPoints::initializePorts()
   this->initializeInputPort<std::shared_ptr<base::SensorData>>(IN_SCAN, "laser scan");
 
   this->initializeOutputPort<base::Point2dVector>(OUT_POINTS, "points 2d");
-  this->initializeOutputPort<std::vector<base::NormalizedAngle>>(OUT_NORMALS, "normals");
+  this->initializeOutputPort<std::vector<base::AnglePiToPi>>(OUT_NORMALS, "normals");
 
   return true;
 }

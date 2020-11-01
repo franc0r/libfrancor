@@ -14,9 +14,9 @@ namespace mapping {
 namespace impl {
 
 // specialization for resolve types to uses specific data type for some attributes
-template <> struct resolve_type<KinematicAttribute::ROLL>       { using type = francor::base::NormalizedAngle2; };
-template <> struct resolve_type<KinematicAttribute::PITCH>      { using type = francor::base::NormalizedAngle2; };
-template <> struct resolve_type<KinematicAttribute::YAW>        { using type = francor::base::NormalizedAngle2; };
+template <> struct resolve_type<KinematicAttribute::ROLL>       { using type = francor::base::AnglePiToPi; };
+template <> struct resolve_type<KinematicAttribute::PITCH>      { using type = francor::base::AnglePiToPi; };
+template <> struct resolve_type<KinematicAttribute::YAW>        { using type = francor::base::AnglePiToPi; };
 template <> struct resolve_type<KinematicAttribute::ROLL_RATE>  { using type = francor::base::Angle; };
 template <> struct resolve_type<KinematicAttribute::PITCH_RATE> { using type = francor::base::Angle; };
 template <> struct resolve_type<KinematicAttribute::YAW_RATE>   { using type = francor::base::Angle; };

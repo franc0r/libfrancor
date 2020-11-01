@@ -123,7 +123,7 @@ struct updateGridCell
  *                used instead.
  */
 void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& scan, const base::Pose2d& pose_ego,
-                         const std::vector<base::NormalizedAngle>& normals = std::vector<base::NormalizedAngle>());
+                         const std::vector<base::AnglePiToPi>& normals = std::vector<base::AnglePiToPi>());
 
 /**
  * \brief Push points of a laser scan into a occupancy grid using the update grid cell function.
@@ -134,7 +134,7 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& scan, const
  * \param normals Normals of the input points. Each normal corresponds with the point of same index.
  * \return true if push was successfull.
  */
-bool pushPointsToGrid(OccupancyGrid& grid, const base::Point2dVector& points, const base::Pose2d& pose_ego, const std::vector<base::NormalizedAngle>& normals);
+bool pushPointsToGrid(OccupancyGrid& grid, const base::Point2dVector& points, const base::Pose2d& pose_ego, const std::vector<base::AnglePiToPi>& normals);
 
 /**
  * \brief Pushes a laser point (endpoint of the laser beam) into a occupancy grid. The shape of the point is
@@ -146,6 +146,8 @@ bool pushPointsToGrid(OccupancyGrid& grid, const base::Point2dVector& points, co
  * \param point_size Size of the laser point in grid cells.
  */
 void pushLaserPointToGrid(OccupancyGrid& grid, const std::size_t x, const std::size_t y, const std::size_t point_size, const base::Angle point_yaw);
+
+
 
 } // end namespace occupancy
 

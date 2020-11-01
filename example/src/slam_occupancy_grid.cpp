@@ -31,7 +31,7 @@ using francor::base::LogDebug;
 using francor::base::Vector2d;
 using francor::base::Vector2i;
 using francor::base::Angle;
-using francor::base::NormalizedAngle;
+using francor::base::AnglePiToPi;
 using francor::base::LaserScan;
 using francor::base::SensorData;
 using francor::base::PoseSensorData;
@@ -243,7 +243,7 @@ bool processStep(const Vector2d& delta_position)
   }
 
   // update map with laser scan
-  const auto& normals(_pipe_convert_scan.output(PipeConvertLaserScanToPoints::OUT_NORMALS).data<std::vector<NormalizedAngle>>());
+  const auto& normals(_pipe_convert_scan.output(PipeConvertLaserScanToPoints::OUT_NORMALS).data<std::vector<AnglePiToPi>>());
   const auto ego_pose = _ego.pose();
   _pipe_update_grid.input(PipeUpdateOccupancyGrid::IN_SCAN).assign(std::static_pointer_cast<LaserScan>(scan).get());
   _pipe_update_grid.input(PipeUpdateOccupancyGrid::IN_NORMALS).assign(&normals);

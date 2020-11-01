@@ -11,7 +11,7 @@
 using francor::mapping::KinematicAttribute;
 using francor::mapping::KinematicAttributePack;
 using francor::mapping::KinematicStateVector;
-using francor::base::NormalizedAngle;
+using francor::base::AnglePiToPi;
 
 using TestAttributes = KinematicAttributePack<KinematicAttribute::ACC_X,
                                               KinematicAttribute::ACC_Y,
@@ -52,7 +52,7 @@ TEST(KinematicStateVector, SetAndGetAttributeValues)
   constexpr double y = 2.0;
   constexpr double acceleration_x = 3.0;
   constexpr double acceleration_y = 4.0;
-  constexpr NormalizedAngle yaw(NormalizedAngle::createFromDegree(50.0));
+  constexpr AnglePiToPi yaw(AnglePiToPi::createFromDegree(50.0));
 
   KinematicStateVector<TestAttributes> state_vector;
 
@@ -150,7 +150,7 @@ TEST(KinematicStateVector, AssignFromVector)
   constexpr double y = 2.0;
   constexpr double acceleration_x = 3.0;
   constexpr double acceleration_y = 4.0;
-  constexpr NormalizedAngle yaw(NormalizedAngle::createFromDegree(50.0));
+  constexpr AnglePiToPi yaw(AnglePiToPi::createFromDegree(50.0));
 
   KinematicStateVector<TestAttributes> status_vector;
   Vector vector;

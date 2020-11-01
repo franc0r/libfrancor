@@ -110,7 +110,7 @@ private:
   bool initializePorts() final;
   bool isReady() const final;
 
-  std::vector<base::NormalizedAngle> _resulted_normals;
+  std::vector<base::AnglePiToPi> _resulted_normals;
 };
 
 
