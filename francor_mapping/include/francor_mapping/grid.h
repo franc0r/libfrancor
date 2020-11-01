@@ -51,6 +51,8 @@ public:
     _size_x      = origin._size_x;
     _size_y      = origin._size_y;
 
+    _default_cell_value = origin._default_cell_value;
+
     origin.clear();
 
     return *this;
@@ -78,6 +80,7 @@ public:
 
     // allocate grid data
     _data.resize(numCellsX * numCellsY, initial_cell_value);
+    _default_cell_value = initial_cell_value;
 
     _num_cells_x = numCellsX;
     _num_cells_y = numCellsY;
@@ -184,6 +187,11 @@ public:
    * \return Origin coordinate in meter.
    */
   inline const base::Point2d& getOrigin() const noexcept { return _origin; }
+  /**
+   * \brief Return the default value what was used during initialization.
+   * \return default grid cell value.
+   */
+  inline const CellType& getDefaultCellValue() const noexcept { return _default_cell_value; }
 
 private:
   std::size_t _num_cells_x = 0;    //> number of cells in x dimension
@@ -193,6 +201,7 @@ private:
   double _size_y = 0.0;            //> size in m in y dimension
   base::Point2d _origin{0.0, 0.0}; //> origin coordinate of this grid in meter
 
+  CellType _default_cell_value;
   std::vector<CellType> _data;     //> grid cells
 };
 

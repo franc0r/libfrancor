@@ -203,7 +203,8 @@ bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d&
     current_phi += phi_step;
   }
 
-  scan = LaserScan(distances, pose_sensor, phi_min, phi_min + phi_step * num_beams, phi_step, range, 0.0, "unkown", time_stamp);
+  scan = LaserScan(distances, pose_sensor, phi_min, phi_min + phi_step * static_cast<double>(num_beams),
+                   phi_step, range, 0.0, "unkown", time_stamp);
 
   return true;
 }                                  
@@ -278,8 +279,9 @@ bool pushPointsToGrid(OccupancyGrid& grid, const base::Point2dVector& points, co
 
   using francor::base::Line;
 
-  const std::size_t start_index_x = grid.getIndexX(pose_ego.position().x());
-  const std::size_t start_index_y = grid.getIndexY(pose_ego.position().y());
+  // const std::size_t start_index_x = grid.getIndexX(pose_ego.position().x());
+  // const std::size_t start_index_y = grid.getIndexY(pose_ego.position().y());
+  // @todo finish implementation
 
   return false;
 }

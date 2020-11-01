@@ -14,6 +14,8 @@
 
 #include "francor_mapping/grid.h"
 
+#include <algorithm>
+
 namespace francor {
 
 namespace mapping {
@@ -31,13 +33,13 @@ namespace grid {
  * \param cell_value This value will be used to draw the border.
  */
 template <class GridType>
-inline void markLaserBeamBorder(GridType& grid,
-                                const base::Point2d& origin,
-                                const base::AnglePiToPi phi,
-                                const base::Angle divergence,
-                                const double distance,
-                                const typename GridType::cell_type& cell_value_free,
-                                const typename GridType::cell_type& cell_value_occupied)
+void markLaserBeamBorder(GridType& grid,
+                         const base::Point2d& origin,
+                         const base::AnglePiToPi phi,
+                         const base::Angle divergence,
+                         const double distance,
+                         const typename GridType::cell_type& cell_value_free,
+                         const typename GridType::cell_type& cell_value_occupied)
 {
   using francor::algorithm::Ray2d;
   using francor::base::LogError;
@@ -99,7 +101,117 @@ inline void markLaserBeamBorder(GridType& grid,
   // if (lower_border.getCurrentIndex() != head_border.getCurrentIndex()) {
   //   LogError() << "markLaserBeamBorder(): end point of lower and head border are different. This shouldn't happend!";
   // }
-}                         
+}
+
+/**
+ * \brief Fills marked shapes in a grid. It uses the value used to mark the borders if this
+ *        value is below given threshold.
+ * \param grid The shapes of this grid will be filled. The grid must contain the shapes.
+ * \param threshold The function fills the shapes with the value found at border if it is
+ *        below this thresholds.
+ */
+template <class GridType>
+void fillMarkedShapes(GridType& grid, const typename GridType::cell_type& threshold)
+{
+  typename GridType::cell_type current_value;
+  typename GridType::cell_type default_value(grid.getDefaultCellValue());
+  bool found_shape = false;
+
+  for (std::size_t row = 0; row < grid.getNumCellsY(); ++row) {
+    for (std::size_t col = 0; col < grid.getNumCellsX(); ++col) {
+      auto& cell = grid(col, row);
+
+      if (false == found_shape && cell != default_value && cell < threshold) {
+        current_value = cell;
+        found_shape = true;
+      }
+      else if (true == found_shape && cell == current_value) {
+        current_value = default_value;
+        found_shape = false;
+      }
+      
+      if (true == found_shape && cell < threshold) {
+        cell = current_value;
+      }
+    }
+  }
+}
+
+template <class GridType>
+void registerLaserBeam(GridType& grid,
+                       const base::Point2d& origin,
+                       const base::AnglePiToPi phi,
+                       const base::Angle divergence,
+                       const double distance,
+                       const typename GridType::cell_type& cell_value_free,
+                       const typename GridType::cell_type& cell_value_occupied)
+{
+  using francor::algorithm::Ray2d;
+
+  const base::Angle divergence_2 = divergence / 2.0;
+  const double beam_width = distance * std::tan(divergence_2) * 2.0;
+  const double cell_width = grid.getCellSize() / std::max(std::abs(std::cos(phi)), std::abs(std::sin(phi)));
+  const std::size_t number_of_rays = static_cast<std::size_t>((beam_width / cell_width) + 2.0);
+  const base::Angle phi_step = divergence / static_cast<double>(std::max(number_of_rays - 1, 1lu));
+  const auto origin_idx_x = grid.getIndexX(origin.x());
+  const auto origin_idx_y = grid.getIndexX(origin.y());
+
+  std::cout << "beam width = " << beam_width << std::endl;
+  std::cout << "cell width = " << cell_width << std::endl;
+  std::cout << "num rays   = " << number_of_rays << std::endl;
+  std::cout << "phi step   = " << phi_step << std::endl;
+  std::cout << "phi        = " << phi << std::endl;
+
+  if (number_of_rays % 2 == 0) {
+    // start from the beam border and go to the middle
+    base::AnglePiToPi current_phi = phi - divergence_2;
+
+    for (std::size_t i = 0; i < number_of_rays; ++i, current_phi += phi_step) {
+      // create a ray and walk through the map to set cells to free
+      Ray2d ray_caster(Ray2d::create(origin_idx_x,
+                                     origin_idx_y,
+                                     grid.getNumCellsX(),
+                                     grid.getNumCellsY(),
+                                     grid.getCellSize(),
+                                     origin,
+                                     base::algorithm::line::calculateV(current_phi),
+                                     distance));
+
+      for (; ray_caster; ++ray_caster) {
+        const auto idx = ray_caster.getCurrentIndex();
+        grid(idx.x(), idx.y()) = cell_value_free;
+      }                                      
+      // set cell value to occupied if it wasn't set to free before
+      if (cell_value_free != grid(ray_caster.getCurrentIndex().x(), ray_caster.getCurrentIndex().y())) {
+        grid(ray_caster.getCurrentIndex().x(), ray_caster.getCurrentIndex().y()) = cell_value_occupied;
+      }
+    }
+  }
+  else {
+    // place one in the middle and go the beam border
+    base::AnglePiToPi current_phi = phi - divergence_2;
+
+    for (std::size_t i = 0; i < number_of_rays; ++i, current_phi += phi_step) {
+      Ray2d ray_caster(Ray2d::create(origin_idx_x,
+                                     origin_idx_y,
+                                     grid.getNumCellsX(),
+                                     grid.getNumCellsY(),
+                                     grid.getCellSize(),
+                                     origin,
+                                     base::algorithm::line::calculateV(current_phi),
+                                     distance));
+
+      for (; ray_caster; ++ray_caster) {
+        const auto idx = ray_caster.getCurrentIndex();
+        grid(idx.x(), idx.y()) = cell_value_free;
+      }                                      
+      // set cell value to occupied if it wasn't set to free before
+      if (cell_value_free != grid(ray_caster.getCurrentIndex().x(), ray_caster.getCurrentIndex().y())) {
+        grid(ray_caster.getCurrentIndex().x(), ray_caster.getCurrentIndex().y()) = cell_value_occupied;
+      }
+    }
+  }
+}
 
 } // end namespace grid
 

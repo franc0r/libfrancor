@@ -11,6 +11,8 @@
 #include <francor_vision/io.h>
 
 using francor::mapping::algorithm::grid::markLaserBeamBorder;
+using francor::mapping::algorithm::grid::fillMarkedShapes;
+using francor::mapping::algorithm::grid::registerLaserBeam;
 using francor::mapping::Grid;
 using francor::base::Angle;
 using francor::base::AnglePiToPi;
@@ -68,6 +70,50 @@ TEST(markLaserBeamBorder, Function)
   for (std::size_t i = 0; i < 16; ++i, phi += Angle::createFromDegree(22.5)) {
     markLaserBeamBorder(grid, origin, phi, divergence, distance, value_free, value_occupied);
   }
+  // showGrid(grid);
+}
+
+TEST(fillMarkedShapes, Function)
+{
+  Grid<std::uint8_t> grid;
+
+  ASSERT_TRUE(grid.init(100, 100, 0.1, 0));
+
+  // mark laser beam border
+  const auto origin = grid.getCellPosition(grid.getNumCellsX() / 2, grid.getNumCellsY() / 2);
+  AnglePiToPi phi(AnglePiToPi::createFromDegree(0.0));
+  const Angle divergence(Angle::createFromDegree(5.0));
+  const double distance = grid.getCellSize() * static_cast<double>(grid.getNumCellsX()) * 0.4;
+  constexpr std::uint8_t value_free = 10;
+  constexpr std::uint8_t value_occupied = 90;
+
+  for (std::size_t i = 0; i < 16; ++i, phi += Angle::createFromDegree(22.5)) {
+    markLaserBeamBorder(grid, origin, phi, divergence, distance, value_free, value_occupied);
+  }
+
+  fillMarkedShapes(grid, value_occupied);
+
+  // showGrid(grid);
+}
+
+TEST(registerLaserBeam, Function)
+{
+  Grid<std::uint8_t> grid;
+
+  ASSERT_TRUE(grid.init(100, 100, 0.1, 0));
+
+  // mark laser beam border
+  const auto origin = grid.getCellPosition(grid.getNumCellsX() / 2, grid.getNumCellsY() / 2);
+  AnglePiToPi phi(AnglePiToPi::createFromDegree(0.0));
+  const Angle divergence(Angle::createFromDegree(5.0));
+  const double distance = grid.getCellSize() * static_cast<double>(grid.getNumCellsX()) * 0.4;
+  constexpr std::uint8_t value_free = 10;
+  constexpr std::uint8_t value_occupied = 90;
+
+  for (std::size_t i = 0; i < 16; ++i, phi += Angle::createFromDegree(22.5)) {
+    registerLaserBeam(grid, origin, phi, divergence, distance, value_free, value_occupied);
+  }
+
   showGrid(grid);
 }
 

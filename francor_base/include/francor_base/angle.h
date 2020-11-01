@@ -29,6 +29,8 @@ public:
   inline constexpr Angle operator+(const double operant) const noexcept { return { _value + operant        }; }
   inline constexpr Angle operator-(const Angle& operant) const noexcept { return { _value - operant._value }; }
   inline constexpr Angle operator-(const double operant) const noexcept { return { _value - operant        }; }
+  inline constexpr Angle operator/(const double operant) const noexcept { return { _value / operant        }; }
+  inline constexpr Angle operator*(const double operant) const noexcept { return { _value * operant        }; }
 
   inline constexpr Angle& operator+=(const Angle& operant) noexcept { _value += operant._value; return *this; }
   inline constexpr Angle& operator+=(const double operant) noexcept { _value += operant       ; return *this; }
