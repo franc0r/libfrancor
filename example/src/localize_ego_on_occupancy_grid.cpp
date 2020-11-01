@@ -244,9 +244,9 @@ int main(int argc, char** argv)
   }
 
   // drive straight
-  for (std::size_t step = 0; step < 500; ++step)
+  for (std::size_t step = 0; step < 250; ++step)
   {
-    const Vector2d step_position(0.0, 0.05);
+    const Vector2d step_position(0.0, 0.1);
     const Angle step_yaw(0.0);
 
     if (!processStep(step_position, step_yaw)) {
@@ -260,7 +260,7 @@ int main(int argc, char** argv)
   for (std::size_t step = 0; step < 500; ++step)
   {
     const Vector2d step_position(0.0, 0.0);
-    const Angle step_yaw(Angle::createFromDegree(1.0));
+    const Angle step_yaw(Angle::createFromDegree(20.0));
 
     if (!processStep(step_position, step_yaw)) {
       LogError() << "terminate application";

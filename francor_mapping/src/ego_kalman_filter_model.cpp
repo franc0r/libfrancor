@@ -30,6 +30,8 @@ EgoKalmanFilterModel::Matrix EgoKalmanFilterModel::getPredictionMatrix(const Sta
   prediction_matrix(VEL, ACC) = delta_time;
 
   prediction_matrix(YAW, YAW_RATE) = delta_time;
+  prediction_matrix(POS_X, YAW_RATE) = delta_time * delta_time * 0.5 * -std::sin(current_state.yaw()) * delta_time * current_state.velocity();
+  prediction_matrix(POS_Y, YAW_RATE) = delta_time * delta_time * 0.5 *  std::cos(current_state.yaw()) * delta_time * current_state.velocity();
 
   return prediction_matrix;
 }
@@ -41,7 +43,7 @@ EgoKalmanFilterModel::Matrix EgoKalmanFilterModel::getSystemNoiseMatrix(const St
 
   // add jerk system noise
   {
-    constexpr double jerk_variance = 1.0 * 1.0;
+    constexpr double jerk_variance = 0.5 * 0.5;
     StateVector noise_variances;
 
     noise_variances.x() = (delta_time * delta_time * delta_time / 6.0) * std::cos(current_state.yaw());
@@ -54,7 +56,7 @@ EgoKalmanFilterModel::Matrix EgoKalmanFilterModel::getSystemNoiseMatrix(const St
   }
   // add yaw acceleration noise
   {
-    constexpr double yaw_acceleration_variance = base::Angle::createFromDegree(45) * base::Angle::createFromDegree(45);
+    constexpr double yaw_acceleration_variance = base::Angle::createFromDegree(360) * base::Angle::createFromDegree(360);
     StateVector noise_variances;
 
     noise_variances.yaw() = 0.5 * delta_time * delta_time;
@@ -62,7 +64,6 @@ EgoKalmanFilterModel::Matrix EgoKalmanFilterModel::getSystemNoiseMatrix(const St
 
     const StateVector::Vector noise_vector(static_cast<StateVector::Vector>(noise_variances));
     noise_matrix += yaw_acceleration_variance * noise_vector * noise_vector.transpose();
-
   }
 
   return noise_matrix;

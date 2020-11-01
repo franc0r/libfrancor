@@ -132,7 +132,7 @@ private:
 
     // reduce predicted covariances to sensor dimension space using observation matrix
     const SensorMatrix predicted_covariances_sensor_space = observation_matrix * predicted_covariances * observation_matrix.transpose();
-    SensorStateVector predicted_state_sensor_space(observation_matrix * static_cast<typename StateVector::Vector>(predicted_state));
+    const SensorStateVector predicted_state_sensor_space(observation_matrix * static_cast<typename StateVector::Vector>(predicted_state));
 
     // calculate the innovation and its covariances
     const SensorVector innovation = static_cast<SensorVector>(measurements - predicted_state_sensor_space);
@@ -142,6 +142,7 @@ private:
     const auto kalman_gain = predicted_covariances * observation_matrix.transpose() * innovation_covariances.inverse();
     _state = static_cast<typename StateVector::Vector>(predicted_state) + kalman_gain * innovation;
     _corvariances = (identity_matrix - kalman_gain * observation_matrix) * predicted_covariances;
+    // _corvariances(0, 0) = std::max(0.01, _corvariances(0, 0));
     std::cout << "KALMAN: state:" << std::endl << static_cast<typename StateVector::Vector>(_state) << std::endl;
     std::cout << "KALMAN: covariances:" << std::endl << _corvariances << std::endl;
     // set new time stamp
