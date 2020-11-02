@@ -6,6 +6,8 @@
  */
 #include <gtest/gtest.h>
 
+#include <random>
+
 #include <francor_base/angle.h>
 #include <francor_base/pose.h>
 #include <francor_base/transform.h>
@@ -13,30 +15,36 @@
 
 #include "francor_mapping/occupancy_grid.h"
 #include "francor_mapping/algorithm/occupancy_grid.h"
+#include "francor_mapping/algorithm/grid.h"
 
 #include <francor_vision/image.h>
 #include <francor_vision/io.h>
 
 using francor::mapping::OccupancyGrid;
+using francor::mapping::OccupancyCell;
 using francor::mapping::algorithm::occupancy::createGridFromImage;
+using francor::mapping::algorithm::occupancy::reconstructLaserBeam;
+using francor::mapping::algorithm::occupancy::reconstructLaserScan;
+using francor::mapping::algorithm::grid::registerLaserScan;
+using francor::mapping::algorithm::occupancy::updateGridCell;
+
 using francor::vision::Image;
 using francor::vision::ColourSpace;
 using francor::vision::loadImageFromFile;
+
 using francor::base::Pose2d;
 using francor::base::Vector2i;
 using francor::base::Angle;
 using francor::base::LaserScan;
 using francor::base::Point2d;
 using francor::base::Transform2d;
-using francor::mapping::algorithm::occupancy::reconstructLaserBeam;
-using francor::mapping::algorithm::occupancy::reconstructLaserScan;
 
 class OccupancyGridAlgorithm : public ::testing::Test
 {
 private:
   void SetUp() final
   {
-    map_image = loadImageFromFile("/home/knueppl/repos/francor/libfrancor/example/data/occupancy-grid-example-simpler.png",
+    map_image = loadImageFromFile("/home/knueppl/repos/francor/libfrancor/example/data/occupancy-grid-example.png",
                                   ColourSpace::GRAY);
     ASSERT_TRUE(createGridFromImage(map_image, 0.03, grid));                              
     francor::mapping::algorithm::occupancy::convertGridToImage(grid, map_image_result);
@@ -100,12 +108,29 @@ protected:
     }
   }
 
+  void applyGaussianNoise(LaserScan& scan)
+  {
+    std::normal_distribution<double> distribution(0.0, 0.1 * 0.1);
+    std::vector<double> modified_distances;
+
+    modified_distances.reserve(scan.distances().size());
+
+    for (const auto distance : scan.distances()) {
+      modified_distances.push_back(distance + distribution(generator));
+    }
+
+    scan = LaserScan(modified_distances, scan.pose(), scan.phiMin(),
+                     scan.phiMax(), scan.phiStep(), scan.range(), scan.divergence(), "laser", scan.timeStamp());
+  }
+
   Image map_image;
   Image map_image_result;
   OccupancyGrid grid;
+  std::default_random_engine generator;
 };
 
-TEST_F(OccupancyGridAlgorithm, RegisterLaserBeamInGrid)
+// test reconstruction of an single beam
+TEST_F(OccupancyGridAlgorithm, ReconstructLaserBeamInGrid)
 {
   // construct a pose for origin of beam
   Pose2d pose(grid.getCellPosition(grid.getNumCellsX() / 2, grid.getNumCellsY() / 2), Angle::createFromDegree(180.0));
@@ -125,7 +150,8 @@ TEST_F(OccupancyGridAlgorithm, RegisterLaserBeamInGrid)
   drawLaserBeamOnImage(pose.position(), pose.orientation(), distance, cv::Scalar(0, 0, 240), map_image_result);                               
 }
 
-TEST_F(OccupancyGridAlgorithm, RegisterLaserScanInGrid)
+// test reconstruction of an complete laser scan
+TEST_F(OccupancyGridAlgorithm, ReconstructLaserScanInGrid)
 {
   // construct a pose for origin of beam
   const Pose2d pose_ego(grid.getCellPosition(grid.getNumCellsX() / 2, grid.getNumCellsY() / 2),
@@ -143,6 +169,109 @@ TEST_F(OccupancyGridAlgorithm, RegisterLaserScanInGrid)
   const LaserScan scan(reconstructLaserScan(grid, pose_ego, sensor_pose, phi_min, phi_step, num_beams, range, time_stamp, divergence));
 
   drawLaserScanOnImage(scan, pose_ego, map_image_result);
+}
+
+// test registration and reconstruction together in a loop
+TEST_F(OccupancyGridAlgorithm, RegisterAndReconstructLaserScanInGrid)
+{
+  // construct a pose for origin of beam
+  const Pose2d pose_ego(grid.getCellPosition(grid.getNumCellsX() / 2, grid.getNumCellsY() / 2),
+                                             Angle::createFromDegree(180.0));
+  const Pose2d sensor_pose({0.0, 0.0}, Angle::createFromDegree(-90.0));
+
+  // construct necessary paramter for reconstruction function
+  constexpr Angle phi_min(Angle::createFromDegree(-180.0));
+  constexpr Angle phi_step(Angle::createFromDegree(1.0));
+  constexpr Angle divergence(Angle::createFromDegree(0.5));
+  constexpr std::size_t num_beams = 360;
+  constexpr double range = 20.0;
+  constexpr double time_stamp = 0.0;
+
+  const LaserScan scan(reconstructLaserScan(grid, pose_ego, sensor_pose, phi_min, phi_step,
+                                            num_beams, range, time_stamp, divergence));
+  constexpr std::size_t iterations = 1000;
+
+  for (std::size_t i = 0; i < iterations; ++i) {
+    OccupancyGrid working_grid;
+    working_grid.init(grid.getNumCellsX(), grid.getNumCellsY(), grid.getCellSize());
+    registerLaserScan(working_grid, pose_ego, scan, OccupancyCell{0.1}, OccupancyCell{0.9});
+    const auto result_scan(reconstructLaserScan(working_grid, pose_ego, sensor_pose, phi_min, phi_step,
+                                                num_beams, range, time_stamp, divergence));
+
+    ASSERT_EQ(scan.distances().size(), result_scan.distances().size());
+
+    EXPECT_NEAR(scan.divergence(), result_scan.divergence(), Angle::createFromDegree(0.01));
+    EXPECT_NEAR(scan.phiMin(), result_scan.phiMin(), Angle::createFromDegree(0.01));
+    EXPECT_NEAR(scan.phiStep(), result_scan.phiStep(), Angle::createFromDegree(0.01));
+    EXPECT_NEAR(scan.pose().position().x(), result_scan.pose().position().x(), 0.005);
+    EXPECT_NEAR(scan.pose().position().y(), result_scan.pose().position().y(), 0.005);
+    EXPECT_NEAR(scan.pose().orientation(), result_scan.pose().orientation(), Angle::createFromDegree(0.01));
+    EXPECT_NEAR(scan.range(), result_scan.range(), 0.005);
+    EXPECT_NEAR(scan.timeStamp(), result_scan.timeStamp(), 0.001);
+    EXPECT_EQ(scan.sensorName(), result_scan.sensorName());
+
+    for (std::size_t d = 0; d < scan.distances().size(); ++d) {
+      if (std::isinf(scan.distances()[d])) {
+        EXPECT_EQ(std::isinf(scan.distances()[d]), std::isinf(result_scan.distances()[d]));
+      }
+      else {
+        EXPECT_NEAR(scan.distances()[d], result_scan.distances()[d], 0.02);
+      }
+    }
+
+    // std::cout << "input scan:" << std::endl << scan << std::endl;
+    // std::cout << "result scan:" << std::endl << result_scan << std::endl;                                         
+    // Image debug;
+    // francor::mapping::algorithm::occupancy::convertGridToImage(working_grid, debug);
+    // debug.transformTo(ColourSpace::BGR);
+    // cv::imshow("debug", debug.cvMat());
+    // cv::waitKey(10);
+  }
+}
+
+// test registration of noised scan measurement
+TEST_F(OccupancyGridAlgorithm, RegisterNoisedLaserScanInGrid)
+{
+  // construct a pose for origin of beam
+  const Pose2d pose_ego(grid.getCellPosition(grid.getNumCellsX() / 2, grid.getNumCellsY() / 2),
+                                             Angle::createFromDegree(180.0));
+  const Pose2d sensor_pose({0.0, 0.0}, Angle::createFromDegree(-90.0));
+
+  // construct necessary paramter for reconstruction function
+  constexpr Angle phi_min(Angle::createFromDegree(-180.0));
+  constexpr Angle phi_step(Angle::createFromDegree(1.0));
+  constexpr Angle divergence(Angle::createFromDegree(1.0));
+  constexpr std::size_t num_beams = 360;
+  constexpr double range = 20.0;
+  constexpr double time_stamp = 0.0;
+
+  const LaserScan scan(reconstructLaserScan(grid, pose_ego, sensor_pose, phi_min, phi_step,
+                                            num_beams, range, time_stamp, divergence));
+  OccupancyGrid working_grid;
+  working_grid.init(grid.getNumCellsX(), grid.getNumCellsY(), grid.getCellSize());
+  constexpr std::size_t iterations = 1000;
+
+  for (std::size_t i = 0; i < iterations; ++i) {
+    LaserScan noised_scan(scan);
+    applyGaussianNoise(noised_scan);
+
+    OccupancyGrid measurement_grid;
+    measurement_grid.init(grid.getNumCellsX(), grid.getNumCellsY(), grid.getCellSize());
+    
+    registerLaserScan(measurement_grid, pose_ego, noised_scan, OccupancyCell{0.1}, OccupancyCell{0.9});
+
+    for (std::size_t row = 0; row < working_grid.getNumCellsY(); ++row) {
+      for (std::size_t col = 0; col < working_grid.getNumCellsY(); ++col) {
+        updateGridCell(working_grid(col, row), measurement_grid(col, row).value);
+      }
+    }
+
+    Image debug;
+    francor::mapping::algorithm::occupancy::convertGridToImage(working_grid, debug);
+    debug.transformTo(ColourSpace::BGR);
+    cv::imshow("debug", debug.cvMat());
+    cv::waitKey(10);
+  }
 }
 
 int main(int argc, char **argv)

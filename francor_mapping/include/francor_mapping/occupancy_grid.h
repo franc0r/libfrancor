@@ -14,6 +14,9 @@ namespace mapping {
 struct OccupancyCell
 {
   float value = 0.5f;
+
+  inline bool operator==(const OccupancyCell& rhs) const { return value == rhs.value; }
+  inline bool operator!=(const OccupancyCell& rhs) const { return !operator==(rhs); }
 };
 
 class OccupancyGrid : public Grid<OccupancyCell>

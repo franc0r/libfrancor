@@ -13,6 +13,7 @@ add_library(${PROJECT_NAME} SHARED
   src/pipeline_occupancy_grid.cpp
   src/pipeline_stage_create_pose_measurement.cpp
   src/ego_kalman_filter_model.cpp
+  src/occupancy_grid_sensor_model.cpp
 )
 
 target_include_directories(${PROJECT_NAME}

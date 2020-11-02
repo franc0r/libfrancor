@@ -109,7 +109,10 @@ struct updateGridCell
 {
   constexpr updateGridCell(OccupancyCell& cell, const float value)
   {
-    if (std::isnan(cell.value)) {
+    if (std::isnan(value) || std::isinf(value)) {
+      return;
+    }
+    else if (std::isnan(cell.value)) {
       cell.value = value;
     }
     else {

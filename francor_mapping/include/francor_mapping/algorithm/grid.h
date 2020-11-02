@@ -8,6 +8,7 @@
 #include <francor_base/laser_scan.h>
 #include <francor_base/log.h>
 #include <francor_base/point.h>
+#include <francor_base/transform.h>
 #include <francor_base/algorithm/math.h>
 
 #include <francor_algorithm/ray_caster_2d.h>
@@ -183,15 +184,17 @@ void registerLaserBeam(GridType& grid,
   const base::Angle divergence_2 = divergence / 2.0;
   const double beam_width = distance * std::tan(divergence_2) * 2.0;
   const double cell_width = grid.getCellSize() / std::max(std::abs(std::cos(phi)), std::abs(std::sin(phi)));
-  const std::size_t number_of_rays = static_cast<std::size_t>((beam_width / cell_width) + 2.0);
+  const std::size_t number_of_rays = (divergence == 0.0 ?
+                                      1 :
+                                      static_cast<std::size_t>((beam_width / cell_width) + 2.0));
   const base::Angle phi_step = divergence / static_cast<double>(std::max(number_of_rays - 1, 1lu));
 
 
-  std::cout << "beam width = " << beam_width << std::endl;
-  std::cout << "cell width = " << cell_width << std::endl;
-  std::cout << "num rays   = " << number_of_rays << std::endl;
-  std::cout << "phi step   = " << phi_step << std::endl;
-  std::cout << "phi        = " << phi << std::endl;
+  // std::cout << "beam width = " << beam_width << std::endl;
+  // std::cout << "cell width = " << cell_width << std::endl;
+  // std::cout << "num rays   = " << number_of_rays << std::endl;
+  // std::cout << "phi step   = " << phi_step << std::endl;
+  // std::cout << "phi        = " << phi << std::endl;
 
   // start from the beam border and go to the middle
   base::AnglePiToPi current_phi = phi - divergence_2;
@@ -200,6 +203,28 @@ void registerLaserBeam(GridType& grid,
     registerLaserBeam(grid, origin, current_phi, distance, cell_value_free, cell_value_occupied);
   }
 }
+
+template <class GridType>
+void registerLaserScan(GridType& grid,
+                       const base::Pose2d& ego_pose,
+                       const base::LaserScan& scan,
+                       const typename GridType::cell_type& cell_value_free,
+                       const typename GridType::cell_type& cell_value_occupied)
+{
+  using francor::base::Transform2d;
+  using francor::base::Pose2d;
+  using francor::base::AnglePiToPi;
+
+  const Transform2d tranform({ ego_pose.orientation() },
+                             { ego_pose.position().x(), ego_pose.position().y() });
+  const Pose2d pose(tranform * scan.pose());
+  AnglePiToPi current_phi = pose.orientation() + scan.phiMin();
+
+  for (const auto distance : scan.distances()) {
+    registerLaserBeam(grid, pose.position(), current_phi, scan.divergence(), distance, cell_value_free, cell_value_occupied);
+    current_phi += scan.phiStep();
+  }
+}                       
 
 } // end namespace grid
 
