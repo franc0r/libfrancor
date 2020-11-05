@@ -8,6 +8,8 @@
 #include <francor_base/log.h>
 #include <francor_base/point.h>
 
+#include <francor_algorithm/array_data_access.h>
+
 namespace francor {
 
 namespace mapping {
@@ -192,6 +194,16 @@ public:
    * \return default grid cell value.
    */
   inline const CellType& getDefaultCellValue() const noexcept { return _default_cell_value; }
+
+
+  algorithm::ArrayDataAccess1D<CellType, 1u> row(const std::size_t index)
+  {
+    return algorithm::ArrayDataAccess1D<CellType, 1u>{&_data[index * _num_cells_x], _num_cells_x};
+  }
+  algorithm::ArrayDataAccess1D<const CellType, 1u> row(const std::size_t index) const
+  {
+    return algorithm::ArrayDataAccess1D<const CellType, 1u>{&_data[index * _num_cells_x], _num_cells_x};
+  }
 
 private:
   std::size_t _num_cells_x = 0;    //> number of cells in x dimension

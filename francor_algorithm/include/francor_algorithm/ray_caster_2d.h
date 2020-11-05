@@ -102,6 +102,7 @@ public:
   };
 
   iterator begin() const { return { _current_idx, _side_dist, _delta_dist, _operation }; }
+  iterator interim() const { return { _max_idx, { _interim_distance, _interim_distance }, _delta_dist, Operation::NONE }; }
   iterator end() const { return { _max_idx, { _max_distance, _max_distance }, _delta_dist, Operation::NONE }; }
 
   inline operator bool() const
@@ -175,14 +176,9 @@ private:
   base::Vector2i _max_idx;     //> the maximum valid index of the map/grid
   base::Vector2d _side_dist;   //> length of ray from start position to current position
   base::Vector2d _delta_dist;  //> length of ray from one x or y-side to next x or y-side
-  double _max_distance; //> the maximum length of the ray. If max is reached the caster will terminate
+  double _max_distance;        //> the maximum length of the ray. If max is reached the caster will terminate
+  double _interim_distance;    //> 
   std::uint8_t _operation = Operation::NONE;
-};
-
-class RayCaster2d
-{
-public:
-  RayCaster2d() = default;
 };
 
 } // end namespace algorithm

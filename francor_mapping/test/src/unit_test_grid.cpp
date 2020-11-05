@@ -235,6 +235,29 @@ TEST(Grid, MoveAssignmentOperator)
   EXPECT_FALSE(grid_origin.isValid()); 
 }
 
+TEST(Grid, DataAccessViaIterator)
+{
+  Grid<double> grid;
+
+  // initialize origin
+  EXPECT_TRUE(grid.init(10u, 10u, 1.0));
+
+  // set values to each grid cell using an counter
+  for (std::size_t x = 0; x < grid.getNumCellsX(); ++x)
+    for (std::size_t y = 0; y < grid.getNumCellsY(); ++y)
+      grid(x, y) = static_cast<double>(x * grid.getNumCellsY() + y);
+
+  for (const auto& element : grid.row(0).all_elements()) {
+    std::cout << element << " ";
+  }
+  std::cout << std::endl;
+  for (const auto& element : grid.row(0).every_second_element()) {
+    std::cout << element << " ";
+  }
+  std::cout << std::endl;
+}
+
+
 int main(int argc, char** argv)
 {
   ::testing::InitGoogleTest(&argc, argv);

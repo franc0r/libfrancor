@@ -259,7 +259,7 @@ int main(int argc, char** argv)
   for (std::size_t step = 0; step < 500; ++step)
   {
     const Vector2d step_position(0.0, 0.0);
-    const Angle step_yaw(Angle::createFromDegree(20.0));
+    const Angle step_yaw(Angle::createFromDegree(10.0));
 
     if (!processStep(step_position, step_yaw)) {
       LogError() << "terminate application";

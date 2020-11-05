@@ -110,7 +110,7 @@ protected:
 
   void applyGaussianNoise(LaserScan& scan)
   {
-    std::normal_distribution<double> distribution(0.0, 0.1 * 0.1);
+    std::normal_distribution<double> distribution(0.0, 0.2 * 0.2);
     std::vector<double> modified_distances;
 
     modified_distances.reserve(scan.distances().size());
@@ -258,7 +258,7 @@ TEST_F(OccupancyGridAlgorithm, RegisterNoisedLaserScanInGrid)
     OccupancyGrid measurement_grid;
     measurement_grid.init(grid.getNumCellsX(), grid.getNumCellsY(), grid.getCellSize());
     
-    registerLaserScan(measurement_grid, pose_ego, noised_scan, OccupancyCell{0.1}, OccupancyCell{0.9});
+    registerLaserScan(measurement_grid, pose_ego, noised_scan, OccupancyCell{0.2}, OccupancyCell{0.75});
 
     for (std::size_t row = 0; row < working_grid.getNumCellsY(); ++row) {
       for (std::size_t col = 0; col < working_grid.getNumCellsY(); ++col) {
