@@ -142,9 +142,7 @@ private:
     const auto kalman_gain = predicted_covariances * observation_matrix.transpose() * innovation_covariances.inverse();
     _state = static_cast<typename StateVector::Vector>(predicted_state) + kalman_gain * innovation;
     _corvariances = (identity_matrix - kalman_gain * observation_matrix) * predicted_covariances;
-    // _corvariances(0, 0) = std::max(0.01, _corvariances(0, 0));
-    std::cout << "KALMAN: state:" << std::endl << static_cast<typename StateVector::Vector>(_state) << std::endl;
-    std::cout << "KALMAN: covariances:" << std::endl << _corvariances << std::endl;
+
     // set new time stamp
     _time_stamp = time_stamp;
   }              

@@ -39,7 +39,7 @@ bool convertGridToImage(const OccupancyGrid& grid, vision::Image& image)
 {
   constexpr std::uint8_t pixel_value_unkown = 200;
 
-  image.resize(grid.getNumCellsX(), grid.getNumCellsY(), ColourSpace::GRAY);
+  image.resize(grid.getNumCellsY(), grid.getNumCellsX(), ColourSpace::GRAY);
 
   for (std::size_t col = 0; col < image.cols(); ++col) {
     for (std::size_t row = 0; row < image.rows(); ++row) {

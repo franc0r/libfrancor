@@ -44,9 +44,9 @@ class OccupancyGridAlgorithm : public ::testing::Test
 private:
   void SetUp() final
   {
-    map_image = loadImageFromFile("/home/knueppl/repos/francor/libfrancor/example/data/occupancy-grid-example.png",
+    map_image = loadImageFromFile("/home/knueppl/repos/francor/libfrancor/example/data/robocup-map.png",
                                   ColourSpace::GRAY);
-    ASSERT_TRUE(createGridFromImage(map_image, 0.03, grid));                              
+    ASSERT_TRUE(createGridFromImage(map_image, 0.01, grid));                              
     francor::mapping::algorithm::occupancy::convertGridToImage(grid, map_image_result);
     map_image_result.transformTo(ColourSpace::BGR);
   }
@@ -133,7 +133,7 @@ protected:
 TEST_F(OccupancyGridAlgorithm, ReconstructLaserBeamInGrid)
 {
   // construct a pose for origin of beam
-  Pose2d pose(grid.getCellPosition(grid.getNumCellsX() / 2, grid.getNumCellsY() / 2), Angle::createFromDegree(180.0));
+  Pose2d pose(grid.getCellPosition(grid.getNumCellsX() * 66 / 100, grid.getNumCellsY() * 800 / 1000), Angle::createFromDegree(180.0));
 
   // construct necessary paramter for reconstruction function
   Angle divergence(Angle::createFromDegree(1.0));
