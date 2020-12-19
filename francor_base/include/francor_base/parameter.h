@@ -127,7 +127,7 @@ private:
     return true;
   }
   template <std::size_t... I>
-  bool isValueValidExectuer(const Data& value, std::index_sequence<I...>) const
+  bool isValueValidExecuter(const Data& value, std::index_sequence<I...>) const
   {
     bool result = true;
 
@@ -141,7 +141,7 @@ private:
       return true;
     }
     else {
-      return this->isValueValidExectuer(value, std::make_index_sequence<sizeof...(Constrain)>{});
+      return this->isValueValidExecuter(value, std::make_index_sequence<sizeof...(Constrain)>{});
     }
   }
 

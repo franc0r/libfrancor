@@ -108,7 +108,7 @@ TEST(Parameter, UpdateInvalidValue)
  */
 TEST(ParameterConstrain, ValidValue)
 {
-  Parameter<int, ConstrainMaximumValue<int>> parameter_int("int", 0, "a int value", ConstrainMaximumValue<int>(11));
+  Parameter<int, ConstrainMaximumValue<int>, ConstrainMinimumValue<int>> parameter_int("int", 0, "a int value", {11}, {11});
   auto parameter_server = std::make_shared<ParameterServer>("11", "22.0", "33");
 
   parameter_int.updateValue(parameter_server);
@@ -116,6 +116,10 @@ TEST(ParameterConstrain, ValidValue)
   EXPECT_EQ(11, parameter_int.value());
 
   parameter_server = std::make_shared<ParameterServer>("12", "22.0", "33");
+  EXPECT_ANY_THROW(parameter_int.updateValue(parameter_server));
+  EXPECT_EQ(11, parameter_int.value());
+
+  parameter_server = std::make_shared<ParameterServer>("10", "22.0", "33");
   EXPECT_ANY_THROW(parameter_int.updateValue(parameter_server));
   EXPECT_EQ(11, parameter_int.value());
 }

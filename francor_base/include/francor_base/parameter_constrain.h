@@ -6,8 +6,6 @@
  */
 #pragma once
 
-#include <iostream>
-
 namespace francor {
 
 namespace base {
@@ -32,10 +30,9 @@ template <typename DataType>
 class ConstrainMaximumValue : public ParameterConstrain<DataType>
 {
 public:
-  explicit ConstrainMaximumValue(const DataType& max_value) : ParameterConstrain<DataType>("maximum_value"),_max_value(max_value) { }
+  ConstrainMaximumValue(const DataType& max_value) : ParameterConstrain<DataType>("maximum_value"),_max_value(max_value) { }
   bool isFullFiled(const DataType& parameter_value) const final
   {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
     return parameter_value <= _max_value;
   }
 
@@ -47,8 +44,8 @@ template <typename DataType>
 class ConstrainMinimumValue : public ParameterConstrain<DataType>
 {
 public:
-  explicit ConstrainMinimumValue(const DataType& min_value) : ParameterConstrain<DataType>("minimum_value"), _min_value(min_value) { }
-  bool isFullfiled(const DataType& parameter_value) const final
+  ConstrainMinimumValue(const DataType& min_value) : ParameterConstrain<DataType>("minimum_value"), _min_value(min_value) { }
+  bool isFullFiled(const DataType& parameter_value) const final
   {
     return parameter_value >= _min_value;
   }
