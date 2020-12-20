@@ -17,6 +17,7 @@ namespace base
 {
 
 using Vector2i = Eigen::Vector2i;
+using Vector2u = Eigen::Matrix<unsigned int, 2, 1>;
 using Vector2d = Eigen::Vector2d;
 using Vector3d = Eigen::Vector3d;
 template <typename Type>

@@ -72,14 +72,20 @@ private:
 
 
 
-using PipeLocalizeOnOccupancyGridParent = processing::ProcessingPipeline<EgoObject,                                   // model type
-                                                                      algorithm::StageExtractSensorPose,
-                                                                      StagePredictEgo,                                // predicts ego to laser scan time stamp
-                                                                      algorithm::StageConvertLaserScanToPoints,       // convert scan stage
-                                                                      StageReconstructPointsFromOccupancyGrid,        // reconstruct points stage
-                                                                      algorithm::StageEstimateTransformBetweenPoints, // estimate transform stage
-                                                                      StageCreatePoseMeasurement                      // converts the result to a pose measurement 
-                                                                      >;
+using PipeLocalizeOnOccupancyGridParent = processing::ProcessingPipeline<// model type
+                                                                         EgoObject, 
+                                                                         // predicts ego to laser scan time stamp
+                                                                         francor::algorithm::StageExtractSensorPose,
+                                                                         // convert scan stage
+                                                                         StagePredictEgo,                                
+                                                                         // reconstruct points stage
+                                                                         francor::algorithm::StageConvertLaserScanToPoints,
+                                                                         // estimate transform stage
+                                                                         StageReconstructPointsFromOccupancyGrid,        
+                                                                         francor::algorithm::StageEstimateTransformBetweenPoints, 
+                                                                         // converts the result to a pose measurement
+                                                                         StageCreatePoseMeasurement                       
+                                                                         >;
 
 class PipeLocalizeOnOccupancyGrid final : public PipeLocalizeOnOccupancyGridParent
 {
@@ -103,8 +109,8 @@ private:
 
 
 using PipeConvertLaserScanToPointsParent = processing::ProcessingPipeline<processing::NoDataType,
-                                                                          algorithm::StageConvertLaserScanToPoints,         // convert scan stage
-                                                                          algorithm::StageEstimateNormalsFromOrderedPoints  // estimate normals stage
+                                                                          francor::algorithm::StageConvertLaserScanToPoints,         // convert scan stage
+                                                                          francor::algorithm::StageEstimateNormalsFromOrderedPoints  // estimate normals stage
                                                                           >;
 
 class PipeConvertLaserScanToPoints final : public PipeConvertLaserScanToPointsParent

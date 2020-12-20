@@ -40,7 +40,7 @@ TEST(ValidationOccupancy, RegisterAndReconstructLaserScan)
 
   OccupancyGrid grid;
   
-  ASSERT_TRUE(grid.init(250, 250, 0.1));
+  ASSERT_TRUE(grid.init({250u, 250u}, 0.1));
 
   for (std::size_t i = 0; i < 5; ++i) {
     pushLaserScanToGrid(grid, origin, ego_pose);
@@ -85,7 +85,7 @@ TEST(ValidateOccupancy, RegisterAndReconstructPoints)
   OccupancyGrid grid;
   
   ASSERT_TRUE(convertLaserScanToPoints(scan, ego_pose, points));  
-  ASSERT_TRUE(grid.init(2500, 2500, 0.01));
+  ASSERT_TRUE(grid.init({2500u, 2500u}, 0.01));
   const auto normals(*estimateNormalsFromOrderedPoints(points, 5));
 
   for (std::size_t i = 0; i < 5; ++i) {

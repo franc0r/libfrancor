@@ -17,6 +17,7 @@ struct OccupancyCell
 
   inline bool operator==(const OccupancyCell& rhs) const { return value == rhs.value; }
   inline bool operator!=(const OccupancyCell& rhs) const { return !operator==(rhs); }
+  inline bool operator<(const OccupancyCell& rhs) const { return value < rhs.value; }
 };
 
 class OccupancyGrid : public Grid<OccupancyCell>
@@ -49,14 +50,14 @@ inline ostream& operator<<(ostream& os, const francor::mapping::OccupancyCell& c
 inline ostream& operator<<(ostream& os, const francor::mapping::OccupancyGrid& grid)
 {
   os << "occupancy grid:" << std::endl;
-  os << "num cells x = " << grid.getNumCellsX() << std::endl;
-  os << "num cells y = " << grid.getNumCellsY() << std::endl;
-  os << "cell size = " << grid.getCellSize() << " m" << std::endl;
+  os << "num cells x = " << grid.cell().count().x() << std::endl;
+  os << "num cells y = " << grid.cell().count().y() << std::endl;
+  os << "cell size = " << grid.cell().size() << " m" << std::endl;
   os << "data[]:" << std::endl;
 
-  for (std::size_t row = 0; row < grid.getNumCellsY(); ++row)
+  for (std::size_t row = 0; row < grid.cell().count().y(); ++row)
   {
-    for (std::size_t col = 0; col < grid.getNumCellsX(); ++col)
+    for (std::size_t col = 0; col < grid.cell().count().x(); ++col)
       os << grid(col, row) << " ";
 
     os << std::endl;

@@ -58,7 +58,7 @@ EgoKalmanFilterModel::Matrix EgoKalmanFilterModel::getSystemNoiseMatrix(const St
   }
   // add yaw acceleration noise
   {
-    constexpr double yaw_acceleration_variance = base::Angle::createFromDegree(360) * base::Angle::createFromDegree(360);
+    constexpr double yaw_acceleration_variance = base::Angle::createFromDegree(720) * base::Angle::createFromDegree(720);
     StateVector noise_variances;
 
     noise_variances.yaw() = 0.5 * delta_time * delta_time;

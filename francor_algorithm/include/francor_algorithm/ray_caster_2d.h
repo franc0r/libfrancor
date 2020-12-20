@@ -11,6 +11,7 @@
 #include <francor_base/vector.h>
 #include <francor_base/line.h>
 #include <francor_base/log.h>
+#include <francor_base/size.h>
 
 namespace francor {
 
@@ -44,7 +45,7 @@ public:
   {
   public:
     iterator() = delete;
-    iterator(const base::Vector2i& currentIdx, const base::Vector2d& sideDist, const base::Vector2d& deltaDist, const std::uint8_t operation)
+    iterator(const base::Vector2u& currentIdx, const base::Vector2d& sideDist, const base::Vector2d& deltaDist, const std::uint8_t operation)
       : _current_idx(currentIdx), _side_dist(sideDist), _delta_dist(deltaDist), _operation(operation)
     { }
 
@@ -92,10 +93,10 @@ public:
            &&
            _current_idx.y() >= 0;
   }
-  const base::Vector2i& operator*() const { return _current_idx; }
+    base::Size2u operator*() const { return {_current_idx.x(), _current_idx.y()}; }
 
   private:
-    base::Vector2i _current_idx;
+    base::Vector2u _current_idx;
     base::Vector2d _side_dist;
     base::Vector2d _delta_dist;
     std::uint8_t _operation = Operation::NONE;
@@ -157,8 +158,8 @@ public:
     return *this;
   }
 
-  inline const base::Vector2i& operator*() const { return _current_idx; }
-  inline const base::Vector2i& getCurrentIndex() const { return _current_idx; }
+  inline base::Size2u operator*() const { return {_current_idx.x(), _current_idx.y()}; }
+  inline base::Size2u getCurrentIndex() const { return {_current_idx.x(), _current_idx.y()}; }
   inline double getCurrentCellWeight() const { return 1.0; }
 
 private:
@@ -172,8 +173,8 @@ private:
                   const double distance);             
 
 
-  base::Vector2i _current_idx; //> current x and y index on the map/grid
-  base::Vector2i _max_idx;     //> the maximum valid index of the map/grid
+  base::Vector2u _current_idx; //> current x and y index on the map/grid
+  base::Vector2u _max_idx;     //> the maximum valid index of the map/grid
   base::Vector2d _side_dist;   //> length of ray from start position to current position
   base::Vector2d _delta_dist;  //> length of ray from one x or y-side to next x or y-side
   double _max_distance;        //> the maximum length of the ray. If max is reached the caster will terminate

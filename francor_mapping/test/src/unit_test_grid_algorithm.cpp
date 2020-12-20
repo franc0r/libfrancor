@@ -5,7 +5,9 @@
  * \date 30. December 2019
  */
 #include <gtest/gtest.h>
-#include "francor_mapping/algorithm/grid.h"
+
+#include "francor_mapping/grid.h"
+#include "francor_mapping/algorithm/grid_impl.h"
 
 #include <francor_vision/image.h>
 #include <francor_vision/io.h>
@@ -23,7 +25,7 @@ void convertGridToImage(const Grid<std::uint8_t>& grid, Image& image)
 {
   constexpr std::uint8_t pixel_value_unkown = 200;
 
-  image.resize(grid.getNumCellsX(), grid.getNumCellsY(), ColourSpace::GRAY);
+  image.resize(grid.cell().count().x(), grid.cell().count().y(), ColourSpace::GRAY);
 
   for (std::size_t col = 0; col < image.cols(); ++col) {
     for (std::size_t row = 0; row < image.rows(); ++row) {
@@ -57,13 +59,13 @@ TEST(markLaserBeamBorder, Function)
 {
   Grid<std::uint8_t> grid;
 
-  ASSERT_TRUE(grid.init(100, 100, 0.1, 0));
+  ASSERT_TRUE(grid.init({100u, 100u}, 0.1, 0));
 
   // mark laser beam border
-  const auto origin = grid.getCellPosition(grid.getNumCellsX() / 2, grid.getNumCellsY() / 2);
+  const auto origin = grid.find().cell().position(grid.cell().count() /= 2);
   AnglePiToPi phi(AnglePiToPi::createFromDegree(0.0));
   const Angle divergence(Angle::createFromDegree(5.0));
-  const double distance = grid.getCellSize() * static_cast<double>(grid.getNumCellsX()) * 0.4;
+  const double distance = grid.cell().size() * static_cast<double>(grid.cell().count().x()) * 0.4;
   constexpr std::uint8_t value_free = 10;
   constexpr std::uint8_t value_occupied = 90;
 
@@ -77,13 +79,13 @@ TEST(fillMarkedShapes, Function)
 {
   Grid<std::uint8_t> grid;
 
-  ASSERT_TRUE(grid.init(100, 100, 0.1, 0));
+  ASSERT_TRUE(grid.init({100u, 100u}, 0.1, 0));
 
   // mark laser beam border
-  const auto origin = grid.getCellPosition(grid.getNumCellsX() / 2, grid.getNumCellsY() / 2);
+  const auto origin = grid.find().cell().position(grid.cell().count() /= 2);
   AnglePiToPi phi(AnglePiToPi::createFromDegree(0.0));
   const Angle divergence(Angle::createFromDegree(5.0));
-  const double distance = grid.getCellSize() * static_cast<double>(grid.getNumCellsX()) * 0.4;
+  const double distance = grid.cell().size() * static_cast<double>(grid.cell().count().x()) * 0.4;
   constexpr std::uint8_t value_free = 10;
   constexpr std::uint8_t value_occupied = 90;
 
@@ -100,13 +102,13 @@ TEST(registerLaserBeam, Function)
 {
   Grid<std::uint8_t> grid;
 
-  ASSERT_TRUE(grid.init(250, 250, 0.1, 0));
+  ASSERT_TRUE(grid.init({250u, 250u}, 0.1, 0));
 
   // mark laser beam border
-  const auto origin = grid.getCellPosition(grid.getNumCellsX() / 2, grid.getNumCellsY() / 2);
+  const auto origin = grid.find().cell().position(grid.cell().count() /= 2);
   AnglePiToPi phi(AnglePiToPi::createFromDegree(0.0));
   const Angle divergence(Angle::createFromDegree(5.0));
-  const double distance = grid.getCellSize() * static_cast<double>(grid.getNumCellsX()) * 0.4;
+  const double distance = grid.cell().size() * static_cast<double>(grid.cell().count().x()) * 0.4;
   constexpr std::uint8_t value_free = 10;
   constexpr std::uint8_t value_occupied = 90;
 

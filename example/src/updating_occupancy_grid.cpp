@@ -46,27 +46,29 @@ void drawLaserBeamOnImage(const Point2d& start_point, const Angle phi, const dou
                               { start_point.x(), start_point.y() });
   const Point2d end(transform * Point2d(length, 0.0));
 
-  const auto index_start_x = _grid.getIndexX(start_point.x());
-  const auto index_start_y = _grid.getIndexY(start_point.y());
-  const auto index_end_x = _grid.getIndexX(end.x());
-  const auto index_end_y = _grid.getIndexY(end.y());
+  const auto index_start = _grid.find().cell().index(start_point);
+  const auto index_end   = _grid.find().cell().index(end);
 
-  cv::line(image.cvMat(), { index_start_x, index_start_y }, { index_end_x, index_end_y }, colour, 3);
+  cv::line(image.cvMat(),
+           { static_cast<int>(index_start.x()), static_cast<int>(index_start.y()) },
+           { static_cast<int>(index_end.x()), static_cast<int>(index_end.y()) },
+           colour,
+           3);
 }
 
 void drawLaserScanOnImage(const LaserScan& scan, Image& image)
 {
-  const auto index_start_x = _grid.getIndexX(scan.pose().position().x() + _ego.pose().position().x());
-  const auto index_start_y = _grid.getIndexY(scan.pose().position().y() + _ego.pose().position().y());
+  const Point2d position(scan.pose().position() + _ego.pose().position());
+  const auto index_start = _grid.find().cell().index(position);
   Angle current_phi = scan.phiMin();
   const int radius_px = static_cast<int>(20.0 / 0.05);
-  const Point2d position(scan.pose().position() + _ego.pose().position());
+
 
   drawLaserBeamOnImage(position, scan.pose().orientation()+ _ego.pose().orientation() + scan.phiMin(), 20,
                        cv::Scalar(0, 0, 240), image);
   drawLaserBeamOnImage(position, scan.pose().orientation()+ _ego.pose().orientation() + scan.phiMax(), 20,
                        cv::Scalar(0, 0, 240), image);
-  cv::circle(image.cvMat(), {index_start_x, index_start_y }, radius_px, cv::Scalar(0, 0, 240), 2);
+  cv::circle(image.cvMat(), {static_cast<int>(index_start.x()), static_cast<int>(index_start.y()) }, radius_px, cv::Scalar(0, 0, 240), 2);
 
   for (const auto& distance : scan.distances())
   {
@@ -107,7 +109,7 @@ bool initialize(const std::string& file_name)
     return false;
   }
 
-  if (!_grid.init(_grid_source.getNumCellsX(), _grid_source.getNumCellsY(), _grid_source.getCellSize())) {
+  if (!_grid.init(_grid_source.cell().count(), _grid_source.cell().size())) {
     LogError() << "Can't initialize target grid.";
     return false;
   }

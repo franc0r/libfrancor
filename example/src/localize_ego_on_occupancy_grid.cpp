@@ -44,17 +44,16 @@ PipeUpdateEgoObject _pipe_update_ego;
 
 void drawPose(const Pose2d& pose, Image& image)
 {
-  const auto index_start_x = _grid.getIndexX(pose.position().x());
-  const auto index_start_y = _grid.getIndexY(pose.position().y());
+  const auto index_start = _grid.find().cell().index(pose.position());
 
   const auto v_x = francor::base::algorithm::line::calculateV(pose.orientation());
   const auto v_y = francor::base::algorithm::line::calculateV(pose.orientation() + M_PI_2);
 
-  const Vector2i end_x = (v_x * 40.0).cast<int>() + Vector2i(index_start_x, index_start_y);
-  const Vector2i end_y = (v_y * 40.0).cast<int>() + Vector2i(index_start_x, index_start_y);
+  const Vector2i end_x = (v_x * 40.0).cast<int>() + Vector2i(index_start.x(), index_start.y());
+  const Vector2i end_y = (v_y * 40.0).cast<int>() + Vector2i(index_start.x(), index_start.y());
 
-  cv::line(image.cvMat(), { index_start_x, index_start_y }, { end_x.x(), end_x.y() }, cv::Scalar(0, 0, 240), 3);
-  cv::line(image.cvMat(), { index_start_x, index_start_y }, { end_y.x(), end_y.y() }, cv::Scalar(0, 240, 0), 3);
+  cv::line(image.cvMat(), { static_cast<int>(index_start.x()), static_cast<int>(index_start.y()) }, { end_x.x(), end_x.y() }, cv::Scalar(0, 0, 240), 3);
+  cv::line(image.cvMat(), { static_cast<int>(index_start.x()), static_cast<int>(index_start.y()) }, { end_y.x(), end_y.y() }, cv::Scalar(0, 240, 0), 3);
 }
 
 void drawLaserBeamOnImage(const Point2d& start_point, const Angle phi, const double length,
@@ -64,12 +63,14 @@ void drawLaserBeamOnImage(const Point2d& start_point, const Angle phi, const dou
                               { start_point.x(), start_point.y() });
   const Point2d end(transform * Point2d(length, 0.0));
 
-  const auto index_start_x = _grid.getIndexX(start_point.x());
-  const auto index_start_y = _grid.getIndexY(start_point.y());
-  const auto index_end_x = _grid.getIndexX(end.x());
-  const auto index_end_y = _grid.getIndexY(end.y());
+  const auto index_start = _grid.find().cell().index(start_point);
+  const auto index_end   = _grid.find().cell().index(end);
 
-  cv::line(image.cvMat(), { index_start_x, index_start_y }, { index_end_x, index_end_y }, colour, 3);
+  cv::line(image.cvMat(),
+           { static_cast<int>(index_start.x()), static_cast<int>(index_start.y()) },
+           { static_cast<int>(index_end.x()), static_cast<int>(index_end.y()) },
+           colour,
+           3);
 }
 
 void drawLaserScanOnImage(const LaserScan& scan, Image& image)
@@ -77,8 +78,7 @@ void drawLaserScanOnImage(const LaserScan& scan, Image& image)
   const Transform2d tranform({ _ego_ground_truth.pose().orientation() },
                              { _ego_ground_truth.pose().position().x(), _ego_ground_truth.pose().position().y() });
   const Pose2d pose(tranform * scan.pose());
-  const auto index_start_x = _grid.getIndexX(pose.position().x());
-  const auto index_start_y = _grid.getIndexY(pose.position().y());
+  const auto index_start = _grid.find().cell().index(pose.position());
   Angle current_phi = scan.phiMin();
   const int radius_px = static_cast<int>(20.0 / 0.05);
 
@@ -86,7 +86,7 @@ void drawLaserScanOnImage(const LaserScan& scan, Image& image)
                        cv::Scalar(0, 0, 240), image);
   drawLaserBeamOnImage(pose.position(), pose.orientation() + scan.phiMax(), 20,
                        cv::Scalar(0, 0, 240), image);
-  cv::circle(image.cvMat(), {index_start_x, index_start_y }, radius_px, cv::Scalar(0, 0, 240), 2);
+  cv::circle(image.cvMat(), {static_cast<int>(index_start.x()), static_cast<int>(index_start.y()) }, radius_px, cv::Scalar(0, 0, 240), 2);
 
   for (const auto& distance : scan.distances())
   {
@@ -103,10 +103,8 @@ void drawPointsOnImage(const Point2dVector& points, Image& image)
 {
   for (const auto& point : points)
   {
-    const auto index_x = _grid.getIndexX(point.x());
-    const auto index_y = _grid.getIndexY(point.y());
-
-    cv::circle(image.cvMat(), { index_x, index_y }, 7, cv::Scalar(0, 0, 255), 3);
+    const auto index = _grid.find().cell().index(point);
+    cv::circle(image.cvMat(), { static_cast<int>(index.x()), static_cast<int>(index.y()) }, 7, cv::Scalar(0, 0, 255), 3);
   }
 }
 
@@ -259,7 +257,7 @@ int main(int argc, char** argv)
   for (std::size_t step = 0; step < 500; ++step)
   {
     const Vector2d step_position(0.0, 0.0);
-    const Angle step_yaw(Angle::createFromDegree(10.0));
+    const Angle step_yaw(Angle::createFromDegree(20.0));
 
     if (!processStep(step_position, step_yaw)) {
       LogError() << "terminate application";

@@ -120,7 +120,7 @@ TEST(Parameter, UpdateInvalidValue)
 /**
  * Check if the maximum and minimum value constrains detect out of range parameter values.
  */
-TEST(ParameterConstrain, ValidValue)
+TEST(ParameterConstrain, ValidateValue)
 {
   Parameter<int, ConstrainMaximumValue<int>, ConstrainMinimumValue<int>> parameter_int("int", 0, "a int value", {11}, {11});
   auto parameter_server = std::make_shared<ParameterServer>("11", "22.0", "33");

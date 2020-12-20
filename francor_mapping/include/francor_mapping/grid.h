@@ -7,23 +7,26 @@
 
 #include <francor_base/log.h>
 #include <francor_base/point.h>
+#include <francor_base/size.h>
 
 #include <francor_algorithm/array_data_access.h>
+
+#include "francor_mapping/algorithm/grid.h"
 
 namespace francor {
 
 namespace mapping {
 
-template<typename CellType>
+template<typename Cell>
 class Grid
 {
 public:
-  using cell_type = CellType;
+  using cell_type = Cell;
 
   /**
    * \brief Default constructor. Constructs an empty invalid grid.
    */
-  Grid(void) = default;
+  Grid() = default;
   Grid(const Grid&) = default;
   /**
    * \brief Moves all context to this and resets the origin grid object.
@@ -35,7 +38,7 @@ public:
   /**
    * \brief Defaulted destructor.
    */
-  virtual ~Grid(void) = default;
+  virtual ~Grid() = default;
   /**
    * \brief Defaulted copy assignment operator.
    */
@@ -47,11 +50,9 @@ public:
   {
     _data = std::move(origin._data);
 
-    _num_cells_x = origin._num_cells_x;
-    _num_cells_y = origin._num_cells_y;
-    _cell_size   = origin._cell_size;
-    _size_x      = origin._size_x;
-    _size_y      = origin._size_y;
+    _grid_size = origin._grid_size;
+    _cell_size = origin._cell_size;
+    _size      = origin._size;
 
     _default_cell_value = origin._default_cell_value;
 
@@ -63,34 +64,28 @@ public:
   /**
    * \brief Initialize this grid using the given arguments. The size is given in number of cells in x and y direction.
    * 
-   * \param munCellsX number of cells in x direction.
-   * \param numCellsY number of cells in y direction.
-   * \param cellSize size (edge length) of each cell in meter.
+   * \param grid_size Size of the grid in number of cells.
+   * \param cell_size Size (edge length) of each cell in meter.
    * \param initial_cell_value Each cell is initialized with this value.
    * \return true if grid was successfully initialized.
    */
-  bool init(const std::size_t numCellsX,
-            const std::size_t numCellsY,
-            const double cellSize,
-            const cell_type& initial_cell_value = {})
+  bool init(const base::Size2u grid_size, const double cell_size, const cell_type& initial_cell_value = {})
   {
-    if (cellSize <= std::numeric_limits<double>::min())
+    if (cell_size <= std::numeric_limits<double>::min())
     {
-      base::LogError() << "Grid: cell size must be greater than zero. Can't initialize grid. cell size = " << cellSize;
+      base::LogError() << "Grid: cell size must be greater than zero. Can't initialize grid. cell size = " << cell_size;
       return false;
     }
 
     // allocate grid data
-    _data.resize(numCellsX * numCellsY, initial_cell_value);
+    _data.resize(grid_size.x() * grid_size.y(), initial_cell_value);
     _default_cell_value = initial_cell_value;
 
-    _num_cells_x = numCellsX;
-    _num_cells_y = numCellsY;
-    _cell_size = cellSize;
+    _grid_size = grid_size;
+    _cell_size = cell_size;
 
     // calculate size from other parameter
-    _size_x = _num_cells_x * _cell_size;
-    _size_y = _num_cells_y * _cell_size;
+    _size = {_grid_size.x() * _cell_size, grid_size.y() * _cell_size};
 
     return true;
   }
@@ -101,11 +96,9 @@ public:
    */
   void clear(void)
   {
-    _num_cells_x = 0;
-    _num_cells_y = 0;
+    _grid_size = {0, 0};
     _cell_size = 0.0;
-    _size_x = 0.0;
-    _size_y = 0.0;
+    _size = {0.0, 0.0};
 
     _data.clear();
   }
@@ -115,75 +108,36 @@ public:
    * 
    * \return true if grid is empty.
    */
-  bool isEmpty() const { return _num_cells_x == 0 && _num_cells_y == 0; }
+  bool isEmpty() const { return _grid_size.x() == 0 || _grid_size.y() == 0; }
   /**
    * \brief Checks if this grid is valid. The cell size must be greater than zero and the grid size min 1x1.
    * 
    * \return true if grid is valid.
    */
-  bool isValid() const { return _cell_size > 0.0 && _num_cells_x > 0 && _num_cells_y > 0; }
+  bool isValid() const { return _cell_size > 0.0 && _grid_size.x() > 0 && _grid_size.y() > 0; }
   /**
-   * \brief Returns the current number of cells in x direction.
-   * 
-   * \return number of cells in x direction.
+   * \brief Return a cell size representation that holds the number of cells and cell size.
+   * \return Cell size representation.
    */
-  inline std::size_t getNumCellsX(void) const noexcept { return _num_cells_x; }
+
+  algorithm::grid::SizeHandler<Grid> cell() const { return {*this}; }
+
   /**
-   * \brief Returns the current number of cells in y direction.
-   * 
-   * \return number of cells in y direction.
+   * \brief Return the current grid size in meter.
+   * \return Current grid size in meter.
    */
-  inline std::size_t getNumCellsY(void) const noexcept { return _num_cells_y; }
-  /**
-   * \brief Returns the cell size in meter. The size represents both edge lengths of a cell.
-   * 
-   * \return the cell size in meter.
-   */
-  inline double getCellSize(void) const noexcept { return _cell_size; }
-  /**
-   * \brief Returns the size in x direction of this grid in meters.
-   * 
-   * \return size x in meter.
-   */
-  inline double getSizeX(void) const noexcept { return _size_x; }
-  /**
-   * \brief Returns the size in y direction of this grid in meters.
-   * 
-   * \return size y in meter.
-   */
-  inline double getSizeY(void) const noexcept { return _size_y; }
+  inline const base::Size2d& size() const { return _size; }
+
   /**
    * \brief Operator to access the cell at the given coordinates.
    * 
    * \return reference to the cell.
    */
-  inline CellType& operator()(const std::size_t x, const std::size_t y) { return _data[y * _num_cells_x + x]; }
-  inline const CellType& operator()(const std::size_t x, const std::size_t y) const { return _data[y * _num_cells_x + x]; }
-  /**
-   * \brief Estimates the index to the given x coordinate.
-   * 
-   * \param x x-cooridnate
-   * \return x index for given x-coordinate
-   */
-  inline std::size_t getIndexX(const double x) const { return static_cast<std::size_t>((x + _origin.x()) / _cell_size); }
-  /**
-   * \brief Estimates the index to the given y coordinate.
-   * 
-   * \param y y-cooridnate
-   * \return y index for given y-coordinate
-   */
-  inline std::size_t getIndexY(const double y) const { return static_cast<std::size_t>((y + _origin.y()) / _cell_size); }
-  /**
-   * \brief Returns the position of the selected cell.
-   * 
-   * \param x The x index of the wanted cell.
-   * \param y The y index of the wanted cell.
-   * \return the position (mid) of the selected cell in meter.
-   */
-  inline base::Point2d getCellPosition(const std::size_t x, const std::size_t y) const
-  {
-    return { (static_cast<double>(x) + 0.5) * _cell_size, (static_cast<double>(y) + 0.5) * _cell_size };
-  }
+  inline Cell& operator()(const std::size_t x, const std::size_t y) { return _data[y * _grid_size.x() + x]; }
+  inline const Cell& operator()(const std::size_t x, const std::size_t y) const { return _data[y * _grid_size.x() + x]; }
+
+  inline algorithm::grid::FindOperation<Grid> find() const { return { *this }; }
+
   /**
    * \brief Returns the origin of this grid. The origin is located at cell (0, 0).
    * \return Origin coordinate in meter.
@@ -193,28 +147,30 @@ public:
    * \brief Return the default value what was used during initialization.
    * \return default grid cell value.
    */
-  inline const CellType& getDefaultCellValue() const noexcept { return _default_cell_value; }
+  inline const Cell& getDefaultCellValue() const noexcept { return _default_cell_value; }
 
 
-  algorithm::ArrayDataAccess1D<CellType, 1u> row(const std::size_t index)
+  francor::algorithm::ArrayDataAccess1D<Cell, 1u> row(const std::size_t index)
   {
-    return algorithm::ArrayDataAccess1D<CellType, 1u>{&_data[index * _num_cells_x], _num_cells_x};
+    return francor::algorithm::ArrayDataAccess1D<Cell, 1u>{&_data[index * _grid_size.x()], _grid_size.x()};
   }
-  algorithm::ArrayDataAccess1D<const CellType, 1u> row(const std::size_t index) const
+  francor::algorithm::ArrayDataAccess1D<const Cell, 1u> row(const std::size_t index) const
   {
-    return algorithm::ArrayDataAccess1D<const CellType, 1u>{&_data[index * _num_cells_x], _num_cells_x};
+    return francor::algorithm::ArrayDataAccess1D<const Cell, 1u>{&_data[index * _grid_size.x()], _grid_size.x()};
   }
 
 private:
-  std::size_t _num_cells_x = 0;    //> number of cells in x dimension
-  std::size_t _num_cells_y = 0;    //> number of cells in y dimension
+  friend algorithm::grid::SizeHandler<Grid>;
+  friend algorithm::grid::FindOperation<Grid>;
+  friend typename algorithm::grid::FindOperation<Grid>::FindCell;
+
+  base::Size2u _grid_size{0, 0};   //> grid size in number of cells
   double _cell_size = 0.0;         //> size of each cell
-  double _size_x = 0.0;            //> size in m in x dimension
-  double _size_y = 0.0;            //> size in m in y dimension
+  base::Size2d _size{0.0, 0.0};    //> size in m 
   base::Point2d _origin{0.0, 0.0}; //> origin coordinate of this grid in meter
 
-  CellType _default_cell_value;
-  std::vector<CellType> _data;     //> grid cells
+  Cell _default_cell_value;
+  std::vector<Cell> _data;     //> grid cells
 };
 
 } // end namespace mapping

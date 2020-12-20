@@ -65,14 +65,12 @@ protected:
                                 { start_point.x(), start_point.y() });
     const Point2d end(transform * Point2d(length, 0.0));
 
-    const auto index_start_x = grid.getIndexX(start_point.x());
-    const auto index_start_y = grid.getIndexY(start_point.y());
-    const auto index_end_x = grid.getIndexX(end.x());
-    const auto index_end_y = grid.getIndexY(end.y());
+    const auto index_start = grid.find().cell().index(start_point);
+    const auto index_end   = grid.find().cell().index(end);
 
     cv::line(image.cvMat(), 
-             { static_cast<int>(index_start_x), static_cast<int>(index_start_y) },
-             { static_cast<int>(index_end_x), static_cast<int>(index_end_y) }, 
+             { static_cast<int>(index_start.x()), static_cast<int>(index_start.y()) },
+             { static_cast<int>(index_end.x()), static_cast<int>(index_end.y()) }, 
              colour, 
              3);
   }
@@ -82,8 +80,7 @@ protected:
     const Transform2d tranform({ ego_pose.orientation() },
                                { ego_pose.position().x(), ego_pose.position().y() });
     const Pose2d pose(tranform * scan.pose());
-    const auto index_start_x = grid.getIndexX(pose.position().x());
-    const auto index_start_y = grid.getIndexY(pose.position().y());
+    const auto index_start = grid.find().cell().index(pose.position());
     Angle current_phi = scan.phiMin();
     const int radius_px = static_cast<int>(20.0 / 0.05);
 
@@ -92,7 +89,7 @@ protected:
     drawLaserBeamOnImage(pose.position(), pose.orientation() + scan.phiMax(), 20,
                          cv::Scalar(0, 0, 240), image);
     cv::circle(image.cvMat(), 
-               { static_cast<int>(index_start_x), static_cast<int>(index_start_y) }, 
+               { static_cast<int>(index_start.x()), static_cast<int>(index_start.y()) }, 
                radius_px, 
                cv::Scalar(0, 0, 240), 
                2);
@@ -133,17 +130,18 @@ protected:
 TEST_F(OccupancyGridAlgorithm, ReconstructLaserBeamInGrid)
 {
   // construct a pose for origin of beam
-  Pose2d pose(grid.getCellPosition(grid.getNumCellsX() * 66 / 100, grid.getNumCellsY() * 800 / 1000), Angle::createFromDegree(180.0));
+  Pose2d pose(grid.find().cell().position({grid.cell().count().x() * 66 / 100, grid.cell().count().y() * 800 / 1000}),
+              Angle::createFromDegree(180.0));
 
   // construct necessary paramter for reconstruction function
   Angle divergence(Angle::createFromDegree(1.0));
-  const double range = grid.getSizeX() * 0.4;
+  const double range = grid.size().x() * 0.4;
   const Angle divergence_2 = divergence / 2.0;
   const double beam_width = range * std::tan(divergence_2) * 2.0;
-  const Vector2i origin_idx(grid.getIndexX(pose.position().x()), grid.getIndexY(pose.position().y()));
+  const auto origin_idx(grid.find().cell().index(pose.position()));
 
   // expect a distance of (500 - 178) * 0.03
-  const double distance = reconstructLaserBeam(grid, pose.position(), origin_idx, pose.orientation(),
+  const double distance = reconstructLaserBeam(grid, pose.position(), {origin_idx.x(), origin_idx.y()}, pose.orientation(),
                                                range, divergence, beam_width);
 
   EXPECT_NEAR(distance, 9.67, 0.01);
@@ -154,8 +152,7 @@ TEST_F(OccupancyGridAlgorithm, ReconstructLaserBeamInGrid)
 TEST_F(OccupancyGridAlgorithm, ReconstructLaserScanInGrid)
 {
   // construct a pose for origin of beam
-  const Pose2d pose_ego(grid.getCellPosition(grid.getNumCellsX() / 2, grid.getNumCellsY() / 2),
-                                             Angle::createFromDegree(180.0));
+  const Pose2d pose_ego(grid.find().cell().position(grid.cell().count() /= 2), Angle::createFromDegree(180.0));
   const Pose2d sensor_pose({0.0, 0.0}, Angle::createFromDegree(-90.0));
 
   // construct necessary paramter for reconstruction function
@@ -175,8 +172,7 @@ TEST_F(OccupancyGridAlgorithm, ReconstructLaserScanInGrid)
 TEST_F(OccupancyGridAlgorithm, RegisterAndReconstructLaserScanInGrid)
 {
   // construct a pose for origin of beam
-  const Pose2d pose_ego(grid.getCellPosition(grid.getNumCellsX() / 2, grid.getNumCellsY() / 2),
-                                             Angle::createFromDegree(180.0));
+  const Pose2d pose_ego(grid.find().cell().position(grid.cell().count() /= 2), Angle::createFromDegree(180.0));
   const Pose2d sensor_pose({0.0, 0.0}, Angle::createFromDegree(-90.0));
 
   // construct necessary paramter for reconstruction function
@@ -193,7 +189,7 @@ TEST_F(OccupancyGridAlgorithm, RegisterAndReconstructLaserScanInGrid)
 
   for (std::size_t i = 0; i < iterations; ++i) {
     OccupancyGrid working_grid;
-    working_grid.init(grid.getNumCellsX(), grid.getNumCellsY(), grid.getCellSize());
+    working_grid.init(grid.cell().count(), grid.cell().size());
     registerLaserScan(working_grid, pose_ego, scan, OccupancyCell{0.1}, OccupancyCell{0.9});
     const auto result_scan(reconstructLaserScan(working_grid, pose_ego, sensor_pose, phi_min, phi_step,
                                                 num_beams, range, time_stamp, divergence));
@@ -233,8 +229,7 @@ TEST_F(OccupancyGridAlgorithm, RegisterAndReconstructLaserScanInGrid)
 TEST_F(OccupancyGridAlgorithm, RegisterNoisedLaserScanInGrid)
 {
   // construct a pose for origin of beam
-  const Pose2d pose_ego(grid.getCellPosition(grid.getNumCellsX() / 2, grid.getNumCellsY() / 2),
-                                             Angle::createFromDegree(180.0));
+  const Pose2d pose_ego(grid.find().cell().position(grid.cell().count() /= 2), Angle::createFromDegree(180.0));
   const Pose2d sensor_pose({0.0, 0.0}, Angle::createFromDegree(-90.0));
 
   // construct necessary paramter for reconstruction function
@@ -248,7 +243,7 @@ TEST_F(OccupancyGridAlgorithm, RegisterNoisedLaserScanInGrid)
   const LaserScan scan(reconstructLaserScan(grid, pose_ego, sensor_pose, phi_min, phi_step,
                                             num_beams, range, time_stamp, divergence));
   OccupancyGrid working_grid;
-  working_grid.init(grid.getNumCellsX(), grid.getNumCellsY(), grid.getCellSize());
+  working_grid.init(grid.cell().count(), grid.cell().size());
   constexpr std::size_t iterations = 1000;
 
   for (std::size_t i = 0; i < iterations; ++i) {
@@ -256,12 +251,12 @@ TEST_F(OccupancyGridAlgorithm, RegisterNoisedLaserScanInGrid)
     applyGaussianNoise(noised_scan);
 
     OccupancyGrid measurement_grid;
-    measurement_grid.init(grid.getNumCellsX(), grid.getNumCellsY(), grid.getCellSize());
+    measurement_grid.init(grid.cell().count(), grid.cell().size());
     
     registerLaserScan(measurement_grid, pose_ego, noised_scan, OccupancyCell{0.2}, OccupancyCell{0.75});
 
-    for (std::size_t row = 0; row < working_grid.getNumCellsY(); ++row) {
-      for (std::size_t col = 0; col < working_grid.getNumCellsY(); ++col) {
+    for (std::size_t row = 0; row < working_grid.cell().count().y(); ++row) {
+      for (std::size_t col = 0; col < working_grid.cell().count().y(); ++col) {
         updateGridCell(working_grid(col, row), measurement_grid(col, row).value);
       }
     }

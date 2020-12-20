@@ -79,31 +79,31 @@ bool PipeLocalizeOnOccupancyGrid::configureStages()
 {
   bool ret = true;
 
-  ret &= std::get<0>(_stages).input(algorithm::StageExtractSensorPose::IN_SENSOR_DATA)
+  ret &= std::get<0>(_stages).input(francor::algorithm::StageExtractSensorPose::IN_SENSOR_DATA)
                              .connect(this->input(IN_SCAN));
 
   ret &= std::get<1>(_stages).input(StagePredictEgo::IN_SENSOR_DATA)
                              .connect(this->input(IN_SCAN));
 
-  ret &= std::get<2>(_stages).input(algorithm::StageConvertLaserScanToPoints::IN_SCAN)
+  ret &= std::get<2>(_stages).input(francor::algorithm::StageConvertLaserScanToPoints::IN_SCAN)
                              .connect(this->input(IN_SCAN));
-  ret &= std::get<2>(_stages).input(algorithm::StageConvertLaserScanToPoints::IN_EGO_POSE)
+  ret &= std::get<2>(_stages).input(francor::algorithm::StageConvertLaserScanToPoints::IN_EGO_POSE)
                              .connect(std::get<1>(_stages).output(StagePredictEgo::OUT_EGO_POSE));                            
 
   ret &= std::get<3>(_stages).input(StageReconstructPointsFromOccupancyGrid::IN_SENSOR_POSE)
-                             .connect(std::get<0>(_stages).output(algorithm::StageExtractSensorPose::OUT_SENSOR_POSE)); 
+                             .connect(std::get<0>(_stages).output(francor::algorithm::StageExtractSensorPose::OUT_SENSOR_POSE)); 
   ret &= std::get<3>(_stages).input(StageReconstructPointsFromOccupancyGrid::IN_EGO_POSE)
                              .connect(std::get<1>(_stages).output(StagePredictEgo::OUT_EGO_POSE));
   ret &= std::get<3>(_stages).output(StageReconstructPointsFromOccupancyGrid::OUT_POINTS)
                              .connect(this->output(OUT_POINTS));                                                          
 
-  ret &= std::get<4>(_stages).input(algorithm::StageEstimateTransformBetweenPoints::IN_POINTS_A)
+  ret &= std::get<4>(_stages).input(francor::algorithm::StageEstimateTransformBetweenPoints::IN_POINTS_A)
                              .connect(std::get<3>(_stages).output(StageReconstructPointsFromOccupancyGrid::OUT_POINTS));
-  ret &= std::get<4>(_stages).input(algorithm::StageEstimateTransformBetweenPoints::IN_POINTS_B)
-                             .connect(std::get<2>(_stages).output(algorithm::StageConvertLaserScanToPoints::OUT_POINTS));
+  ret &= std::get<4>(_stages).input(francor::algorithm::StageEstimateTransformBetweenPoints::IN_POINTS_B)
+                             .connect(std::get<2>(_stages).output(francor::algorithm::StageConvertLaserScanToPoints::OUT_POINTS));
 
   ret &= std::get<5>(_stages).input(StageCreatePoseMeasurement::IN_DELTA_POSE)
-                             .connect(std::get<4>(_stages).output(algorithm::StageEstimateTransformBetweenPoints::OUT_TRANSFORM));
+                             .connect(std::get<4>(_stages).output(francor::algorithm::StageEstimateTransformBetweenPoints::OUT_TRANSFORM));
   ret &= std::get<5>(_stages).input(StageCreatePoseMeasurement::IN_EGO_POSE)
                              .connect(std::get<1>(_stages).output(StagePredictEgo::OUT_EGO_POSE));
   ret &= std::get<5>(_stages).input(StageCreatePoseMeasurement::IN_SENSOR_DATA)
@@ -130,14 +130,14 @@ bool PipeConvertLaserScanToPoints::configureStages()
 {
   bool ret = true;
 
-  ret &= std::get<0>(_stages).input(algorithm::StageConvertLaserScanToPoints::IN_SCAN)
+  ret &= std::get<0>(_stages).input(francor::algorithm::StageConvertLaserScanToPoints::IN_SCAN)
                              .connect(this->input(IN_SCAN));
-  ret &= std::get<0>(_stages).output(algorithm::StageConvertLaserScanToPoints::OUT_POINTS)
+  ret &= std::get<0>(_stages).output(francor::algorithm::StageConvertLaserScanToPoints::OUT_POINTS)
                              .connect(this->output(OUT_POINTS));                             
 
-  ret &= std::get<1>(_stages).input(algorithm::StageEstimateNormalsFromOrderedPoints::IN_POINTS)
-                             .connect(std::get<0>(_stages).output(algorithm::StageConvertLaserScanToPoints::OUT_POINTS));
-  ret &= std::get<1>(_stages).output(algorithm::StageEstimateNormalsFromOrderedPoints::OUT_NORMALS)
+  ret &= std::get<1>(_stages).input(francor::algorithm::StageEstimateNormalsFromOrderedPoints::IN_POINTS)
+                             .connect(std::get<0>(_stages).output(francor::algorithm::StageConvertLaserScanToPoints::OUT_POINTS));
+  ret &= std::get<1>(_stages).output(francor::algorithm::StageEstimateNormalsFromOrderedPoints::OUT_NORMALS)
                              .connect(this->output(OUT_NORMALS));
 
   return ret;                             

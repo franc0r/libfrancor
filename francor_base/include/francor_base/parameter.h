@@ -158,8 +158,6 @@ private:
   std::tuple<Constrain...> _constrains;
 };
 
-
-
 } // end namespace base
 
 } // end namespace francor
