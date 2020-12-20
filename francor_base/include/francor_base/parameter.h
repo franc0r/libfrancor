@@ -91,6 +91,15 @@ public:
                  << " Parameter value is not initialized! Current value is " << _value;
     }
   }
+  Parameter(const std::string& name,
+            const Data& default_value,
+            const char* const description,
+            const std::shared_ptr<const ParameterAdapterInterface>& interface,
+            const Constrain&... constrain_args)
+    : Parameter(name, default_value, description, constrain_args...)
+  {
+    this->updateValue(interface);
+  }
   ~Parameter() override = default;
 
   void updateValue(const std::shared_ptr<const ParameterAdapterInterface>& interface) final

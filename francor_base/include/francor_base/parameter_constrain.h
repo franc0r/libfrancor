@@ -30,7 +30,7 @@ template <typename DataType>
 class ConstrainMaximumValue : public ParameterConstrain<DataType>
 {
 public:
-  ConstrainMaximumValue(const DataType& max_value) : ParameterConstrain<DataType>("maximum_value"),_max_value(max_value) { }
+  ConstrainMaximumValue(const DataType& max_value) : ParameterConstrain<DataType>("maximum_value"), _max_value(max_value) { }
   bool isFullFiled(const DataType& parameter_value) const final
   {
     return parameter_value <= _max_value;

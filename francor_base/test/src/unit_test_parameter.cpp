@@ -56,11 +56,25 @@ TEST(Parameter, Instanciate)
   const auto name = "int";
   const auto description = "a int value";
   const int default_value = 4711;
-  Parameter<int> parameter_int(name, default_value, description);
 
-  EXPECT_EQ(name, parameter_int.name());
-  EXPECT_EQ(description, parameter_int.description());
-  EXPECT_EQ(default_value, parameter_int.value());
+  // test first constructor without paramter adapter interface
+  {
+    Parameter<int> parameter_int(name, default_value, description);
+
+    EXPECT_EQ(name, parameter_int.name());
+    EXPECT_EQ(description, parameter_int.description());
+    EXPECT_EQ(default_value, parameter_int.value());
+  }
+
+  // test second constructor with parameter adpater interface
+  {
+    auto parameter_server = std::make_shared<ParameterServer>("4711", "22.0", "33");
+    Parameter<int> parameter_int(name, default_value, description, parameter_server);
+
+    EXPECT_EQ(name, parameter_int.name());
+    EXPECT_EQ(description, parameter_int.description());
+    EXPECT_EQ(default_value, parameter_int.value());
+  }
 }
 
 /**
