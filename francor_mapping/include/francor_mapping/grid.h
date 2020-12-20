@@ -116,10 +116,17 @@ public:
    */
   bool isValid() const { return _cell_size > 0.0 && _grid_size.x() > 0 && _grid_size.y() > 0; }
   /**
-   * \brief Return a cell size representation that holds the number of cells and cell size.
+   * \brief Return a cell size representation that holds the number of cells and cell size. For example to
+   *        get the grid cell size this call is used:
+   * 
+   *                           grid.cell().size()
+   * 
+   *        or to get the number of cells of this grid:
+   * 
+   *                           grid.cell().count()
+   * 
    * \return Cell size representation.
    */
-
   algorithm::grid::SizeHandler<Grid> cell() const { return {*this}; }
 
   /**
@@ -136,6 +143,19 @@ public:
   inline Cell& operator()(const std::size_t x, const std::size_t y) { return _data[y * _grid_size.x() + x]; }
   inline const Cell& operator()(const std::size_t x, const std::size_t y) const { return _data[y * _grid_size.x() + x]; }
 
+  /**
+   * \brief Starts a search to find attributes or characteristics of this grid, like an index of a grid cell.
+   *        Usually it is used in that way: grid.find().[search topic]().[what is searched](). For example to
+   *        find an index of a grid cell the function calls look like:
+   * 
+   *                           grid.find().cell().index([position input as point])
+   *      
+   *        or to find the position of a grid cell:
+   * 
+   *                           grid.find().cell().position([grid cell index])
+   * 
+   * \return A helper class that provides a set of find operations.
+   */
   inline algorithm::grid::FindOperation<Grid> find() const { return { *this }; }
 
   /**
@@ -162,7 +182,7 @@ public:
 private:
   friend algorithm::grid::SizeHandler<Grid>;
   friend algorithm::grid::FindOperation<Grid>;
-  friend typename algorithm::grid::FindOperation<Grid>::FindCell;
+  friend typename algorithm::grid::FindOperation<Grid>::CellFindOperation;
 
   base::Size2u _grid_size{0, 0};   //> grid size in number of cells
   double _cell_size = 0.0;         //> size of each cell

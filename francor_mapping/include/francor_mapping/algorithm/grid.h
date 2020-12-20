@@ -49,9 +49,9 @@ class FindOperation
 public:
   FindOperation(const GridType& grid) : _grid(grid) { }
 
-  class FindCell {
+  class CellFindOperation {
   public:
-    FindCell(const GridType& grid) : _grid(grid) { }
+    CellFindOperation(const GridType& grid) : _grid(grid) { }
 
     inline base::Size2u index(const base::Point2d& position) const
     {
@@ -68,7 +68,7 @@ public:
     const GridType& _grid;
   };
 
-  inline FindCell cell() const { return { _grid }; }
+  inline CellFindOperation cell() const { return { _grid }; }
 
 private:
   const GridType& _grid;
