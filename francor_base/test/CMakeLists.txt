@@ -113,3 +113,20 @@ add_test(
   NAME test-parameter
   COMMAND unit-test-parameter
 )
+
+
+# Memory
+add_executable(unit-test-memory
+  src/unit_test_memory.cpp
+)
+
+target_link_libraries(unit-test-memory PRIVATE
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-base
+)
+
+add_test(
+  NAME test-memory
+  COMMAND unit-test-memory
+)
