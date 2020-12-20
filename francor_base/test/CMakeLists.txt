@@ -116,17 +116,17 @@ add_test(
 
 
 # Memory
-add_executable(unit-test-memory
-  src/unit_test_memory.cpp
+add_executable(unit-test-shared-array
+  src/unit_test_shared_array.cpp
 )
 
-target_link_libraries(unit-test-memory PRIVATE
+target_link_libraries(unit-test-shared-array PRIVATE
   PRIVATE GTest::GTest
   PRIVATE GTest::Main
   PRIVATE francor-base
 )
 
 add_test(
-  NAME test-memory
-  COMMAND unit-test-memory
+  NAME test-shared-array
+  COMMAND unit-test-shared-array
 )

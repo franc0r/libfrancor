@@ -6,38 +6,38 @@
  */
 #include <gtest/gtest.h>
 
-#include "francor_base/memory.h"
+#include "francor_base/shared_array.h"
 
-using francor::base::SharedMemory;
+using SharedArray = francor::base::SharedArray<std::uint8_t>;
 
-void setTestData(SharedMemory& memory)
+void setTestData(SharedArray& memory)
 {
   for (std::size_t i = 0; i < memory.size(); ++i) {
     memory[i] = static_cast<std::uint8_t>(i + 1u);
   }
 }
 
-TEST(SharedMemory, NewInstance)
+TEST(SharedArray, NewInstance)
 {
   constexpr std::size_t size = 100;
 
   // default construction
-  SharedMemory empty;
+  SharedArray empty;
 
   EXPECT_EQ(0u, empty.size());
 
   // construct with a size so that memory is allocated
-  SharedMemory normal(size);
+  SharedArray normal(size);
 
   EXPECT_EQ(size, normal.size());
 }
 
-TEST(SharedMemory, AccessData)
+TEST(SharedArray, AccessData)
 {
   constexpr std::size_t size = 100;
 
   // construct and allocate memory and assign test data
-  SharedMemory memory(size);
+  SharedArray memory(size);
 
   ASSERT_EQ(size, memory.size());
   setTestData(memory);
@@ -49,18 +49,18 @@ TEST(SharedMemory, AccessData)
   }
 }
 
-TEST(SharedMemory, SharedContent)
+TEST(SharedArray, SharedContent)
 {
   constexpr std::size_t size = 100;
 
   // construct and allocate memory and assign test data
-  SharedMemory memory(size);
+  SharedArray memory(size);
   
   setTestData(memory);
 
   // construct new object and share content with it
   // copy constructor is used
-  SharedMemory shared(memory);
+  SharedArray shared(memory);
 
   // check if content is shared by accessing memory
   EXPECT_EQ(size, shared.size());
@@ -90,17 +90,17 @@ TEST(SharedMemory, SharedContent)
   }
 }
 
-TEST(SharedMemory, CopiedContent)
+TEST(SharedArray, CopiedContent)
 {
   constexpr std::size_t size = 100;
 
   // construct and allocate memory and assign test data
-  SharedMemory memory(size);
+  SharedArray memory(size);
   
   setTestData(memory);
 
   // construct new object as a copy of object memory
-  SharedMemory copied = memory.createCopy();
+  SharedArray copied = memory.createCopy();
 
   // check if were copied correctly by accessing memory
   EXPECT_EQ(size, copied.size());
@@ -113,17 +113,17 @@ TEST(SharedMemory, CopiedContent)
   }
 }
 
-TEST(SharedMemory, MovedContent)
+TEST(SharedArray, MovedContent)
 {
   constexpr std::size_t size = 100;
 
   // construct and allocate memory and assign test data
-  SharedMemory memory(size);
+  SharedArray memory(size);
 
   setTestData(memory);
 
   // move content using move constructor
-  SharedMemory moved(std::move(memory));
+  SharedArray moved(std::move(memory));
 
   EXPECT_EQ(0u, memory.size());
   EXPECT_EQ(size, moved.size());
@@ -149,12 +149,12 @@ TEST(SharedMemory, MovedContent)
   }
 }
 
-TEST(SharedMemory, ClearAndResize)
+TEST(SharedArray, ClearAndResize)
 {
   constexpr std::size_t size = 100;
 
   // construct and allocate memory and assign test data
-  SharedMemory memory(size);
+  SharedArray memory(size);
 
   // check if memory is cleared
   EXPECT_EQ(size, memory.size());
@@ -179,7 +179,7 @@ TEST(SharedMemory, ClearAndResize)
   }
 
   // check if new memory is allocate when the memory is being shared with another instance
-  SharedMemory shared(memory);
+  SharedArray shared(memory);
   EXPECT_EQ(half_size, shared.size());
 
   memory.resize(size);
