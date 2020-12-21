@@ -243,15 +243,25 @@ TEST(Grid, DataAccessViaIterator)
   EXPECT_TRUE(grid.init({10u, 10u}, 1.0));
 
   // set values to each grid cell using an counter
-  for (std::size_t x = 0; x < grid.cell().count().x(); ++x)
-    for (std::size_t y = 0; y < grid.cell().count().y(); ++y)
-      grid(x, y) = static_cast<double>(x * grid.cell().count().y() + y);
+  for (std::size_t y = 0; y < grid.cell().count().y(); ++y) {
+    for (std::size_t x = 0; x < grid.cell().count().x(); ++x) {
+      grid(x, y) = static_cast<double>(y * grid.cell().count().x() + x);
+    }
+  }
 
   for (const auto& element : grid.row(0).all_elements()) {
     std::cout << element << " ";
   }
   std::cout << std::endl;
   for (const auto& element : grid.row(0).every_second_element()) {
+    std::cout << element << " ";
+  }
+  std::cout << std::endl;
+  for (const auto& element : grid.col(0).all_elements()) {
+    std::cout << element << " ";
+  }
+  std::cout << std::endl;
+  for (const auto& element : grid.col(0).every_second_element()) {
     std::cout << element << " ";
   }
   std::cout << std::endl;

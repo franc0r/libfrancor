@@ -170,13 +170,17 @@ public:
   inline const Cell& getDefaultCellValue() const noexcept { return _default_cell_value; }
 
 
-  francor::algorithm::ArrayDataAccess1D<Cell, 1u> row(const std::size_t index)
-  {
-    return francor::algorithm::ArrayDataAccess1D<Cell, 1u>{&_data[index * _grid_size.x()], _grid_size.x()};
+  francor::algorithm::DataAccess2dOperation<Cell> row(const std::size_t index) {
+    return francor::algorithm::DataAccess2dOperation<Cell>{&_data[index * _grid_size.y()], _grid_size.x(), 1u};
   }
-  francor::algorithm::ArrayDataAccess1D<const Cell, 1u> row(const std::size_t index) const
-  {
-    return francor::algorithm::ArrayDataAccess1D<const Cell, 1u>{&_data[index * _grid_size.x()], _grid_size.x()};
+  francor::algorithm::DataAccess2dOperation<const Cell> row(const std::size_t index) const {
+    return francor::algorithm::DataAccess2dOperation<const Cell>{&_data[index * _grid_size.y()], _grid_size.x(), 1u};
+  }
+  francor::algorithm::DataAccess2dOperation<Cell> col(const std::size_t index) {
+    return francor::algorithm::DataAccess2dOperation<Cell>{&_data[index], _grid_size.y(), _grid_size.x()};
+  }
+  francor::algorithm::DataAccess2dOperation<const Cell> col(const std::size_t index) const {
+    return francor::algorithm::DataAccess2dOperation<const Cell>{&_data[index], _grid_size.y(), _grid_size.x()};
   }
 
 private:

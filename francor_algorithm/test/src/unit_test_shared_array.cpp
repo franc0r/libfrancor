@@ -8,7 +8,7 @@
 
 #include "francor_algorithm/shared_array.h"
 
-using SharedArray = francor::base::SharedArray<std::uint8_t>;
+using SharedArray = francor::algorithm::SharedArray<std::uint8_t>;
 
 void setTestData(SharedArray& memory)
 {
@@ -195,7 +195,7 @@ TEST(SharedArray, ClearAndResize)
 
 
 
-using SharedArray2d = francor::base::SharedArray2d<std::uint8_t>;
+using SharedArray2d = francor::algorithm::SharedArray2d<std::uint8_t>;
 using francor::base::Size2u;
 
 TEST(SharedArray2d, NewInstance)

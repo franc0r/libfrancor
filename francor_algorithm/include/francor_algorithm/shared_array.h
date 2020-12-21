@@ -10,6 +10,7 @@
 #include "francor_base/rect.h"
 #include "francor_base/log.h"
 
+#include "francor_algorithm/array_data_access.h"
 
 #include <memory>
 #include <vector>
@@ -17,7 +18,7 @@
 
 namespace francor {
 
-namespace base {
+namespace algorithm {
 
 /**
  * \brief Management class for memory that is usually shared over multiple instances.
@@ -105,7 +106,7 @@ public:
     }
     else {
       // error: it should minimum exists one instance
-      LogError() << "SharedMemory::resize(): unexpected path. Please inform developer.";
+      base::LogError() << "SharedMemory::resize(): unexpected path. Please inform developer.";
     }
   }
   /**
@@ -123,10 +124,15 @@ protected:
   std::shared_ptr<MemoryHandler> _data;
 };
 
+/**
+ * \brief A 1d array with shared content.
+ */
 template <typename Data>
 class SharedArray : public SharedMemory<Data>
 {
 public:
+  using iterator = DataAccessIterator1d<Data>;
+
   // use constructor of base class
   using SharedMemory<Data>::SharedMemory;
   /**
@@ -146,32 +152,24 @@ public:
    */
   inline Data& operator[](const std::size_t index) { return SharedMemory<Data>::_data->operator[](index); }
   inline const Data& operator[](const std::size_t index) const { return SharedMemory<Data>::_data->operator[](index); }
+  /**
+   * \brief Creates and returns an iterator pointing to the first data element.
+   * \return Iterator pointing to first data element.
+   */
+
 };
 
 template <typename Data>
 class SharedArray2d : public SharedMemory<Data>
 {
 public:
-  class iterator : public std::iterator<std::random_access_iterator_tag, Data>
-  {
-  public:
-    explicit iterator(Data* data) : _data(data) { }
 
-    iterator& operator++() { ++_data; return *this; }
-    iterator& operator--() { --_data; return *this; }
-    bool operator==(const iterator& rhs) const { return _data == rhs._data; }
-    bool operator!=(const iterator& rhs) const { return !(*this == rhs); }
-    Data& operator*() const { return *_data; }
 
-  private:
-    Data* _data;
-  };   
-
-  SharedArray2d(const Size2u size = Size2u(0u, 0u), const Data initial_value = Data())
+  SharedArray2d(const base::Size2u size = base::Size2u(0u, 0u), const Data initial_value = Data())
     : SharedMemory<Data>(size.x() * size.y(), initial_value),
       _size(size) { }
   SharedArray2d(const SharedArray2d& rhs) = default;
-  SharedArray2d(const SharedArray2d& rhs, const Rectu& roi)
+  SharedArray2d(const SharedArray2d& rhs, const base::Rectu& roi)
     : SharedMemory<Data>(rhs),
       _size(roi.size()),
       _offset(roi.origin().y() * rhs._size.x() + roi.origin().x()),
@@ -181,7 +179,7 @@ public:
     if (roi.origin().x() + roi.size().x() >= rhs._size.x()
         ||
         roi.origin().y() + roi.size().y() >= rhs._size.y()) {
-      LogError() << "SharedArray2d: given roi is not complete inside the array. source array = " << rhs._size
+      base::LogError() << "SharedArray2d: given roi is not complete inside the array. source array = " << rhs._size
                  << ", roi = " << roi;
       clear();
     }
@@ -218,7 +216,7 @@ public:
     _offset = 0u;
     _stride = 0u;
   }
-  void resize(const Size2u size)
+  void resize(const base::Size2u size)
   {
     SharedMemory<Data>::resize(size.x() * size.y());
     _size = size;
@@ -227,7 +225,7 @@ public:
     _offset = 0u;
     _stride = _size.x();
   }
-  inline Size2u size() const { return _size; }
+  inline base::Size2u size() const { return _size; }
   inline Data& operator()(const std::size_t x, const std::size_t y)
   {
     return (*SharedMemory<Data>::_data)[y * _stride + x + _offset];
@@ -236,18 +234,18 @@ public:
   {
     return (*SharedMemory<Data>::_data)[y * _stride + x + _offset];
   }
-  iterator begin() { return { SharedMemory<Data>::_data->data() + _offset }; }
-  iterator end() { return { SharedMemory<Data>::_data->data() + _size.y() * _stride + _size.x() }; }
+  // iterator begin() { return { SharedMemory<Data>::_data->data() + _offset }; }
+  // iterator end() { return { SharedMemory<Data>::_data->data() + _size.y() * _stride + _size.x() }; }
 
 private:
   // constructor needed for create copy. this smells a bit
   SharedArray2d(SharedMemory<Data>&& rhs) : SharedMemory<Data>(rhs) { }
 
-  Size2u _size;
+  base::Size2u _size;
   std::size_t _offset{0u};
   std::size_t _stride{_size.x()};
 };
 
-} // end namespace base
+} // end namespace algorithm
 
 } // end namespace francor
