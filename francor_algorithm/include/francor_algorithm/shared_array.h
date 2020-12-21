@@ -15,6 +15,8 @@
 #include <memory>
 #include <vector>
 #include <algorithm>
+#include <ostream>
+#include <iomanip>
 
 namespace francor {
 
@@ -299,11 +301,11 @@ public:
    * \param index The index of the row.
    * \return Operation collection for accessing the row data elements.
    */
-  DataAccess2dOperation<Data> row(const std::size_t index) {
-    return DataAccess2dOperation<Data>{ &(*SharedMemory<Data>::_data)[index * _size.y()], _size.x(), 1u };
+  DataAccess2dOperation<Data, DataAccessOperationMode::LINE_OPERATIONS> row(const std::size_t index) {
+    return { &(*SharedMemory<Data>::_data)[index * _size.y()], _size.x(), 1u };
   }
-  DataAccess2dOperation<const Data> row(const std::size_t index) const {
-    return DataAccess2dOperation<const Data>{ &(*SharedMemory<Data>::_data)[index * _size.y()], _size.x(), 1u };
+  DataAccess2dOperation<const Data, DataAccessOperationMode::LINE_OPERATIONS> row(const std::size_t index) const {
+    return { &(*SharedMemory<Data>::_data)[index * _size.y()], _size.x(), 1u };
   }
   /**
    * \brief Creates and returns an array access operation object that represents a column of this array. Different iterator types
@@ -314,11 +316,16 @@ public:
    * \param index The index of the col.
    * \return Operation collection for accessing the col data elements.
    */
-  francor::algorithm::DataAccess2dOperation<Data> col(const std::size_t index) {
-    return DataAccess2dOperation<Data>{ &(*SharedMemory<Data>::_data)[index], _size.y(), _size.x() };
+  DataAccess2dOperation<Data, DataAccessOperationMode::LINE_OPERATIONS> col(const std::size_t index) {
+    return { &(*SharedMemory<Data>::_data)[index], _size.y(), _size.x() };
   }
-  francor::algorithm::DataAccess2dOperation<const Data> col(const std::size_t index) const {
-    return DataAccess2dOperation<const Data>{ &(*SharedMemory<Data>::_data)[index], _size.y(), _size.x() };
+  DataAccess2dOperation<const Data, DataAccessOperationMode::LINE_OPERATIONS> col(const std::size_t index) const {
+    return { &(*SharedMemory<Data>::_data)[index], _size.y(), _size.x() };
+  }
+
+  DataAccess2dOperation<Data, DataAccessOperationMode::ELEMENT_OPERATIONS>
+  at(const std::size_t x, const std::size_t y) {
+    return { &(*SharedMemory<Data>::_data)[y * _stride + x], base::Size2u(x, y), _size, _stride };
   }
 
 private:
@@ -330,3 +337,25 @@ private:
 } // end namespace algorithm
 
 } // end namespace francor
+
+namespace std {
+
+template <typename Data>
+inline ostream& operator<<(ostream& os, const francor::algorithm::SharedArray2d<Data>& array)
+{
+  os << "array: [" << std::endl;
+  os << "  size: " << array.size() << std::endl;
+  os << "  data: [" << std::endl;
+
+  for (std::size_t row = 0; row < array.size().y(); ++row) {
+    os << "    ";
+    for (const auto element : array.row(row).all_elements()) {
+      os << element << " ";
+    }
+    os << std::endl;
+  }
+
+  return os;
+}
+
+} // end namespace std

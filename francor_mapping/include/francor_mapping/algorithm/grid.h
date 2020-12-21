@@ -32,7 +32,7 @@ template <class GridType>
 class SizeHandler
 {
 public:
-  SizeHandler(const GridType& grid) : _grid(grid) { }
+  explicit SizeHandler(const GridType& grid) : _grid(grid) { }
 
   inline double size() const { return _grid._cell_size; }
   inline base::Size2u count() const {
@@ -51,11 +51,11 @@ template <class GridType>
 class FindOperation
 {
 public:
-  FindOperation(const GridType& grid) : _grid(grid) { }
+  explicit FindOperation(const GridType& grid) : _grid(grid) { }
 
   class CellFindOperation {
   public:
-    CellFindOperation(const GridType& grid) : _grid(grid) { }
+    explicit CellFindOperation(const GridType& grid) : _grid(grid) { }
 
     inline base::Size2u index(const base::Point2d& position) const
     {
@@ -72,7 +72,7 @@ public:
     const GridType& _grid;
   };
 
-  inline CellFindOperation cell() const { return { _grid }; }
+  inline CellFindOperation cell() const { return CellFindOperation(_grid); }
 
 private:
   const GridType& _grid;

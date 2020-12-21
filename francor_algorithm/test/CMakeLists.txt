@@ -158,3 +158,20 @@ add_test(
   NAME test-shared-array
   COMMAND unit-test-shared-array
 )
+
+
+# Array Data Access
+add_executable(unit-test-array-data-access
+  src/unit_test_array_data_access.cpp
+)
+
+target_link_libraries(unit-test-array-data-access PRIVATE
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-algorithm
+)
+
+add_test(
+  NAME test-array-data-access
+  COMMAND unit-test-array-data-access
+)

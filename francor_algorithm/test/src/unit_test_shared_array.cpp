@@ -1,5 +1,5 @@
 /**
- * Unit test for the class ParameterBase and Parameter.
+ * Unit test for the classes SharedArray and SharedArray2d.
  *
  * \author Christian Merkl (knueppl@gmx.de)
  * \date 20. December 2020

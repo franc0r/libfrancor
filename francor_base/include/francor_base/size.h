@@ -21,8 +21,10 @@ class Size2
 public:
   constexpr Size2(const Data x = static_cast<Data>(0), const Data y = static_cast<Data>(0)) : _x(x), _y(y) { }
 
-  constexpr inline Data x() const { return _x; }
+  constexpr inline Data  x() const { return _x; }
+  constexpr inline Data& x() { return _x; }
   constexpr inline Data y() const { return _y; }
+  constexpr inline Data& y() { return _y; }
 
   constexpr inline Size2& operator/=(const Data rhs) { _x /= rhs; _y /= rhs; return *this; }
   constexpr inline bool operator==(const Size2& rhs) const { return _x == rhs._x && _y == rhs._y; }
@@ -39,7 +41,8 @@ class Size3 : public Size2<Data>
 public:
   constexpr Size3(const Data x, const Data y, const Data z) : Size2<Data>(x, y), _z(z) { }
 
-  constexpr inline Data z() const { return _z; }
+  constexpr inline Data& z() { return _z; }
+  constexpr inline Data  z() const { return _z; }
 
   constexpr inline Size3& operator/=(const Data rhs) { Size2<Data>::operator/=(rhs); _z /= rhs; return *this; }
   constexpr inline bool operator==(const Size3& rhs) const { return Size2<Data>::operator==(rhs) && _z == rhs._z; }

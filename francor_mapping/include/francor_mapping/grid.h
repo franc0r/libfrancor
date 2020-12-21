@@ -40,6 +40,18 @@ public:
     this->operator=(std::move(origin));
   }
   /**
+   * \brief Constructs with shared content and ROI.
+   * \param rhs The source grid object.
+   * \param roi The ROI of this object. The grid content is limited to the ROI.
+   */
+  Grid(const Grid& rhs, const base::Rectu& roi)
+    : francor::algorithm::SharedArray2d<Cell>(rhs, roi),
+      _cell_size(rhs._cell_size),
+      _size(_cell_size * roi.size().x(), _cell_size * roi.size().y()),
+      _origin(rhs._origin),
+      _default_cell_value(rhs._default_cell_value)
+  { }
+  /**
    * \brief Defaulted destructor.
    */
   virtual ~Grid() = default;
@@ -61,7 +73,6 @@ public:
 
     return *this;
   }
-
   /**
    * \brief Initialize this grid using the given arguments. The size is given in number of cells in x and y direction.
    * 
@@ -127,8 +138,7 @@ public:
    * 
    * \return Cell size representation.
    */
-  algorithm::grid::SizeHandler<Grid> cell() const { return {*this}; }
-
+  algorithm::grid::SizeHandler<Grid> cell() const { return algorithm::grid::SizeHandler<Grid>(*this); }
   /**
    * \brief Return the current grid size in meter.
    * \return Current grid size in meter.
@@ -147,8 +157,7 @@ public:
    * 
    * \return A helper class that provides a set of find operations.
    */
-  inline algorithm::grid::FindOperation<Grid> find() const { return { *this }; }
-
+  inline algorithm::grid::FindOperation<Grid> find() const { return algorithm::grid::FindOperation<Grid>(*this); }
   /**
    * \brief Returns the origin of this grid. The origin is located at cell (0, 0).
    * \return Origin coordinate in meter.
@@ -159,9 +168,6 @@ public:
    * \return default grid cell value.
    */
   inline const Cell& getDefaultCellValue() const noexcept { return _default_cell_value; }
-
-
-
 
 private:
   friend algorithm::grid::SizeHandler<Grid>;
