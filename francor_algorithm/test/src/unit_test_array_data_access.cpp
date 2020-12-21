@@ -13,17 +13,63 @@ using francor::base::Size2u;
 
 TEST(DataAccess2dOperation, Rectangle)
 {
-  constexpr Size2u array_size(20u, 20u);
-  constexpr Size2u rectangle_size(10u, 10u);
-  SharedArray2d array(array_size, 0u);
+  constexpr Size2u array_size(21u, 21u);
+  constexpr Size2u rectangle_size(9u, 9u);
 
-  ASSERT_EQ(array_size, array.size());
+  {
+    SharedArray2d array(array_size, 0u);
 
-  for (auto& element : array.at(array_size.x() / 2u, array_size.y() / 2u).rectangle(rectangle_size)) {
-    element = 1u;
+    ASSERT_EQ(array_size, array.size());
+
+    for (auto& element : array.at(array_size.x() / 2u, array_size.y() / 2u).rectangle(rectangle_size)) {
+      element = 1u;
+    }
+    std::cout << array << std::endl;
   }
 
-  std::cout << array << std::endl;
+  {
+    SharedArray2d array(array_size, 0u);
+
+    ASSERT_EQ(array_size, array.size());
+
+    for (auto& element : array.at(0u, 0u).rectangle(rectangle_size)) {
+      element = 1u;
+    }
+    std::cout << array << std::endl;    
+  }
+
+  {
+    SharedArray2d array(array_size, 0u);
+
+    ASSERT_EQ(array_size, array.size());
+
+    for (auto& element : array.at(array_size.x() - 1u, 0u).rectangle(rectangle_size)) {
+      element = 1u;
+    }
+    std::cout << array << std::endl;    
+  }  
+
+  {
+    SharedArray2d array(array_size, 0u);
+
+    ASSERT_EQ(array_size, array.size());
+
+    for (auto& element : array.at(array_size.x() - 1u, array_size.y() - 1u).rectangle(rectangle_size)) {
+      element = 1u;
+    }
+    std::cout << array << std::endl;    
+  }
+
+  {
+    SharedArray2d array(array_size, 0u);
+
+    ASSERT_EQ(array_size, array.size());
+
+    for (auto& element : array.at(0u, array_size.y() - 1u).rectangle(rectangle_size)) {
+      element = 1u;
+    }
+    std::cout << array << std::endl;    
+  } 
 }
 
 int main(int argc, char **argv)

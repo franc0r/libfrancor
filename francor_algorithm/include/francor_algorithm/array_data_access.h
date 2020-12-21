@@ -54,17 +54,21 @@ public:
       _stride(stride)
   {
     // check if rectangle is completly inside the array.
-    if (index.x() < _rectangle_size.x() / 2) {
+    if (index.x() < _rectangle_size.x() / 2u) {
+      const std::size_t difference = _rectangle_size.x() / 2u - index.x();
       _index_global.x() = 0u;
-      // @todo handle member data too
+      _index_local.x() = difference;
+      _data -= index.x();
     }
     else {
       _index_global.x() = index.x() - rectangle_size.x() / 2u;
       _data -= rectangle_size.x() / 2u;
     }
     if (index.y() < _rectangle_size.y() / 2u) {
+      const std::size_t difference = _rectangle_size.y() / 2u - index.y();
       _index_global.y() = 0u;
-      // @todo handle member data too
+      _index_local.y() = difference;
+      _data -= index.y() * _stride;
     }
     else {
       _index_global.y() = index.y() - rectangle_size.y() / 2u;
@@ -77,14 +81,14 @@ public:
     ++_data; ++_index_local.x(); ++_index_global.x();
 
     if (_index_global.x() > _max_index_x || _index_local.x() >= _rectangle_size.x()) {
-      _index_global.x() -= _rectangle_size.x();
+      const std::size_t steps_back = _rectangle_size.x() - (_rectangle_size.x() - std::min(_index_local.x(), _index_global.x()));
+      _index_global.x() -= steps_back;
+      _data -= steps_back;
+      _index_local.x() -= steps_back;
+
       ++_index_global.y();
-
-      _index_local.x() = 0u;
       ++_index_local.y();
-
       _data += _stride;
-      _data -= _rectangle_size.x();
     }
 
     return *this;

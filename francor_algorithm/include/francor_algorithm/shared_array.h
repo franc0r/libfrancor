@@ -355,6 +355,9 @@ inline ostream& operator<<(ostream& os, const francor::algorithm::SharedArray2d<
     os << std::endl;
   }
 
+  os << "  ]" << std::endl;
+  os << "]" << std::endl;
+
   return os;
 }
 
