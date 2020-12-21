@@ -80,7 +80,9 @@ public:
   {
     ++_data; ++_index_local.x(); ++_index_global.x();
 
+    // detect if the row must be increamented
     if (_index_global.x() > _max_index_x || _index_local.x() >= _rectangle_size.x()) {
+      // calculate new x index in new row
       const std::size_t steps_back = _rectangle_size.x() - (_rectangle_size.x() - std::min(_index_local.x(), _index_global.x()));
       _index_global.x() -= steps_back;
       _data -= steps_back;
@@ -104,6 +106,8 @@ public:
     return !operator==(rhs);
   }
   Data& operator*() const { return *_data; }
+  inline base::Size2u arrayIndex() const { return _index_global; }
+  inline base::Size2u localIndex() const { return _index_local; }
 
 private:
   Data* _data;
@@ -130,6 +134,53 @@ private:
 
   Data* _last_data_element;
   base::Size2u _array_size;
+};
+
+template <typename Data, IteratorMode Mode>
+class DataAccessCircleIterator;
+
+template <typename Data>
+class DataAccessCircleIterator<Data, IteratorMode::MOVING>
+  : public DataAccessRectangleIterator<Data, IteratorMode::MOVING>
+{
+public:
+  DataAccessCircleIterator(Data* data, const base::Size2u index, const std::size_t radius,
+                           const std::size_t max_index_x, const std::size_t stride)
+    : DataAccessRectangleIterator<Data, IteratorMode::MOVING>(data, index, {radius * 2u, radius * 2u}, max_index_x, stride),
+      _radius_squared(static_cast<int>(radius * radius)),
+      _diameter(radius * 2u),
+      _index_center(radius, radius)
+  {
+    operator++();
+  }
+
+  DataAccessCircleIterator& operator++()
+  {
+    DataAccessRectangleIterator<Data, IteratorMode::MOVING>::operator++();
+    const int dx = DataAccessRectangleIterator<Data, IteratorMode::MOVING>::localIndex().x() - _index_center.x();
+    const int dy = DataAccessRectangleIterator<Data, IteratorMode::MOVING>::localIndex().y() - _index_center.y();
+    const auto distance_squared = dx * dx + dy * dy;
+
+    // estimate if current index is inside circle
+    if (distance_squared <= _radius_squared) {
+      // index is inside
+      return *this;
+    }
+
+    // recursive call until a valid index was found; at least the center point should be found
+    // or the maximum y index was reached
+    if (DataAccessRectangleIterator<Data, IteratorMode::MOVING>::localIndex().y() >= _diameter) {
+      return *this;
+    }
+    else {
+      return this->operator++();
+    }
+  }
+
+private:
+  int _radius_squared;
+  std::size_t _diameter;
+  base::Size2u _index_center;
 };
 
 // template <typename Data>
@@ -166,6 +217,8 @@ enum class DataAccessOperationMode {
   LINE,
   LINE_OPERATIONS,
   RECTANGLE,
+  CIRCLE,
+  ELLIPSE,
 };
 
 template <typename Data, DataAccessOperationMode Mode>
@@ -218,6 +271,8 @@ public:
 
   DataAccess2dOperation<Data, DataAccessOperationMode::RECTANGLE>
   rectangle(const base::Size2u rectangle_size) const { return { _data, _index, rectangle_size, _array_size, _stride }; }
+  DataAccess2dOperation<Data, DataAccessOperationMode::CIRCLE>
+  circle(const std::size_t radius) const { return { _data, _index, radius, _array_size, _stride }; }
 
 private:
   Data* _data;
@@ -244,6 +299,28 @@ private:
   Data* _data;
   base::Size2u _index;
   base::Size2u _rectangle_size;
+  base::Size2u _array_size;
+  std::size_t _stride;
+};
+
+template <typename Data>
+class DataAccess2dOperation<Data, DataAccessOperationMode::CIRCLE>
+{
+public:
+  DataAccess2dOperation() = default;
+  DataAccess2dOperation(Data* data, const base::Size2u index, const std::size_t radius,
+                        const base::Size2u array_size, const std::size_t stride)
+    : _data(data), _index(index), _radius(radius), _array_size(array_size), _stride(stride) { }
+
+  DataAccessCircleIterator<Data, IteratorMode::MOVING>
+  begin() const { return { _data, _index, _radius, _array_size.x() - 1u, _stride }; }
+  DataAccessRectangleIterator<Data, IteratorMode::END_INDICATOR>
+  end() const { return { _data + _radius + _radius * _stride, _array_size }; }
+
+private:
+  Data* _data;
+  base::Size2u _index;
+  std::size_t _radius;
   base::Size2u _array_size;
   std::size_t _stride;
 };

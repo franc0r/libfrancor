@@ -316,17 +316,23 @@ public:
    * \param index The index of the col.
    * \return Operation collection for accessing the col data elements.
    */
-  DataAccess2dOperation<Data, DataAccessOperationMode::LINE_OPERATIONS> col(const std::size_t index) {
+  inline DataAccess2dOperation<Data, DataAccessOperationMode::LINE_OPERATIONS>
+  col(const std::size_t index) {
     return { &(*SharedMemory<Data>::_data)[index], _size.y(), _size.x() };
   }
-  DataAccess2dOperation<const Data, DataAccessOperationMode::LINE_OPERATIONS> col(const std::size_t index) const {
+  inline DataAccess2dOperation<const Data, DataAccessOperationMode::LINE_OPERATIONS>
+  col(const std::size_t index) const {
     return { &(*SharedMemory<Data>::_data)[index], _size.y(), _size.x() };
   }
 
-  DataAccess2dOperation<Data, DataAccessOperationMode::ELEMENT_OPERATIONS>
+  inline DataAccess2dOperation<Data, DataAccessOperationMode::ELEMENT_OPERATIONS>
   at(const std::size_t x, const std::size_t y) {
     return { &(*SharedMemory<Data>::_data)[y * _stride + x], base::Size2u(x, y), _size, _stride };
   }
+  inline DataAccess2dOperation<Data, DataAccessOperationMode::ELEMENT_OPERATIONS>
+  at(const base::Size2u index) {
+    return at(index.x(), index.y());
+  }  
 
 private:
   base::Size2u _size;

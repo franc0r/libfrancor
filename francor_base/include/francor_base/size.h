@@ -27,6 +27,7 @@ public:
   constexpr inline Data& y() { return _y; }
 
   constexpr inline Size2& operator/=(const Data rhs) { _x /= rhs; _y /= rhs; return *this; }
+  constexpr inline Size2 operator/(const Data rhs) const { return { _x / rhs, _y / rhs }; }
   constexpr inline bool operator==(const Size2& rhs) const { return _x == rhs._x && _y == rhs._y; }
   constexpr inline bool operator!=(const Size2& rhs) const { return !operator==(rhs); }
 
@@ -45,6 +46,13 @@ public:
   constexpr inline Data  z() const { return _z; }
 
   constexpr inline Size3& operator/=(const Data rhs) { Size2<Data>::operator/=(rhs); _z /= rhs; return *this; }
+  constexpr inline Size3 operator/(const Data rhs) const
+  {
+    Size3 result;
+    static_cast<Size2<Data>&>(result) = Size2<Data>::operator/(rhs);
+    result._z = _z / 3;
+    return result;
+  }
   constexpr inline bool operator==(const Size3& rhs) const { return Size2<Data>::operator==(rhs) && _z == rhs._z; }
   constexpr inline bool operator!=(const Size3& rhs) const { return !operator==(rhs); }
 

@@ -11,7 +11,10 @@
 using SharedArray2d = francor::algorithm::SharedArray2d<unsigned int>;
 using francor::base::Size2u;
 
-TEST(DataAccess2dOperation, Line)
+/**
+ * \brief Unit test for line iterator for array data access.
+ */
+TEST(DataAccess2dOperation, LineIterator)
 {
   constexpr Size2u array_size(21u, 21u);
 
@@ -53,12 +56,15 @@ TEST(DataAccess2dOperation, Line)
   }
 }
 
-TEST(DataAccess2dOperation, Rectangle)
+/**
+ * \brief Unit test for iterator rectangle.
+ */
+TEST(DataAccess2dOperation, RectangleIterator)
 {
   constexpr Size2u array_size(21u, 21u);
   constexpr Size2u rectangle_size(9u, 9u);
 
-  // check normal case; rectangle is completly inside the array located
+  // check normal case; rectangle is completly located inside the array 
   {
     SharedArray2d array(array_size, 0u);
     constexpr Size2u index_center(array_size.x() / 2u, array_size.y() / 2u);
@@ -85,7 +91,7 @@ TEST(DataAccess2dOperation, Rectangle)
     }
   }
 
-  // check behaivour in top left corner; rectangle is not completly inside the array located;
+  // check behaivour in top left corner; rectangle is not completly located inside the array;
   // iterator must handle this situation
   {
     SharedArray2d array(array_size, 0u);
@@ -113,7 +119,7 @@ TEST(DataAccess2dOperation, Rectangle)
     }
   }
 
-  // check behaivour in top right corner; rectangle is not completly inside the array located;
+  // check behaivour in top right corner; rectangle is not completly located inside the array;
   // iterator must handle this situation
   {
     SharedArray2d array(array_size, 0u);
@@ -141,7 +147,7 @@ TEST(DataAccess2dOperation, Rectangle)
     }   
   }  
 
-  // check behaivour in bottom right corner; rectangle is not completly inside the array located;
+  // check behaivour in bottom right corner; rectangle is not completly located inside the array;
   // iterator must handle this situation
   {
     SharedArray2d array(array_size, 0u);
@@ -169,7 +175,7 @@ TEST(DataAccess2dOperation, Rectangle)
     }   
   }
 
-  // check behaivour in bottom left corner; rectangle is not completly inside the array located;
+  // check behaivour in bottom left corner; rectangle is not completly located inside the array;
   // iterator must handle this situation
   {
     SharedArray2d array(array_size, 0u);
@@ -194,8 +200,35 @@ TEST(DataAccess2dOperation, Rectangle)
           EXPECT_EQ(0u, array(col, row)) << "value wrong for index x = " << col << " y = " << row;
         }
       }
-    }         
+    }  
   } 
+}
+
+/**
+ * \brief Unit test for circle iterator data access.
+ */
+TEST(DataAccess2dOperation, CircleIterator)
+{
+  constexpr Size2u array_size(21u, 21u);
+  constexpr std::size_t radius = 2u;
+
+  // check normal case; circle is completly located inside the array 
+  {
+    SharedArray2d array(array_size, 0u);
+    constexpr Size2u index_center(array_size.x() / 2u, array_size.y() / 2u);
+    constexpr std::size_t min_index_x = index_center.x() - radius;
+    constexpr std::size_t min_index_y = index_center.y() - radius;
+    constexpr std::size_t max_index_x = index_center.x() + radius;
+    constexpr std::size_t max_index_y = index_center.y() + radius;
+
+    ASSERT_EQ(array_size, array.size());
+
+    for (auto& element : array.at(index_center).circle(radius)) {
+      element = 1u;
+    }
+
+    std::cout << array << std::endl;
+  }
 }
 
 int main(int argc, char **argv)
