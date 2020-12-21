@@ -10,6 +10,7 @@
 #include <francor_base/size.h>
 
 #include <francor_algorithm/array_data_access.h>
+#include <francor_algorithm/shared_array.h>
 
 #include "francor_mapping/algorithm/grid.h"
 
@@ -18,10 +19,13 @@ namespace francor {
 namespace mapping {
 
 template<typename Cell>
-class Grid
+class Grid : protected francor::algorithm::SharedArray2d<Cell>
 {
 public:
   using cell_type = Cell;
+  using francor::algorithm::SharedArray2d<Cell>::operator();
+  using francor::algorithm::SharedArray2d<Cell>::row;
+  using francor::algorithm::SharedArray2d<Cell>::col;
 
   /**
    * \brief Default constructor. Constructs an empty invalid grid.
@@ -48,14 +52,11 @@ public:
    */
   Grid& operator=(Grid&& origin)
   {
-    _data = std::move(origin._data);
-
-    _grid_size = origin._grid_size;
+    francor::algorithm::SharedArray2d<Cell>::operator=(origin);
     _cell_size = origin._cell_size;
     _size      = origin._size;
 
     _default_cell_value = origin._default_cell_value;
-
     origin.clear();
 
     return *this;
@@ -78,43 +79,42 @@ public:
     }
 
     // allocate grid data
-    _data.resize(grid_size.x() * grid_size.y(), initial_cell_value);
+    francor::algorithm::SharedArray2d<Cell>::resize(grid_size, initial_cell_value);
     _default_cell_value = initial_cell_value;
-
-    _grid_size = grid_size;
     _cell_size = cell_size;
 
     // calculate size from other parameter
-    _size = {_grid_size.x() * _cell_size, grid_size.y() * _cell_size};
+    const auto& allocated_size = francor::algorithm::SharedArray2d<Cell>::size();
+    _size = { allocated_size.x() * _cell_size, allocated_size.y() * _cell_size };
 
     return true;
   }
-
-
   /**
    * \brief Resets this grid. The grid will be empty and invalid.
    */
-  void clear(void)
+  void clear()
   {
-    _grid_size = {0, 0};
+    francor::algorithm::SharedArray2d<Cell>::clear();
     _cell_size = 0.0;
     _size = {0.0, 0.0};
-
-    _data.clear();
   }
-
   /**
    * \brief Checks if this grid is empty.
    * 
    * \return true if grid is empty.
    */
-  bool isEmpty() const { return _grid_size.x() == 0 || _grid_size.y() == 0; }
+  bool isEmpty() const
+  {
+    return francor::algorithm::SharedArray2d<Cell>::size().x() == 0u
+           ||
+           francor::algorithm::SharedArray2d<Cell>::size().y() == 0u;
+  }
   /**
    * \brief Checks if this grid is valid. The cell size must be greater than zero and the grid size min 1x1.
    * 
    * \return true if grid is valid.
    */
-  bool isValid() const { return _cell_size > 0.0 && _grid_size.x() > 0 && _grid_size.y() > 0; }
+  bool isValid() const { return _cell_size > 0.0 && !isEmpty(); }
   /**
    * \brief Return a cell size representation that holds the number of cells and cell size. For example to
    *        get the grid cell size this call is used:
@@ -134,15 +134,6 @@ public:
    * \return Current grid size in meter.
    */
   inline const base::Size2d& size() const { return _size; }
-
-  /**
-   * \brief Operator to access the cell at the given coordinates.
-   * 
-   * \return reference to the cell.
-   */
-  inline Cell& operator()(const std::size_t x, const std::size_t y) { return _data[y * _grid_size.x() + x]; }
-  inline const Cell& operator()(const std::size_t x, const std::size_t y) const { return _data[y * _grid_size.x() + x]; }
-
   /**
    * \brief Starts a search to find attributes or characteristics of this grid, like an index of a grid cell.
    *        Usually it is used in that way: grid.find().[search topic]().[what is searched](). For example to
@@ -170,31 +161,18 @@ public:
   inline const Cell& getDefaultCellValue() const noexcept { return _default_cell_value; }
 
 
-  francor::algorithm::DataAccess2dOperation<Cell> row(const std::size_t index) {
-    return francor::algorithm::DataAccess2dOperation<Cell>{&_data[index * _grid_size.y()], _grid_size.x(), 1u};
-  }
-  francor::algorithm::DataAccess2dOperation<const Cell> row(const std::size_t index) const {
-    return francor::algorithm::DataAccess2dOperation<const Cell>{&_data[index * _grid_size.y()], _grid_size.x(), 1u};
-  }
-  francor::algorithm::DataAccess2dOperation<Cell> col(const std::size_t index) {
-    return francor::algorithm::DataAccess2dOperation<Cell>{&_data[index], _grid_size.y(), _grid_size.x()};
-  }
-  francor::algorithm::DataAccess2dOperation<const Cell> col(const std::size_t index) const {
-    return francor::algorithm::DataAccess2dOperation<const Cell>{&_data[index], _grid_size.y(), _grid_size.x()};
-  }
+
 
 private:
   friend algorithm::grid::SizeHandler<Grid>;
   friend algorithm::grid::FindOperation<Grid>;
   friend typename algorithm::grid::FindOperation<Grid>::CellFindOperation;
 
-  base::Size2u _grid_size{0, 0};   //> grid size in number of cells
   double _cell_size = 0.0;         //> size of each cell
   base::Size2d _size{0.0, 0.0};    //> size in m 
   base::Point2d _origin{0.0, 0.0}; //> origin coordinate of this grid in meter
 
   Cell _default_cell_value;
-  std::vector<Cell> _data;     //> grid cells
 };
 
 } // end namespace mapping

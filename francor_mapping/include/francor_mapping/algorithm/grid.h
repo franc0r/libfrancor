@@ -12,6 +12,8 @@
 #include <francor_base/transform.h>
 #include <francor_base/algorithm/math.h>
 
+#include <francor_algorithm/shared_array.h>
+
 #include <algorithm>
 
 namespace francor {
@@ -33,7 +35,9 @@ public:
   SizeHandler(const GridType& grid) : _grid(grid) { }
 
   inline double size() const { return _grid._cell_size; }
-  inline base::Size2u count() const { return _grid._grid_size; }
+  inline base::Size2u count() const {
+    return static_cast<const francor::algorithm::SharedArray2d<typename GridType::cell_type>&>(_grid).size();
+  }
 
 private:
   const GridType& _grid;
