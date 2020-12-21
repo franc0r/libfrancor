@@ -19,12 +19,14 @@ template <typename Data>
 class Size2
 {
 public:
-  Size2(const Data x = static_cast<Data>(0), const Data y = static_cast<Data>(0)) : _x(x), _y(y) { }
+  constexpr Size2(const Data x = static_cast<Data>(0), const Data y = static_cast<Data>(0)) : _x(x), _y(y) { }
 
-  Data x() const { return _x; }
-  Data y() const { return _y; }
+  constexpr inline Data x() const { return _x; }
+  constexpr inline Data y() const { return _y; }
 
-  inline Size2& operator/=(const Data rhs) { _x /= rhs; _y /= rhs; return *this; }
+  constexpr inline Size2& operator/=(const Data rhs) { _x /= rhs; _y /= rhs; return *this; }
+  constexpr inline bool operator==(const Size2& rhs) const { return _x == rhs._x && _y == rhs._y; }
+  constexpr inline bool operator!=(const Size2& rhs) const { return !operator==(rhs); }
 
 private:
   Data _x{static_cast<Data>(0)};
@@ -35,11 +37,13 @@ template <typename Data>
 class Size3 : public Size2<Data>
 {
 public:
-  Size3(const Data x, const Data y, const Data z) : Size2<Data>(x, y), _z(z) { }
+  constexpr Size3(const Data x, const Data y, const Data z) : Size2<Data>(x, y), _z(z) { }
 
-  Data z() const { return _z; }
+  constexpr inline Data z() const { return _z; }
 
-  inline Size3& operator/=(const Data rhs) { Size2<Data>::operator/=(rhs); _z /= rhs; return *this; }
+  constexpr inline Size3& operator/=(const Data rhs) { Size2<Data>::operator/=(rhs); _z /= rhs; return *this; }
+  constexpr inline bool operator==(const Size3& rhs) const { return Size2<Data>::operator==(rhs) && _z == rhs._z; }
+  constexpr inline bool operator!=(const Size3& rhs) const { return !operator==(rhs); }
 
 private:
   Data _z;
@@ -48,6 +52,8 @@ private:
 } // end namespace impl
 
 // aliases for common size types
+template <typename Data>
+using Size2  = impl::Size2<Data>;
 using Size2u = impl::Size2<std::size_t>;
 using Size3u = impl::Size3<std::size_t>;
 using Size2d = impl::Size2<double>;

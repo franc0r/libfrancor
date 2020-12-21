@@ -7,7 +7,9 @@
 #pragma once
 
 #include "francor_base/size.h"
+#include "francor_base/rect.h"
 #include "francor_base/log.h"
+
 
 #include <memory>
 #include <vector>
@@ -30,8 +32,8 @@ public:
    * \brief Constructs with new allocated memory.
    * \param size Allocates size byte.
    */
-  SharedMemory(const std::size_t size = 0u)
-    : _data(std::make_shared<MemoryHandler>(size)) { }
+  SharedMemory(const std::size_t size = 0u, const Data& initial_value = Data())
+    : _data(std::make_shared<MemoryHandler>()) { _data->resize(size, initial_value); }
   /**
    * \brief Constructs with shared memory from other class.
    * \param rhs Takes from this instance a reference to its memory.
@@ -74,10 +76,9 @@ public:
    * \brief Creates a new instance with copied content.
    * \return A copy of this class. The memory is copied and not shared.
    */
-  template <class Target>
-  Target createCopy() const
+  SharedMemory createCopy() const
   {
-    Target copy(size());
+    SharedMemory copy(size());
     *(copy._data) = *_data;
     return copy;
   }
@@ -108,8 +109,8 @@ public:
     }
   }
   /**
-   * \brief Returns the size of the allocated memory in bytes.
-   * \return Size of allocated memory in bytes.
+   * \brief Returns the current size.
+   * \return Current size.
    */
   inline std::size_t size() const { return _data->size(); }
   /**
@@ -126,15 +127,25 @@ template <typename Data>
 class SharedArray : public SharedMemory<Data>
 {
 public:
+  // use constructor of base class
   using SharedMemory<Data>::SharedMemory;
-  inline SharedArray createCopy() const { return SharedMemory<Data>::template createCopy<SharedArray>(); }
+  /**
+   * \brief Creates a copy of this class without sharing.
+   * \return A new instance with copied content.
+   */
+  inline SharedArray createCopy() const
+  {
+    SharedArray copy;
+    static_cast<SharedMemory<Data>&>(copy) = SharedMemory<Data>::createCopy();
+    return copy;
+  }
   /**
    * \brief Accesses the memory at given index.
    * \param index Byte index of memory.
    * \return Value at given index.
    */
-  inline Data& operator[](const std::size_t index) { return (*SharedMemory<Data>::_data)[index]; }
-  inline const Data& operator[](const std::size_t index) const { return (*SharedMemory<Data>::_data)[index]; }
+  inline Data& operator[](const std::size_t index) { return SharedMemory<Data>::_data->operator[](index); }
+  inline const Data& operator[](const std::size_t index) const { return SharedMemory<Data>::_data->operator[](index); }
 };
 
 template <typename Data>
@@ -156,25 +167,85 @@ public:
     Data* _data;
   };   
 
-  SharedArray2d(const Size2u size, const Data initial_value = Data())
-    : SharedMemory<Data>(size.x() * size.y()),
-      _size(size)
+  SharedArray2d(const Size2u size = Size2u(0u, 0u), const Data initial_value = Data())
+    : SharedMemory<Data>(size.x() * size.y(), initial_value),
+      _size(size) { }
+  SharedArray2d(const SharedArray2d& rhs) = default;
+  SharedArray2d(const SharedArray2d& rhs, const Rectu& roi)
+    : SharedMemory<Data>(rhs),
+      _size(roi.size()),
+      _offset(roi.origin().y() * rhs._size.x() + roi.origin().x()),
+      _stride(rhs._size.x())
   {
-    
+    // roi must be complete inside the array otherwise cancel operation and clear array
+    if (roi.origin().x() + roi.size().x() >= rhs._size.x()
+        ||
+        roi.origin().y() + roi.size().y() >= rhs._size.y()) {
+      LogError() << "SharedArray2d: given roi is not complete inside the array. source array = " << rhs._size
+                 << ", roi = " << roi;
+      clear();
+    }
   }
+  SharedArray2d(SharedArray2d&& rhs)
+    : SharedMemory<Data>(rhs), _size(rhs._size), _offset(rhs._offset), _stride(rhs._stride)
+  {
+    rhs.clear();
+  }
+  SharedArray2d& operator=(const SharedArray2d&) = default;
+  SharedArray2d& operator=(SharedArray2d&& rhs)
+  {
+    SharedMemory<Data>::operator=(rhs);
+    _size = rhs._size;
+    _offset = rhs._offset;
+    _stride = rhs._stride;
+    rhs.clear();
+    return *this;
+  }
+  inline SharedArray2d createCopy() const
+  {
+    SharedArray2d copy = std::move(SharedMemory<Data>::createCopy());
 
+    copy._size   = _size;
+    copy._offset = _offset;
+    copy._stride = _stride;
+
+    return copy;
+  }
+  inline void clear()
+  {
+    SharedMemory<Data>::clear();
+    _size = {0u, 0u};
+    _offset = 0u;
+    _stride = 0u;
+  }
   void resize(const Size2u size)
   {
     SharedMemory<Data>::resize(size.x() * size.y());
     _size = size;
+
+    // set roi related members back to initial, because with resizing a new source is created
+    _offset = 0u;
+    _stride = _size.x();
   }
   inline Size2u size() const { return _size; }
-
-  iterator begin() { return { SharedMemory<Data>::_data }; }
-  iterator end() { return { SharedMemory<Data>::_data + SharedMemory<Data>::size() }; }
+  inline Data& operator()(const std::size_t x, const std::size_t y)
+  {
+    return (*SharedMemory<Data>::_data)[y * _stride + x + _offset];
+  }
+  inline const Data& operator()(const std::size_t x, const std::size_t y) const
+  {
+    return (*SharedMemory<Data>::_data)[y * _stride + x + _offset];
+  }
+  iterator begin() { return { SharedMemory<Data>::_data->data() + _offset }; }
+  iterator end() { return { SharedMemory<Data>::_data->data() + _size.y() * _stride + _size.x() }; }
 
 private:
+  // constructor needed for create copy. this smells a bit
+  SharedArray2d(SharedMemory<Data>&& rhs) : SharedMemory<Data>(rhs) { }
+
   Size2u _size;
+  std::size_t _offset{0u};
+  std::size_t _stride{_size.x()};
 };
 
 } // end namespace base

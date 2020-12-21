@@ -6,7 +6,7 @@
  */
 #include <gtest/gtest.h>
 
-#include "francor_base/shared_array.h"
+#include "francor_algorithm/shared_array.h"
 
 using SharedArray = francor::base::SharedArray<std::uint8_t>;
 
@@ -190,6 +190,31 @@ TEST(SharedArray, ClearAndResize)
   for (std::size_t i = 0u; i < half_size; ++i) {
     memory[i] = 200u;
     EXPECT_EQ(static_cast<std::uint8_t>(i + 1), shared[i]);
+  }
+}
+
+
+
+using SharedArray2d = francor::base::SharedArray2d<std::uint8_t>;
+using francor::base::Size2u;
+
+TEST(SharedArray2d, NewInstance)
+{
+  // test default construction
+  SharedArray2d empty;
+
+  EXPECT_EQ(Size2u(0u, 0u), empty.size());
+
+  // test construction of an object with new allocated memory
+  constexpr std::uint8_t initial_value = 47u;
+  constexpr Size2u size(10u, 10u);
+  SharedArray2d array(size, initial_value);
+
+  EXPECT_EQ(size, array.size());
+  for (std::size_t y = 0; y < array.size().y(); ++y) {
+    for (std::size_t x = 0; x < array.size().x(); ++x) {
+      EXPECT_EQ(initial_value, array(x, y));
+    }
   }
 }
 

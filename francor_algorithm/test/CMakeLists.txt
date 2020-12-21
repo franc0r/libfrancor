@@ -141,3 +141,20 @@ add_test(
   NAME test-icp
   COMMAND unit-test-icp
 )
+
+
+# Shared Memory/Array
+add_executable(unit-test-shared-array
+  src/unit_test_shared_array.cpp
+)
+
+target_link_libraries(unit-test-shared-array PRIVATE
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-algorithm
+)
+
+add_test(
+  NAME test-shared-array
+  COMMAND unit-test-shared-array
+)
