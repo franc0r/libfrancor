@@ -69,6 +69,8 @@ using Size2u = impl::Size2<std::size_t>;
 using Size3u = impl::Size3<std::size_t>;
 using Size2d = impl::Size2<double>;
 using Size3d = impl::Size3<double>;
+using Size2f = impl::Size2<float>;
+using Size3f = impl::Size3<float>;
 
 } // end namespace base
 

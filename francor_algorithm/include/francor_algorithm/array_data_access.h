@@ -5,6 +5,8 @@
  */
 #pragma once
 
+#include <francor_base/angle.h>
+
 #include <algorithm>
 
 namespace francor {
@@ -54,6 +56,7 @@ public:
       _stride(stride)
   {
     // check if rectangle is completly inside the array.
+    // @todo it smells here
     if (index.x() < _rectangle_size.x() / 2u) {
       const std::size_t difference = _rectangle_size.x() / 2u - index.x();
       _index_global.x() = 0u;
@@ -108,6 +111,7 @@ public:
   Data& operator*() const { return *_data; }
   inline base::Size2u arrayIndex() const { return _index_global; }
   inline base::Size2u localIndex() const { return _index_local; }
+  inline const base::Size2u& rectangleSize() const { return _rectangle_size; }
 
 private:
   Data* _data;
@@ -148,7 +152,6 @@ public:
                            const std::size_t max_index_x, const std::size_t stride)
     : DataAccessRectangleIterator<Data, IteratorMode::MOVING>(data, index, {radius * 2u, radius * 2u}, max_index_x, stride),
       _radius_squared(static_cast<int>(radius * radius)),
-      _diameter(radius * 2u),
       _index_center(radius, radius)
   {
     operator++();
@@ -157,8 +160,8 @@ public:
   DataAccessCircleIterator& operator++()
   {
     DataAccessRectangleIterator<Data, IteratorMode::MOVING>::operator++();
-    const int dx = DataAccessRectangleIterator<Data, IteratorMode::MOVING>::localIndex().x() - _index_center.x();
-    const int dy = DataAccessRectangleIterator<Data, IteratorMode::MOVING>::localIndex().y() - _index_center.y();
+    const float dx = static_cast<float>(DataAccessRectangleIterator<Data, IteratorMode::MOVING>::localIndex().x()) - _index_center.x() + 0.5f;
+    const float dy = static_cast<float>(DataAccessRectangleIterator<Data, IteratorMode::MOVING>::localIndex().y()) - _index_center.y() + 0.5f;
     const auto distance_squared = dx * dx + dy * dy;
 
     // estimate if current index is inside circle
@@ -169,7 +172,10 @@ public:
 
     // recursive call until a valid index was found; at least the center point should be found
     // or the maximum y index was reached
-    if (DataAccessRectangleIterator<Data, IteratorMode::MOVING>::localIndex().y() >= _diameter) {
+    // this I don't like and actually the iterator should be desgined to go exactly to the next element
+    if (DataAccessRectangleIterator<Data, IteratorMode::MOVING>::localIndex().y()
+        >=
+        DataAccessRectangleIterator<Data, IteratorMode::MOVING>::rectangleSize().y()) {
       return *this;
     }
     else {
@@ -178,38 +184,73 @@ public:
   }
 
 private:
-  int _radius_squared;
-  std::size_t _diameter;
+  float _radius_squared;
   base::Size2u _index_center;
 };
 
-// template <typename Data>
-// class DataAccessEllipseIterator : public std::iterator<std::random_access_iterator_tag, Data>
-// {
-// public:
-//   DataAccessEllipseIterator() = delete;
-//   explicit DataAccessEllipseIterator(Data* data, const base::Size2u data_size,
-//                                     const base::Size2d radius, const std::size_t stride)
-//     : _data(data),
-//       _data_size(data_size),
-//       _radius(radius),
-//       _index(),
-//       _index_center(std::max(data_size.x(), data_size.y()) / 2u, std::max(data_size.x(), data_size.y()) / 2u),
-//       _stride(stride)
-//   { }                                
+template <typename Data, IteratorMode Mode>
+class DataAccessEllipseIterator;
 
-//   DataAccessEllipseIterator& operator++()
-//   {
+template <typename Data>
+class DataAccessEllipseIterator<Data, IteratorMode::MOVING> : public DataAccessRectangleIterator<Data, IteratorMode::MOVING>
+{
+public:
+  DataAccessEllipseIterator(Data* data, const base::Size2u index, const base::Size2f radius, const base::Angle phi,
+                            const std::size_t max_index_x, const std::size_t stride)
+    : DataAccessRectangleIterator<Data, IteratorMode::MOVING>(data, index, {static_cast<std::size_t>(std::max(radius.x(), radius.y()) + 0.5f) * 2u,
+                                                                            static_cast<std::size_t>(std::max(radius.x(), radius.y()) + 0.5f) * 2u}, max_index_x, stride),
+      _sin_phi(std::sin(-phi)),
+      _cos_phi(std::cos(-phi)),
+      _inv_a_2(1.0f / (radius.x() * radius.x())),
+      _inv_b_2(1.0f / (radius.y() * radius.y())),
+      _center(std::max(radius.x(), radius.y()) )
+  {
+    operator++();
+  }                                
 
-//   }
+  DataAccessEllipseIterator& operator++()
+  {
+    DataAccessRectangleIterator<Data, IteratorMode::MOVING>::operator++();
+    const auto p_x = static_cast<float>(DataAccessRectangleIterator<Data, IteratorMode::MOVING>::localIndex().x()) + 0.5f;
+    const auto p_y = static_cast<float>(DataAccessRectangleIterator<Data, IteratorMode::MOVING>::localIndex().y()) + 0.5f;
 
-// private:
-//   Data* _data;
-//   base::Size2u _index;
-//   base::Size2u _data_size;
-//   base::Size2d _radius;
-//   std::size_t _stride;
-// };
+    _dx = p_x - _center;
+    _dy = p_y - _center;
+
+    const auto dx_transformed = _cos_phi * _dx - _sin_phi * _dy;
+    const auto dy_transformed = _sin_phi * _dx + _cos_phi * _dy;
+
+    // estimate if current index is inside ellipse
+    if ((dx_transformed * dx_transformed) * _inv_a_2 + (dy_transformed * dy_transformed) * _inv_b_2 < 1.0f) {
+      // index is inside
+      return *this;      
+    }
+
+    // recursive call until a valid index was found; at least the center point should be found
+    // or the maximum y index was reached
+    // this I don't like and actually the iterator should be desgined to go exactly to the next element
+    if (DataAccessRectangleIterator<Data, IteratorMode::MOVING>::localIndex().y()
+        >=
+        DataAccessRectangleIterator<Data, IteratorMode::MOVING>::rectangleSize().y()) {
+      return *this;
+    }
+    else {
+      return this->operator++();
+    }
+  }
+
+  inline float dx() const { return _dx; }
+  inline float dy() const { return _dy; }
+
+private:
+  float _sin_phi;
+  float _cos_phi;
+  float _inv_a_2;
+  float _inv_b_2;
+  float _center;
+  float _dx;
+  float _dy;
+};
 
 enum class DataAccessOperationMode {
   ELEMENT,
@@ -230,9 +271,6 @@ class DataAccess2dOperation<Data, DataAccessOperationMode::LINE_OPERATIONS>
 public:
   DataAccess2dOperation(Data* data, const std::size_t size, const std::size_t data_step)
     : _data(data), _size(size), _data_step(data_step) { }
-
-  // after a operation was selected (Iterator != void) this becomes enabled
-
 
   DataAccess2dOperation<Data, DataAccessOperationMode::LINE>
   all_elements() const { return { _data, _size, _data_step }; }
@@ -273,6 +311,8 @@ public:
   rectangle(const base::Size2u rectangle_size) const { return { _data, _index, rectangle_size, _array_size, _stride }; }
   DataAccess2dOperation<Data, DataAccessOperationMode::CIRCLE>
   circle(const std::size_t radius) const { return { _data, _index, radius, _array_size, _stride }; }
+  DataAccess2dOperation<Data, DataAccessOperationMode::ELLIPSE>
+  ellipse(const base::Size2f radius, const base::Angle phi) const { return { _data, _index, radius, phi, _array_size, _stride }; }
 
 private:
   Data* _data;
@@ -321,6 +361,32 @@ private:
   Data* _data;
   base::Size2u _index;
   std::size_t _radius;
+  base::Size2u _array_size;
+  std::size_t _stride;
+};
+
+template <typename Data>
+class DataAccess2dOperation<Data, DataAccessOperationMode::ELLIPSE>
+{
+public:
+  DataAccess2dOperation() = default;
+  DataAccess2dOperation(Data* data, const base::Size2u index, const base::Size2f radius, const base::Angle phi,
+                        const base::Size2u array_size, const std::size_t stride)
+    : _data(data), _index(index), _radius(radius), _phi(phi), _array_size(array_size), _stride(stride) { }
+
+  DataAccessEllipseIterator<Data, IteratorMode::MOVING> begin() const {
+    return { _data, _index, _radius, _phi, _array_size.x() - 1u, _stride };
+  }
+  DataAccessRectangleIterator<Data, IteratorMode::END_INDICATOR> end() const {
+    const std::size_t max_radius = static_cast<std::size_t>(std::max(_radius.x(), _radius.y()) + 0.5f);
+    return { _data + max_radius + max_radius * _stride, _array_size };
+  }
+
+private:
+  Data* _data;
+  base::Size2u _index;
+  base::Size2f _radius;
+  base::Angle _phi;
   base::Size2u _array_size;
   std::size_t _stride;
 };

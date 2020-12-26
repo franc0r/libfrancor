@@ -10,6 +10,8 @@
 
 using SharedArray2d = francor::algorithm::SharedArray2d<unsigned int>;
 using francor::base::Size2u;
+using francor::base::Size2f;
+using francor::base::Angle;
 
 /**
  * \brief Unit test for line iterator for array data access.
@@ -209,17 +211,17 @@ TEST(DataAccess2dOperation, RectangleIterator)
  */
 TEST(DataAccess2dOperation, CircleIterator)
 {
-  constexpr Size2u array_size(21u, 21u);
-  constexpr std::size_t radius = 2u;
+  constexpr Size2u array_size(20u, 20u);
+  constexpr std::size_t radius = 7u;
 
   // check normal case; circle is completly located inside the array 
   {
     SharedArray2d array(array_size, 0u);
     constexpr Size2u index_center(array_size.x() / 2u, array_size.y() / 2u);
-    constexpr std::size_t min_index_x = index_center.x() - radius;
-    constexpr std::size_t min_index_y = index_center.y() - radius;
-    constexpr std::size_t max_index_x = index_center.x() + radius;
-    constexpr std::size_t max_index_y = index_center.y() + radius;
+    // constexpr std::size_t min_index_x = index_center.x() - radius;
+    // constexpr std::size_t min_index_y = index_center.y() - radius;
+    // constexpr std::size_t max_index_x = index_center.x() + radius;
+    // constexpr std::size_t max_index_y = index_center.y() + radius;
 
     ASSERT_EQ(array_size, array.size());
 
@@ -227,7 +229,33 @@ TEST(DataAccess2dOperation, CircleIterator)
       element = 1u;
     }
 
-    std::cout << array << std::endl;
+    // std::cout << array << std::endl;
+  }
+}
+
+/**
+ * \brief Unit test for ellipse iterator data access.
+ */
+TEST(DataAccess2dOperation, EllispeIterator)
+{
+  constexpr Size2u array_size(20u, 20u);
+  constexpr Size2f radius(2.0f, 4.0f);
+
+  // check normal case; circle is completly located inside the array 
+  {
+    constexpr Size2u index_center(array_size.x() / 2u, array_size.y() / 2u);
+    // constexpr std::size_t min_index_x = index_center.x() - radius;
+    // constexpr std::size_t min_index_y = index_center.y() - radius;
+    // constexpr std::size_t max_index_x = index_center.x() + radius;
+    // constexpr std::size_t max_index_y = index_center.y() + radius;
+
+    for (Angle phi = Angle::createFromDegree(0.0); phi < Angle::createFromDegree(180.0); phi += Angle::createFromDegree(22.5)) {
+      SharedArray2d array(array_size, 0u);
+      for (auto& element : array.at(index_center).ellipse(radius, phi)) {
+        element = 1u;
+      }
+      std::cout << array << std::endl;
+    }
   }
 }
 
