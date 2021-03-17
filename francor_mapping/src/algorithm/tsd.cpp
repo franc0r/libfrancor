@@ -28,22 +28,21 @@ void pushLaserScanToGrid(TsdGrid& grid, const base::LaserScan& laser_scan, const
   using francor::algorithm::Ray2d;
 
   Angle current_phi = laser_scan.phiMin();
-  const std::size_t start_index_x = grid.getIndexX(laser_scan.pose().position().x() + pose_ego.position().x());
-  const std::size_t start_index_y = grid.getIndexY(laser_scan.pose().position().y() + pose_ego.position().y());
+  const Point2d position = laser_scan.pose().position() + pose_ego.position();
+  const auto start_index = grid.find().cell().index(position);
   const double max_truncation = grid.getMaxTruncation();
 
   for (const auto& distance : laser_scan.distances())
   {
-    const Point2d position = laser_scan.pose().position() + pose_ego.position();
     const Angle phi = current_phi + laser_scan.pose().orientation() + pose_ego.orientation();
     const auto direction = base::algorithm::line::calculateV(phi);
 
-    Ray2d ray(Ray2d::create(start_index_x, start_index_y, grid.getNumCellsX(), grid.getNumCellsY(), grid.getCellSize(), position, direction, distance));
+    Ray2d ray(Ray2d::create(start_index.x(), start_index.y(), grid.cell().count().x(), grid.cell().count().y(), grid.cell().size(), position, direction, distance));
     std::size_t counter = 0;
 
     for (const auto& idx : ray)
     {
-      const auto sdf = algorithm::tsd::calculateSdf(grid.getCellPosition(idx.x(), idx.y()), position, distance);
+      const auto sdf = algorithm::tsd::calculateSdf(grid.find().cell().position(idx), position, distance);
       algorithm::tsd::updateTsdCell(grid(idx.x(), idx.y()), sdf, max_truncation); // \todo replace constant value with tsd calculation function
       ++counter;
     }
@@ -64,8 +63,7 @@ bool reconstructPointsFromGrid(const TsdGrid& grid, const base::Pose2d& pose, co
   using francor::algorithm::Ray2d;
 
   Angle current_phi = pose.orientation() + phi_min;
-  const std::size_t start_index_x = grid.getIndexX(pose.position().x());
-  const std::size_t start_index_y = grid.getIndexY(pose.position().y());
+  const auto start_index = grid.find().cell().index(pose.position());
 
   points.resize(0);
   points.reserve(num_beams);
@@ -73,14 +71,14 @@ bool reconstructPointsFromGrid(const TsdGrid& grid, const base::Pose2d& pose, co
   for (std::size_t beam = 0; beam < num_beams; ++beam)
   {
     const auto direction = base::algorithm::line::calculateV(current_phi);
-    Ray2d ray(Ray2d::create(start_index_x, start_index_y, grid.getNumCellsX(),
-                            grid.getNumCellsY(), grid.getCellSize(), pose.position(), direction, range)); // \todo make distance adjustable
+    Ray2d ray(Ray2d::create(start_index.x(), start_index.y(), grid.cell().count().x(),
+                            grid.cell().count().y(), grid.cell().size(), pose.position(), direction, range)); // \todo make distance adjustable
 
     for (const auto& idx : ray)
     {
       if (grid(idx.x(), idx.y()).tsd > 0.0) {
-        points.push_back( { static_cast<double>(idx.x()) * grid.getCellSize() + grid.getOrigin().x(),
-                            static_cast<double>(idx.y()) * grid.getCellSize() + grid.getOrigin().y() } );
+        points.push_back( { static_cast<double>(idx.x()) * grid.cell().size() + grid.getOrigin().x(),
+                            static_cast<double>(idx.y()) * grid.cell().size() + grid.getOrigin().y() } );
 
         break;
       }
@@ -94,14 +92,14 @@ bool reconstructPointsFromGrid(const TsdGrid& grid, const base::Pose2d& pose, co
 
 bool convertTsdToOccupancyGrid(const TsdGrid& tsd_grid, OccupancyGrid& occupancy_grid)
 {
-  occupancy_grid.init(tsd_grid.getNumCellsX(), tsd_grid.getNumCellsY(), tsd_grid.getCellSize());
+  occupancy_grid.init(tsd_grid.cell().count(), tsd_grid.cell().size());
 
-  assert(tsd_grid.getNumCellsX() == occupancy_grid.getNumCellsX());
-  assert(tsd_grid.getNumCellsY() == occupancy_grid.getNumCellsY());
-  assert(tsd_grid.getCellSize() == occupancy_grid.getCellSize());
+  assert(tsd_grid.cell().count().x() == occupancy_grid.cell().count().x());
+  assert(tsd_grid.cell().count().y() == occupancy_grid.cell().count().y());
+  assert(tsd_grid.cell().size() == occupancy_grid.cell().size());
 
-  for (std::size_t y = 0; y < occupancy_grid.getNumCellsY(); ++y) {
-    for (std::size_t x = 0; x < occupancy_grid.getNumCellsX(); ++x) {
+  for (std::size_t y = 0; y < occupancy_grid.cell().count().y(); ++y) {
+    for (std::size_t x = 0; x < occupancy_grid.cell().count().x(); ++x) {
       // \todo replace it with a proper formula
       if (tsd_grid(x, y).tsd > 0.0) {
         occupancy_grid(x, y).value = 100;

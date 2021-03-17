@@ -6,11 +6,15 @@ project(francor-mapping VERSION 0.1
 # find_package(Eigen3 REQUIRED NO_MODULE)
 
 add_library(${PROJECT_NAME} SHARED
+  src/algorithm/grid.cpp
   src/algorithm/tsd.cpp
   src/algorithm/occupancy_grid.cpp
   src/pipeline_stage_ego_object.cpp
   src/pipeline_stage_occupancy_grid.cpp
   src/pipeline_occupancy_grid.cpp
+  src/pipeline_stage_create_pose_measurement.cpp
+  src/ego_kalman_filter_model.cpp
+  src/occupancy_grid_sensor_model.cpp
 )
 
 target_include_directories(${PROJECT_NAME}

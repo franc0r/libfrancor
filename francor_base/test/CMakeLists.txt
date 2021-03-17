@@ -96,3 +96,20 @@ add_test(
   NAME test-math
   COMMAND unit-test-math
 )
+
+
+# Parameter
+add_executable(unit-test-parameter
+  src/unit_test_parameter.cpp
+)
+
+target_link_libraries(unit-test-parameter PRIVATE
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-base
+)
+
+add_test(
+  NAME test-parameter
+  COMMAND unit-test-parameter
+)

@@ -85,3 +85,88 @@ add_test(
   NAME validation-occupancy-register-and-reconstruction
   COMMAND validation-occupancy-register-and-reconstruction
 )
+
+
+# unit test kinematic attribute pack
+add_executable(unit-test-kinematic-attribute-pack
+  src/unit_test_kinematic_attribute_pack.cpp
+)
+
+target_link_libraries(unit-test-kinematic-attribute-pack
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-mapping
+)
+
+add_test(
+  NAME test-kinematic-attribute-pack
+  COMMAND unit-test-kinematic-attribute-pack
+)
+
+
+# unit test observation matrix builder
+add_executable(unit-test-observation-matrix-builder
+  src/unit_test_observation_matrix_builder.cpp
+)
+
+target_link_libraries(unit-test-observation-matrix-builder
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-mapping
+)
+
+add_test(
+  NAME test-observation-matrix-builder
+  COMMAND unit-test-observation-matrix-builder
+)
+
+
+# unit test kinematic state vector
+add_executable(unit-test-kinematic-state-vector
+  src/unit_test_kinematic_state_vector.cpp
+)
+
+target_link_libraries(unit-test-kinematic-state-vector
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-mapping
+)
+
+add_test(
+  NAME test-kinematic-state-vector
+  COMMAND unit-test-kinematic-state-vector
+)
+
+
+# unit test kalman filter
+add_executable(unit-test-kalman-filter
+  src/unit_test_kalman_filter.cpp
+)
+
+target_link_libraries(unit-test-kalman-filter
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-mapping
+)
+
+add_test(
+  NAME test-kalman-filter
+  COMMAND unit-test-kalman-filter
+)
+
+
+# unit test pose sensor model
+add_executable(unit-test-pose-sensor-model
+  src/unit_test_pose_sensor_model.cpp
+)
+
+target_link_libraries(unit-test-pose-sensor-model
+  PRIVATE GTest::GTest
+  PRIVATE GTest::Main
+  PRIVATE francor-mapping
+)
+
+add_test(
+  NAME test-pose-sensor-model
+  COMMAND unit-test-pose-sensor-model
+)

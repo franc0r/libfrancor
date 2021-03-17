@@ -9,7 +9,9 @@
 #include "francor_base/angle.h"
 
 using francor::base::Angle;
-using francor::base::NormalizedAngle;
+using francor::base::Angle0To2Pi;
+using francor::base::AnglePi2ToPi2;
+using francor::base::AnglePiToPi;
 
 TEST(Angle, ConstructDefaultAngle)
 {
@@ -95,17 +97,35 @@ TEST(Angle, CastToDouble)
 
 
 
-TEST(NormalizedAngle, CreateFromRadian)
+TEST(NormalizedAngle, Angle0To2Pi)
 {
   constexpr double radian = 2.25 * M_PI;
-  constexpr NormalizedAngle angle_positive( radian);
-  constexpr NormalizedAngle angle_negative(-radian);
+  constexpr Angle0To2Pi angle_positive( radian);
+  constexpr Angle0To2Pi angle_negative(-radian);
 
-  EXPECT_NEAR(angle_positive.radian(),  M_PI_4, 1e-6);
-  EXPECT_NEAR(angle_negative.radian(), -M_PI_4, 1e-6);
+  EXPECT_NEAR(angle_positive.radian(), M_PI_4, 1e-6);
+  EXPECT_NEAR(angle_negative.radian(), Angle::createFromDegree(315), 1e-6);
 }
 
-// TODO: add missing test for normalized angle
+TEST(NormalizedAngle, AnglePi2ToPi2)
+{
+  constexpr double radian = 0.75 * M_PI;
+  constexpr AnglePi2ToPi2 angle_positive( radian);
+  constexpr AnglePi2ToPi2 angle_negative(-radian);
+
+  EXPECT_NEAR(angle_positive.radian(), -M_PI_4, 1e-6);
+  EXPECT_NEAR(angle_negative.radian(),  M_PI_4, 1e-6);
+}
+
+TEST(NormalizedAngle, AnglePiToPi)
+{
+  constexpr double radian = 1.25 * M_PI;
+  constexpr AnglePiToPi angle_positive( radian);
+  constexpr AnglePiToPi angle_negative(-radian);
+
+  EXPECT_NEAR(angle_positive.radian(), -0.75 * M_PI, 1e-6);
+  EXPECT_NEAR(angle_negative.radian(),  0.75 * M_PI, 1e-6);
+}
 
 int main(int argc, char **argv)
 {

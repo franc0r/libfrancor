@@ -6,13 +6,15 @@
 #pragma once
 
 #include <francor_base/laser_scan.h>
-#include <francor_base/log.h>
-#include <francor_base/pose.h>
+
+#include <francor_base/point.h>
+#include <francor_base/size.h>
+#include <francor_base/transform.h>
 #include <francor_base/algorithm/math.h>
 
-#include <francor_algorithm/ray_caster_2d.h>
+#include <francor_algorithm/shared_array.h>
 
-#include "francor_mapping/grid.h"
+#include <algorithm>
 
 namespace francor {
 
@@ -22,187 +24,111 @@ namespace algorithm {
 
 namespace grid {
 
-template <std::size_t SizeX, std::size_t SizeY, typename Type = float>
-class PointDistribution
+/**
+ * \brief Helper class for getting grid cell related sizes of class Grid. This class is a friend of Grid and
+ *        makes the size attribues accessable.
+ */
+template <class GridType>
+class SizeHandler
 {
 public:
-  constexpr PointDistribution()
-  {
-    using base::algorithm::math::BinomialDistribution;
-    constexpr BinomialDistribution<SizeX - 1, Type> distribution_x(0.5);
-    constexpr BinomialDistribution<SizeY - 1, Type> distribution_y(0.5);
+  explicit SizeHandler(const GridType& grid) : _grid(grid) { }
 
-    for (std::size_t x = 0; x < SizeX / 2; ++x) {
-      for (std::size_t y = 0; y < SizeY; ++y) {
-        _data[x][y] = std::min(distribution_x.pm(x) * distribution_y.pm(y) + static_cast<Type>(0.5), static_cast<Type>(0.95));
-      }
-    }
-
-    for (std::size_t x = SizeX / 2; x < SizeX; ++x) {
-      for (std::size_t y = 0; y < SizeY; ++y) {
-        _data[x][y] = std::min(distribution_x.pm(x) * distribution_y.pm(y) + static_cast<Type>(0.5), static_cast<Type>(0.95));
-      }
-    }
-  }
-
-  inline constexpr Type operator()(const std::size_t x, const std::size_t y) const noexcept { return _data[x][y]; }
-
-private:
-  Type _data[SizeX][SizeY] = { };
-};
-
-
-
-template<std::size_t SizeX, std::size_t SizeY, typename Type, template <std::size_t, std::size_t, typename> class Distribution>
-class UpdateMatrix
-{
-public:
-  constexpr UpdateMatrix(const base::Angle yaw = base::Angle::createFromDegree(0.0))
-    : _sin_yaw(std::sin(yaw)),
-      _cos_yaw(std::cos(yaw))
-  { 
-
-  }
-
-  template <class GridType, typename UpdateFunction>
-  constexpr void update(GridType& grid, const int center_x, const int center_y) const
-  {
-    for (int x = 0; x < static_cast<int>(SizeX); ++x) {
-      for (int y = 0; y < static_cast<int>(SizeY); ++y) {
-        const std::size_t current_x = static_cast<std::size_t>(center_x
-                                                               + _cos_yaw * (static_cast<float>(x) + 0.5f - static_cast<float>(SizeX) * 0.5f) 
-                                                               - _sin_yaw * (static_cast<float>(y) + 0.5f - static_cast<float>(SizeY) * 0.5f));
-        const std::size_t current_y = static_cast<std::size_t>(center_y 
-                                                               + _sin_yaw * (static_cast<float>(x) + 0.5f - static_cast<float>(SizeX) * 0.5f)
-                                                               + _cos_yaw * (static_cast<float>(y) + 0.5f - static_cast<float>(SizeY) * 0.5f));
-        UpdateFunction(grid(current_x, current_y), _distribution(x, y));
-      }
-    }
+  inline double size() const { return _grid._cell_size; }
+  inline base::Size2u count() const {
+    return static_cast<const francor::algorithm::SharedArray2d<typename GridType::cell_type>&>(_grid).size();
   }
 
 private:
-  const float _sin_yaw;
-  const float _cos_yaw;
-
-  static constexpr Distribution<SizeX, SizeY, Type> _distribution{};
+  const GridType& _grid;
 };
 
-
 /**
- * \brief Pushes a point respecting its variance into a grid. The shape of the point is
- *        according gaussian distribution.
- * 
- * \param grid Occupancy grid.
- * \param center_x X coordinate on grid.
- * \param center_y y coordinate on grid.
- * \param point_size Size of the laser point in grid cells.
- * \tparam GridCellType The type of each grid cell.
- * \tparam UpdateFunction The function used to update each grid cell.
- * \tparam PointSizeX Point size in x dimension.
+ * \brief Helper class and implementation of find algorithms to find cell related attributes like cell index for
+ *        a given position. This class is a friend of Grid.
  */
-template <typename GridType, typename UpdateFunction, std::size_t PointSizeX>
-void pushPoint(GridType& grid, const std::size_t center_x, const std::size_t center_y,
-               const std::size_t point_size_y, const base::Angle point_yaw = base::Angle::createFromDegree(0.0))
+template <class GridType>
+class FindOperation
 {
-  static_assert(PointSizeX % 2 == 1);
-  assert(point_size_y % 2 == 1);
-  constexpr int side_size_x = PointSizeX / 2;
-  const int side_size_y = point_size_y / 2;
+public:
+  explicit FindOperation(const GridType& grid) : _grid(grid) { }
 
-  // do nothing if point is out of range including point size
-  if (static_cast<int>(center_x) - static_cast<int>(side_size_x) < 0 || center_x + side_size_x >= grid.getNumCellsX()) {
-    return;
-  }
-  if (static_cast<int>(center_y) - static_cast<int>(side_size_y) < 0 || center_y + side_size_y >= grid.getNumCellsY()) {
-    return;
-  }
+  class CellFindOperation {
+  public:
+    explicit CellFindOperation(const GridType& grid) : _grid(grid) { }
 
-  switch (point_size_y)
-  {
-  case 1:
+    inline base::Size2u index(const base::Point2d& position) const
     {
-      const UpdateMatrix<PointSizeX, 3, float, PointDistribution> update_matrix(point_yaw);
-      update_matrix.template update<GridType, UpdateFunction>(grid, center_x, center_y);
+      return { static_cast<std::size_t>((position.x() + _grid.getOrigin().x()) / _grid.cell().size()),
+               static_cast<std::size_t>((position.y() + _grid.getOrigin().y()) / _grid.cell().size()) };
     }
-    break;
-  
-  case 3:
+    inline base::Point2d position(const base::Size2u& cell_index) const
     {
-      const UpdateMatrix<PointSizeX, 3, float, PointDistribution> update_matrix(point_yaw);
-      update_matrix.template update<GridType, UpdateFunction>(grid, center_x, center_y);
-  }
-  break;
-
-  case 5:
-    {
-      const UpdateMatrix<PointSizeX, 5, float, PointDistribution> update_matrix(point_yaw);      
-      update_matrix.template update<GridType, UpdateFunction>(grid, center_x, center_y);
+      return { (static_cast<double>(cell_index.x()) + 0.5) * _grid.cell().size(),
+               (static_cast<double>(cell_index.y()) + 0.5) * _grid.cell().size() };
     }
-    break;
 
-  case 7:
-    {
-      const UpdateMatrix<PointSizeX, 7, float, PointDistribution> update_matrix(point_yaw);      
-      update_matrix.template update<GridType, UpdateFunction>(grid, center_x, center_y);
-    }
-    break;
+  private:
+    const GridType& _grid;
+  };
 
-    case 9:
-    {
-      const UpdateMatrix<PointSizeX, 9, float, PointDistribution> update_matrix(point_yaw);      
-      update_matrix.template update<GridType, UpdateFunction>(grid, center_x, center_y);
-    }
-    break;
+  inline CellFindOperation cell() const { return CellFindOperation(_grid); }
 
-  default:
-    francor::base::LogError() << "pushPoint(): point size y = " << point_size_y << " isn't supported.";
-    break;
-  }
-
-}
+private:
+  const GridType& _grid;
+};
 
 /**
- * \brief Pushes an laser scan to an grid. The laser scan pose will be transformed by ego pose.
+ * \brief Marks the border of the laser beam in a map with given value.
  * 
- * \param grid The grid the laser scan will be pushed to.
- * \param scan The input laser scan.
- * \param pose_ego The pose of the ego object in frame map
- * \tparam GridCellType The type of each grid cell.
- * \tparam UpdateFunction The function used to update each grid cell.
+ * \param grid The laser beam border will be marked in this map.
+ * \param phi Absolute orientation in map of the laser beam.
+ * \param distance The distance of the laser measurement.
+ * \param cell_value This value will be used to draw the border.
  */
-// template <typename GridCellType, typename UpdateFunction>
-// void pushLaserScanToGrid(Grid<GridCellType>& grid, const base::LaserScan& scan, const base::Pose2d& pose_ego)
-// {
-//   static_assert(std::is_function(UpdateFunction), "The template argument \"UpdateFunction\" must be a function.");
+template <class GridType>
+void markLaserBeamBorder(GridType& grid,
+                         const base::Point2d& origin,
+                         const base::AnglePiToPi phi,
+                         const base::Angle divergence,
+                         const double distance,
+                         const typename GridType::cell_type& cell_value_free,
+                         const typename GridType::cell_type& cell_value_occupied);
 
-//   using francor::base::Point2d;
-//   using francor::base::Angle;
-//   using francor::base::Line;
-//   using francor::algorithm::Ray2d;
 
-//   Angle current_phi = laser_scan.phiMin();
-//   const std::size_t start_index_x = grid.getIndexX(laser_scan.pose().position().x() + pose_ego.position().x());
-//   const std::size_t start_index_y = grid.getIndexY(laser_scan.pose().position().y() + pose_ego.position().y());
-//   const double max_truncation = grid.getMaxTruncation();
+/**
+ * \brief Fills marked shapes in a grid. It uses the value used to mark the borders if this
+ *        value is below given threshold.
+ * \param grid The shapes of this grid will be filled. The grid must contain the shapes.
+ * \param threshold The function fills the shapes with the value found at border if it is
+ *        below this thresholds.
+ */
+template <class GridType>
+void fillMarkedShapes(GridType& grid, const typename GridType::cell_type& threshold);
 
-//   for (const auto& distance : laser_scan.distances())
-//   {
-//     const Point2d position = laser_scan.pose().position() + pose_ego.position();
-//     const Angle phi = current_phi + laser_scan.pose().orientation() + pose_ego.orientation();
-//     const auto direction = base::algorithm::line::calculateV(phi);
+template <class GridType>
+void registerLaserBeam(GridType& grid,
+                       const base::Point2d& origin,
+                       const base::AnglePiToPi phi,
+                       const double distance,
+                       const typename GridType::cell_type& cell_value_free,
+                       const typename GridType::cell_type& cell_value_occupied);                                        
 
-//     Ray2d ray(Ray2d::create(start_index_x, start_index_y, grid.getNumCellsX(), grid.getNumCellsY(), grid.getCellSize(), position, direction, distance));
+template <class GridType>
+void registerLaserBeam(GridType& grid,
+                       const base::Point2d& origin,
+                       const base::AnglePiToPi phi,
+                       const base::Angle divergence,
+                       const double distance,
+                       const typename GridType::cell_type& cell_value_free,
+                       const typename GridType::cell_type& cell_value_occupied);
 
-//     for (const auto& idx : ray)
-//     {
-//       UpdateFunction(grid(idx.x(), idx.y()), )
-//       const auto sdf = algorithm::tsd::calculateSdf(grid.getCellPosition(idx.x(), idx.y()), position, distance);
-//       algorithm::tsd::updateTsdCell(grid(idx.x(), idx.y()), sdf, max_truncation); // \todo replace constant value with tsd calculation function
-//     }
-
-//     current_phi += laser_scan.phiStep();
-//   }
-// }
+template <class GridType>
+void registerLaserScan(GridType& grid,
+                       const base::Pose2d& ego_pose,
+                       const base::LaserScan& scan,
+                       const typename GridType::cell_type& cell_value_free,
+                       const typename GridType::cell_type& cell_value_occupied);
 
 } // end namespace grid
 

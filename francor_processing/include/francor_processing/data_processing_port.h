@@ -13,6 +13,8 @@
 #include <memory>
 #include <array>
 
+#include <francor_base/log.h>
+
 namespace francor
 {
 
@@ -153,11 +155,17 @@ public:
   template <typename DataType>
   const DataType& data(void) const
   {
-    if (_data == nullptr)
+    using base::LogError;
+
+    if (_data == nullptr) {
+      LogError() << "Port::data(): data pointer is null";
       throw std::runtime_error("Port::data(): data pointer is null");
-    if (_data_type_info.get() != typeid(DataType))
+    }
+    if (_data_type_info.get() != typeid(DataType)) {
+      LogError() << "Port::data(): type " << typeid(DataType).name() << " isn't supported.";
       throw std::runtime_error(std::string("Port::data(): type ") + typeid(DataType).name() + " isn't supported.");
-  
+    }
+
     return *static_cast<DataType const*>(_data);
   }
   /**
@@ -223,8 +231,11 @@ protected:
   template <typename DataType>
   void updateDataPtrOfConnections(DataType const* const data)
   {
-    if (_data_type_info.get() != typeid(DataType))
+    using francor::base::LogError;
+    if (_data_type_info.get() != typeid(DataType)) {
+      LogError() << "Port: type " << typeid(DataType).name() << " isn't supported.";
       throw std::string("Port: type ") + typeid(DataType).name() + " isn't supported.";
+    }
 
     // only update data pointer if this port is an output
     if (_data_flow == Direction::OUT)

@@ -29,7 +29,7 @@ TEST(PushLaserScanToGrid, BasicFunctionality)
   constexpr Angle phi_step = Angle::createFromDegree(1.0);
   LaserScan scan(distances, pose_laser, phi_min, phi_max, phi_step, 12.0);
 
-  ASSERT_TRUE(grid.init(10000, 100000, 0.02));
+  ASSERT_TRUE(grid.init({10000u, 100000u}, 0.02));
   auto start = std::chrono::system_clock::now();
   pushLaserScanToGrid(grid, scan, pose_ego);
   auto end = std::chrono::system_clock::now();
@@ -45,15 +45,15 @@ TEST(ReconstructPointsFromGrid, BasicFunctionality)
 {
   TsdGrid grid;
 
-  ASSERT_TRUE(grid.init(100, 100, 0.2));
+  ASSERT_TRUE(grid.init({100u, 100u}, 0.2));
 
-  for (std::size_t y = 0; y < grid.getNumCellsY(); ++y) {
-    for (std::size_t x = 0; x < grid.getNumCellsX(); ++x) {
+  for (std::size_t y = 0; y < grid.cell().count().y(); ++y) {
+    for (std::size_t x = 0; x < grid.cell().count().x(); ++x) {
       grid(x, y).tsd = -1.0;
     }
   }
 
-  for (std::size_t x = 0; x < grid.getNumCellsX(); ++x) {
+  for (std::size_t x = 0; x < grid.cell().count().x(); ++x) {
     grid(x, 90).tsd = 1.0;
   }
 

@@ -89,7 +89,15 @@ bool reconstructPointsFromGrid(const OccupancyGrid& grid, const base::Pose2d& po
  */
 bool reconstructLaserScanFromGrid(const OccupancyGrid& grid, const base::Pose2d& pose_ego, const base::Pose2d& pose_sensor,
                                   const base::Angle phi_min, const base::Angle phi_step, const std::size_t num_beams,
-                                  const double range, base::LaserScan& scan);
+                                  const double range, base::LaserScan& scan, const double time_stamp = 0.0);
+
+double reconstructLaserBeam(const OccupancyGrid& grid, const base::Point2d& origin, const base::Vector2i& origin_idx,
+                            const base::AnglePiToPi phi, const double range, const base::Angle divergence,
+                            const double beam_width_max_range);
+
+base::LaserScan reconstructLaserScan(const OccupancyGrid& grid, const base::Pose2d& pose_ego, const base::Pose2d& pose_sensor,
+                                     const base::Angle phi_min, const base::Angle phi_step, const std::size_t num_beams,
+                                     const double range, const double time_stamp, const base::Angle divergence);
 
 /**
  * \brief Updates a occupancy grid cell using formula cell = (value / (1 - value)) * old.value. NOTE: POC!
@@ -101,7 +109,10 @@ struct updateGridCell
 {
   constexpr updateGridCell(OccupancyCell& cell, const float value)
   {
-    if (std::isnan(cell.value)) {
+    if (std::isnan(value) || std::isinf(value)) {
+      return;
+    }
+    else if (std::isnan(cell.value)) {
       cell.value = value;
     }
     else {
@@ -123,7 +134,7 @@ struct updateGridCell
  *                used instead.
  */
 void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& scan, const base::Pose2d& pose_ego,
-                         const std::vector<base::NormalizedAngle>& normals = std::vector<base::NormalizedAngle>());
+                         const std::vector<base::AnglePiToPi>& normals = std::vector<base::AnglePiToPi>());
 
 /**
  * \brief Push points of a laser scan into a occupancy grid using the update grid cell function.
@@ -134,7 +145,7 @@ void pushLaserScanToGrid(OccupancyGrid& grid, const base::LaserScan& scan, const
  * \param normals Normals of the input points. Each normal corresponds with the point of same index.
  * \return true if push was successfull.
  */
-bool pushPointsToGrid(OccupancyGrid& grid, const base::Point2dVector& points, const base::Pose2d& pose_ego, const std::vector<base::NormalizedAngle>& normals);
+bool pushPointsToGrid(OccupancyGrid& grid, const base::Point2dVector& points, const base::Pose2d& pose_ego, const std::vector<base::AnglePiToPi>& normals);
 
 /**
  * \brief Pushes a laser point (endpoint of the laser beam) into a occupancy grid. The shape of the point is
@@ -146,6 +157,8 @@ bool pushPointsToGrid(OccupancyGrid& grid, const base::Point2dVector& points, co
  * \param point_size Size of the laser point in grid cells.
  */
 void pushLaserPointToGrid(OccupancyGrid& grid, const std::size_t x, const std::size_t y, const std::size_t point_size, const base::Angle point_yaw);
+
+
 
 } // end namespace occupancy
 

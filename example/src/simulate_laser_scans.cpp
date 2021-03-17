@@ -34,19 +34,18 @@ PipeSimulateLaserScan pipeline;
 
 void drawPoseOnImage(const Pose2d& pose, Image& image)
 {
-  const auto index_x = _grid.getIndexX(pose.position().x());
-  const auto index_y = _grid.getIndexY(pose.position().y());
+  const auto index = _grid.find().cell().index(pose.position());
   constexpr std::size_t axis_length = 20;
 
   for (std::size_t i = 0; i < axis_length; ++i)
   {
-    image(index_y, index_x + i).r() = 255;
-    image(index_y, index_x + i).g() =   0;
-    image(index_y, index_x + i).b() =   0;
+    image(index.y(), index.x() + i).r() = 255;
+    image(index.y(), index.x() + i).g() =   0;
+    image(index.y(), index.x() + i).b() =   0;
 
-    image(index_y + i, index_x).r() =   0;
-    image(index_y + i, index_x).g() = 255;
-    image(index_y + i, index_x).b() =   0;
+    image(index.y() + i, index.x()).r() =   0;
+    image(index.y() + i, index.x()).g() = 255;
+    image(index.y() + i, index.x()).b() =   0;
   }
 }
 
@@ -54,10 +53,8 @@ void drawPointsOnImage(const Point2dVector& points, Image& image)
 {
   for (const auto& point : points)
   {
-    const auto index_x = _grid.getIndexX(point.x());
-    const auto index_y = _grid.getIndexY(point.y());
-
-    cv::circle(image.cvMat(), { index_x, index_y }, 7, cv::Scalar(0, 0, 255), 3);
+    const auto index = _grid.find().cell().index(point);
+    cv::circle(image.cvMat(), { static_cast<int>(index.x()), static_cast<int>(index.y()) }, 7, cv::Scalar(0, 0, 255), 3);
   }
 }
 
@@ -68,20 +65,21 @@ void drawLaserBeamOnImage(const Point2d& start_point, const Angle phi, const dou
                               { start_point.x(), start_point.y() });
   const Point2d end(transform * Point2d(length, 0.0));
 
-  const auto index_start_x = _grid.getIndexX(start_point.x());
-  const auto index_start_y = _grid.getIndexY(start_point.y());
-  const auto index_end_x = _grid.getIndexX(end.x());
-  const auto index_end_y = _grid.getIndexY(end.y());
+  const auto index_start = _grid.find().cell().index(start_point);
+  const auto index_end   = _grid.find().cell().index(end);
 
-  cv::line(image.cvMat(), { index_start_x, index_start_y }, { index_end_x, index_end_y }, colour, 3);
+  cv::line(image.cvMat(),
+           { static_cast<int>(index_start.x()), static_cast<int>(index_start.y()) },
+           { static_cast<int>(index_end.x()), static_cast<int>(index_end.y()) },
+           colour,
+           3);
 }
 
 void drawLaserScanOnImage(const LaserScan& scan, Image& image)
 {
   const Transform2d tranform({ _ego.pose().orientation() }, { _ego.pose().position().x(), _ego.pose().position().y() });
   const Pose2d pose(tranform * scan.pose());
-  const auto index_start_x = _grid.getIndexX(pose.position().x());
-  const auto index_start_y = _grid.getIndexY(pose.position().y());
+  const auto index_start = _grid.find().cell().index(pose.position());
   Angle current_phi = scan.phiMin();
   const int radius_px = static_cast<int>(20.0 / 0.05);
 
@@ -89,7 +87,7 @@ void drawLaserScanOnImage(const LaserScan& scan, Image& image)
                        cv::Scalar(0, 0, 240), image);
   drawLaserBeamOnImage(pose.position(), pose.orientation() + scan.phiMax(), 20,
                        cv::Scalar(0, 0, 240), image);
-  cv::circle(image.cvMat(), {index_start_x, index_start_y }, radius_px, cv::Scalar(0, 0, 240), 2);
+  cv::circle(image.cvMat(), {static_cast<int>(index_start.x()), static_cast<int>(index_start.y()) }, radius_px, cv::Scalar(0, 0, 240), 2);
 
   for (const auto& distance : scan.distances())
   {

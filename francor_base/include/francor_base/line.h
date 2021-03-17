@@ -133,7 +133,7 @@ public:
   }
 
 private:
-  NormalizedAngle _phi; //> angle in rad of the gradient regarding the x-axis
+  AnglePi2ToPi2 _phi; //> angle in rad of the gradient regarding the x-axis
   Point2d _p; //> center point of this line
 };
 
