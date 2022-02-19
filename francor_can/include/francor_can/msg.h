@@ -24,17 +24,24 @@ namespace francor {
 
 namespace can {
 
-/* Default settings */
+/* Settings */
 constexpr bool MSG_EN_RANGE_CHECK_EXP = {true};  //!< Config range check exception
 
+/* Defines */
 constexpr uint16_t MSG_MAX_ID = {2047U};
 constexpr uint8_t MSG_MAX_DLC = {8U};
+constexpr uint16_t MSG_ID_MASK = {0x7FFU};
 
+/* Error messages */
 constexpr char MSG_EXP_ID_OUT_OF_RANGE[] = "FRANCOR_CAN_MSG_ID_OUT_OF_RANGE";    // NOLINT
 constexpr char MSG_EXP_DLC_OUT_OF_RANGE[] = "FRANCOR_CAN_MSG_DLC_OUT_OF_RANGE";  // NOLINT
 
+/* Typedefs */
 using MsgData = std::array<uint8_t, MSG_MAX_DLC>;
 
+/**
+ * @brief CAN message representation class
+ */
 class Msg {
    public:
     Msg() = default;

@@ -26,9 +26,19 @@ namespace can {
 class SocketCAN : public CAN {
    public:
     explicit SocketCAN(const std::string& if_name);
+    ~SocketCAN();
+
+    void tx(Msg& tx) final;
+    Msg rx(RxSettings& settings) final;
+
+    bool isInterfaceRunning() final;
 
    private:
-    const std::string _if_name = {"can0"};
+    void openSocket();
+    void bindSocket();
+
+    const std::string _if_name = {""};
+    int _socket = {-1};
 };
 
 };  // namespace can
