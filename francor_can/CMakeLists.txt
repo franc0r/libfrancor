@@ -17,9 +17,8 @@ enable_testing()
 add_subdirectory(test)
 
 install(TARGETS ${PROJECT_NAME} EXPORT francor-config
-        RUNTIME DESTINATION bin/francor
-        LIBRARY DESTINATION lib/francor
-        ARCHIVE DESTINATION lib/francor)
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/francor_can/include/francor_can
         DESTINATION include
