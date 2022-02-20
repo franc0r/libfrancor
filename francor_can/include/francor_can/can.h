@@ -1,5 +1,5 @@
 /**
- * @file interface.h
+ * @file can.h
  * @author Martin Bauernschmitt (martin.bauernschmitt@francor.de)
  *
  * @brief Main class of can interface

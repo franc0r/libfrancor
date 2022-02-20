@@ -1,10 +1,10 @@
 cmake_minimum_required (VERSION 3.7.2)
 
-project(francor-can VERSION 0.1
+project(francor-drive VERSION 0.1
                        LANGUAGES CXX)
                        
 add_library(${PROJECT_NAME} SHARED
-  src/socketcan.cpp  
+  src/rmd_x8_drive.cpp  
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -12,15 +12,19 @@ target_include_directories(${PROJECT_NAME}
          $<INSTALL_INTERFACE:include/>
 )
 
+target_link_libraries(${PROJECT_NAME}
+  PUBLIC francor-can
+)
+
 enable_testing()
 
-add_subdirectory(test)
+#add_subdirectory(test)
 
 install(TARGETS ${PROJECT_NAME} EXPORT francor-config
         RUNTIME DESTINATION bin/francor
         LIBRARY DESTINATION lib/francor
         ARCHIVE DESTINATION lib/francor)
 
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/francor_can/include/francor_can
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/francor_drive/include/francor_drive
         DESTINATION include
         FILES_MATCHING PATTERN "*.h")

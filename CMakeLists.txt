@@ -18,9 +18,9 @@ set(CMAKE_CXX_STANDARD 17)
 
 enable_testing()
 
-#add_subdirectory(francor_base)
-#add_subdirectory(francor_algorithm)
-#add_subdirectory(francor_processing)
+add_subdirectory(francor_base)
+add_subdirectory(francor_algorithm)
+add_subdirectory(francor_processing)
 
 if (BUILD_OPENCV_COMPONENTS)
     add_subdirectory(francor_mapping)
@@ -29,6 +29,7 @@ endif()
 
 if (BUILD_DRIVE_COMPONENTS)
     add_subdirectory(francor_can)
+    add_subdirectory(francor_drive)
 endif()
 
 if (BUILD_EXAMPLES)
