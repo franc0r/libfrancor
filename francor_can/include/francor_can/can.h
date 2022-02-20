@@ -41,6 +41,8 @@ enum ExceptionType {
     EXCEP_DEVICE_ERROR,
     EXCEP_DEVICE_NOT_FOUND,
     EXCEP_DEVICE_NOT_RUNNING,
+    EXCEP_DEVICE_CFG_ERROR,
+    EXCEP_TX_ERROR,
     EXCEP_RX_TIMEOUT,
 };
 
@@ -56,7 +58,7 @@ class can_exception : public std::exception {
         _desc = full_desc.str();
     }
 
-    virtual ~can_exception() throw() {}
+    virtual ~can_exception() = default;
 
     virtual const char* what() const throw() { return _desc.c_str(); }
 
@@ -91,10 +93,10 @@ class CAN {
    public:
     CAN() = default;
 
-    virtual void tx(Msg& tx) = 0;
-    virtual Msg rx(RxSettings& settings) = 0;
+    virtual void tx(Msg tx) = 0;
+    virtual Msg rx(const RxSettings settings) = 0;
 
-    virtual bool isInterfaceRunning() = 0;
+    virtual bool isDeviceUp() = 0;
 };
 
 };  // namespace can

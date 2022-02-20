@@ -45,8 +45,13 @@ using MsgData = std::array<uint8_t, MSG_MAX_DLC>;
 class Msg {
    public:
     Msg() = default;
-    Msg(uint16_t id, uint8_t dlc) : _id(id), _dlc(dlc), _data({0}) { checkHeader(); }
-    Msg(uint16_t id, uint8_t dlc, MsgData data) : _id(id), _dlc(dlc), _data(data) { checkHeader(); }
+    explicit Msg(uint16_t id, uint8_t dlc) : _id(id), _dlc(dlc), _data({0}) { checkHeader(); }
+    explicit Msg(uint16_t id, uint8_t dlc, MsgData data) : _id(id), _dlc(dlc), _data(data) { checkHeader(); }
+
+    explicit Msg(can_frame frame) : _id(frame.can_id), _dlc(frame.can_dlc) {
+        memcpy(_data.data(), &frame.data[0U], sizeof(frame.data));
+        checkHeader();
+    }
 
     [[nodiscard]] auto getId() const { return _id; }
     [[nodiscard]] auto getDlc() const { return _dlc; }

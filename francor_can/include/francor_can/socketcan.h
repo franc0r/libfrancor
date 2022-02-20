@@ -13,6 +13,8 @@
 
 #pragma once
 
+#include <net/if.h>
+
 #include <array>
 #include <chrono>
 #include <iterator>
@@ -28,17 +30,26 @@ class SocketCAN : public CAN {
     explicit SocketCAN(const std::string& if_name);
     ~SocketCAN();
 
-    void tx(Msg& tx) final;
-    Msg rx(RxSettings& settings) final;
+    void tx(Msg tx) final;
+    Msg rx(const RxSettings settings) final;
 
-    bool isInterfaceRunning() final;
+    bool isDeviceUp() final;
 
    private:
     void openSocket();
+    void createIfReqStruct();
     void bindSocket();
+    void checkDeviceUp();
 
-    const std::string _if_name = {""};
+    static auto isIoRWSuccess(ssize_t res);
+
+    void setRxFilter(const RxSettings& settings);
+    void setRxTimeout(const RxSettings& settings);
+
+    const std::string _if_name;
+
     int _socket = {-1};
+    ifreq _if_req = {};
 };
 
 };  // namespace can

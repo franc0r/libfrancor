@@ -119,6 +119,27 @@ TEST(CANMsg, getCCANFrame) {  // NOLINT
     }
 }
 
+TEST(CANMsg, constructorCCANFrame) {  // NOLINT
+    constexpr uint16_t TEST_ID = {2047U};
+    constexpr uint16_t TEST_DLC = {7U};
+    constexpr MsgData TEST_DATA = {1U, 2U, 3U, 4U, 0U, 6U, 7U, 8U};
+
+    struct can_frame frame = {
+        .can_id = TEST_ID,
+        .can_dlc = TEST_DLC,
+    };
+
+    memcpy(&frame.data[0U], &TEST_DATA[0U], sizeof(frame.data));
+    Msg msg = Msg(frame);
+
+    EXPECT_EQ(TEST_ID, msg.getId());
+    EXPECT_EQ(TEST_DLC, msg.getDlc());
+
+    for (auto idx = 0U; idx < MSG_MAX_DLC; idx++) {
+        EXPECT_EQ(TEST_DATA.at(idx), msg.getData()[idx]);  // NOLINT
+    }
+}
+
 int main(int argc, char** argv) {  // NOLINT
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
