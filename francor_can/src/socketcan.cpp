@@ -94,7 +94,7 @@ void SocketCAN::tx(Msg tx) {
 
     if (!isIoRWSuccess(write(_socket, &frm, CAN_MTU))) {
         std::stringstream desc;
-        desc << "CAN transmission failed! UNIX errno = " << +errno << "!";
+        desc << "TX error! [ID: '0x" << std::hex << +tx.getId() << "'];  (unix errno: 0x" << +errno << ")!";
         throw can_exception(EXCEP_TX_ERROR, _if_name, desc.str());
     }
 }
@@ -109,8 +109,15 @@ Msg SocketCAN::rx(const RxSettings settings) {
         msg = Msg(can_msg);
     } else {
         std::stringstream desc;
-        desc << "RX timeout of msg [ID: '" << std::hex << +settings.filter_id << "']";
-        throw can_exception(EXCEP_RX_TIMEOUT, _if_name, "RX timeout");
+
+        if (errno == EAGAIN) {
+            desc << "RX timeout of msg [ID: 0x'" << std::hex << +settings.filter_id << "']";
+            throw can_exception(EXCEP_RX_TIMEOUT, _if_name, desc.str());
+        } else {
+            desc << "Rx error of msg [ID: '0x" << std::hex << +settings.filter_id
+                 << "']! Device error! Disconnected? (errno: 0x" << +errno << ")";
+            throw can_exception(EXCEP_DEVICE_ERROR, _if_name, desc.str());
+        }
     }
 
     return msg;
