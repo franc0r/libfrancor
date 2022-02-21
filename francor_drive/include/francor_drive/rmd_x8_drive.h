@@ -32,15 +32,30 @@ class RMDX8Drive : public Drive {
     void enable() final;
     void disable() final;
 
-    void setSpeedRPM(double speed_rpm) final;
-    double getCurrentSpeedRPM() final;
+    void setSpeedRPM(const float speed_rpm) final;
+    float getCurrentSpeedRPM() final;
+
+    States getActvState() final;
+    float getTempC() final;
 
     bool isConnected() final;
 
    private:
-    const unsigned int _can_id = {0};
+    static auto getTempCFromResp(const francor::can::Msg& resp_msg);
+    static auto getTorqueNmFromResp(const francor::can::Msg& resp_msg);
+    static auto isRespValid(const francor::can::Msg& req_msg, const francor::can::Msg& resp_msg);
 
+    const unsigned int _can_id = {0};
     std::shared_ptr<francor::can::CAN> _can_if = {};
+
+    States _actv_state = {DRIVE_STS_INIT};
+
+    float _tgt_speed_rpm = {0.0F};
+
+    float _current_torque_nm = {0.0F};
+    float _current_speed_rpm = {0.0F};
+
+    float _current_temp_c = {0.0F};
 };
 
 };  // namespace drive

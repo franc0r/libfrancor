@@ -17,9 +17,15 @@ namespace francor {
 
 namespace drive {
 
+enum States {
+    DRIVE_STS_INIT,
+    DRIVE_STS_DISABLED,
+    DRIVE_STS_ENABLED,
+    DRIVE_STS_ERROR,
+};
+
 /**
  * @brief Drive representation of francor drives
- *
  */
 class Drive {
    public:
@@ -29,8 +35,11 @@ class Drive {
     virtual void enable() = 0;
     virtual void disable() = 0;
 
-    virtual void setSpeedRPM(double speed_rpm) = 0;
-    virtual double getCurrentSpeedRPM() = 0;
+    virtual void setSpeedRPM(const float speed_rpm) = 0;
+    virtual float getCurrentSpeedRPM() = 0;
+
+    virtual States getActvState() = 0;
+    virtual float getTempC() = 0;
 
     virtual bool isConnected() = 0;
 };
