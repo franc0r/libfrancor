@@ -38,7 +38,7 @@ class RMDX8Drive : public Drive {
     States getActvState() final;
     float getTempC() final;
 
-    bool isConnected() final;
+    bool isConnected() noexcept final;
 
    private:
     static auto getTempCFromResp(const francor::can::Msg& resp_msg);

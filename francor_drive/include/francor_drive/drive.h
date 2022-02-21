@@ -41,7 +41,7 @@ class Drive {
     virtual States getActvState() = 0;
     virtual float getTempC() = 0;
 
-    virtual bool isConnected() = 0;
+    virtual bool isConnected() noexcept = 0;
 };
 
 };  // namespace drive

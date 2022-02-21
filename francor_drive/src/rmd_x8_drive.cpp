@@ -108,10 +108,19 @@ States RMDX8Drive::getActvState() { return _actv_state; }
 
 float RMDX8Drive::getTempC() { return 0.0F; }
 
-bool RMDX8Drive::isConnected() {
-    Msg sts_req = Msg(_can_id, CAN_MAX_DLC, MsgData({CAN_CMD_READ_MOTOR_STS_1}));
-    _can_if->tx(sts_req);
-    const auto sts_resp = _can_if->rx(RxSettings(_can_id, MSG_ID_MASK));
+bool RMDX8Drive::isConnected() noexcept {
+    bool connected = {false};
 
-    return (sts_resp.getData().at(0) == CAN_CMD_READ_MOTOR_STS_1);
+    try {
+        Msg sts_req = Msg(_can_id, CAN_MAX_DLC, MsgData({CAN_CMD_READ_MOTOR_STS_1}));
+        _can_if->tx(sts_req);
+        const auto sts_resp = _can_if->rx(RxSettings(_can_id, MSG_ID_MASK));
+        connected = isRespValid(sts_req, sts_resp);
+    } catch (can_exception& e) {
+        connected = false;
+    } catch (...) {
+        connected = false;
+    }
+
+    return connected;
 }
