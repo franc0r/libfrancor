@@ -20,12 +20,15 @@ using namespace francor::drive;
 
 /* Defines */
 static constexpr uint16_t RMD_X8_BASE_ID = {0x141U};
-static constexpr float RMD_RPM_TO_DPS_FAC = {3600.0F / 60.0F};
+static constexpr float RMD_RPM_TO_DPS_FAC = {36000.0F / 60.0F};
+static constexpr float RMD_DPS_TO_RMP_FAC = {60.0F / 360.0F};
 static constexpr float RMD_TQ_RAW_TO_NM = {(1.5F / 4.9F) * (33.0F / 2048.0F)};
 
 static constexpr ssize_t RMD_BYTE_POS_TEMP = {1U};
 static constexpr ssize_t RMD_BYTE_POS_TQ_H = {3U};
 static constexpr ssize_t RMD_BYTE_POS_TQ_L = {2U};
+static constexpr ssize_t RMD_BYTE_POS_SPD_H = {5U};
+static constexpr ssize_t RMD_BYTE_POS_SPD_L = {4U};
 
 /* Enumerations */
 enum CANCommandList : uint8_t {
@@ -46,6 +49,13 @@ auto RMDX8Drive::getTorqueNmFromResp(const francor::can::Msg& resp_msg) {
                                (static_cast<int16_t>(resp_msg.getData().at(RMD_BYTE_POS_TQ_H) << 8U));
 
     return static_cast<float>(torque_raw) * RMD_TQ_RAW_TO_NM;
+}
+
+auto RMDX8Drive::getSpeedRpmFromResp(const francor::can::Msg& resp_msg) {
+    const int16_t spd_raw = static_cast<int16_t>(resp_msg.getData().at(RMD_BYTE_POS_SPD_L)) |
+                            (static_cast<int16_t>(resp_msg.getData().at(RMD_BYTE_POS_SPD_H) << 8U));
+
+    return static_cast<float>(spd_raw) * RMD_DPS_TO_RMP_FAC;
 }
 
 auto RMDX8Drive::isRespValid(const francor::can::Msg& req_msg, const francor::can::Msg& resp_msg) {

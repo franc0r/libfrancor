@@ -23,7 +23,6 @@
 namespace francor {
 
 namespace drive {
-
 class RMDX8Drive : public Drive {
    public:
     RMDX8Drive(unsigned int id, std::shared_ptr<francor::can::CAN>& can_if);
@@ -43,6 +42,7 @@ class RMDX8Drive : public Drive {
    private:
     static auto getTempCFromResp(const francor::can::Msg& resp_msg);
     static auto getTorqueNmFromResp(const francor::can::Msg& resp_msg);
+    static auto getSpeedRpmFromResp(const francor::can::Msg& resp_msg);
     static auto isRespValid(const francor::can::Msg& req_msg, const francor::can::Msg& resp_msg);
 
     const unsigned int _can_id = {0};

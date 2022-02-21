@@ -18,7 +18,7 @@ target_link_libraries(${PROJECT_NAME}
 
 enable_testing()
 
-#add_subdirectory(test)
+add_subdirectory(test)
 
 install(TARGETS ${PROJECT_NAME} EXPORT francor-config
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
