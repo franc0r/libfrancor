@@ -35,6 +35,8 @@ class Value {
    public:
     Value() = default;
 
+    explicit Value(const DurationMs durability_ms) : _durability_ms(durability_ms) {}
+
     /**
      * @brief Sets the new value and updates the timestamp to ::now()
      */
@@ -51,25 +53,25 @@ class Value {
     /**
      * @brief Gets the current expire duration
      */
-    auto getExpireDurationMs() const { return _expire_duration_ms; }
+    auto getDurabilityMs() const { return _durability_ms; }
 
     /**
-     * @brief True if data is up to date (::now() - set-timestamp < expiration-time)
+     * @brief True if data is up to date (::now() - set-timestamp < durability)
      */
     auto isUpToDate() const {
         const auto delta_time = (Clock::now() - _update_timepoint);
-        return (delta_time < _expire_duration_ms);
+        return (delta_time < _durability_ms);
     }
 
     /**
-     * @brief True if value is expired (::now() - set-timestamp >= expiration-time)
+     * @brief True if value is expired (::now() - set-timestamp >= durability)
      */
     auto isExpired() const { return !isUpToDate(); }
 
    private:
     T _value = {};
     ValueTimepoint _update_timepoint = {};
-    DurationMs _expire_duration_ms = {DFT_VALUE_EXP_DURATION_MS};
+    DurationMs _durability_ms = {DFT_VALUE_EXP_DURATION_MS};
 };
 
 };  // namespace drive

@@ -13,12 +13,47 @@
 #include <gtest/gtest.h>
 
 #include <stdexcept>
+#include <thread>
 
 #include "francor_drive/value.h"
 
 using namespace francor::drive;
 
-TEST(Value, constructorDft) {  // NOLINT
+TEST(Value, ConstructDft) {  // NOLINT
+    constexpr int DURABILITY_MS = {10};
+
+    auto test_value = Value<int>(DurationMs(DURABILITY_MS));
+
+    EXPECT_EQ(DURABILITY_MS, test_value.getDurabilityMs().count());
+    EXPECT_EQ(0, test_value.get());
+}
+
+TEST(Value, ValueExpireTest) {  // NOLINT
+    constexpr int DURABILITY_MS = {10};
+    constexpr int VALUE = {-2202};
+
+    auto test_value = Value<int>(DurationMs(DURABILITY_MS));
+
+    EXPECT_EQ(true, test_value.isExpired());
+    EXPECT_EQ(false, test_value.isUpToDate());
+
+    test_value.set(VALUE);
+
+    EXPECT_EQ(false, test_value.isExpired());
+    EXPECT_EQ(true, test_value.isUpToDate());
+    EXPECT_EQ(VALUE, test_value.get());
+
+    std::this_thread::sleep_for(DurationMs(DURABILITY_MS - 1U));
+
+    EXPECT_EQ(false, test_value.isExpired());
+    EXPECT_EQ(true, test_value.isUpToDate());
+    EXPECT_EQ(VALUE, test_value.get());
+
+    std::this_thread::sleep_for(DurationMs(1U));
+
+    EXPECT_EQ(true, test_value.isExpired());
+    EXPECT_EQ(false, test_value.isUpToDate());
+    EXPECT_EQ(VALUE, test_value.get());
 }
 
 int main(int argc, char** argv) {  // NOLINT
