@@ -22,7 +22,7 @@
 
 using namespace francor::can;
 
-constexpr char CAN_TEST_DEVICE_NAME[] = {"can0"};
+constexpr char CAN_TEST_DEVICE_NAME[] = {"vcan0"};
 
 static bool VCAN_AVAILABLE = {false};
 
