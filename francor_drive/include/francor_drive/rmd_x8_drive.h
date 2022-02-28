@@ -36,6 +36,9 @@ class RMDX8Drive : public Drive {
     void enable() final;
     void disable() final;
 
+    void setAccelleration(float accel_rpms) final;
+    float getAccelleration() final;
+
     void setSpeedRPM(float speed_rpm) final;
     float getCurrentSpeedRPM() final;
 
@@ -44,15 +47,20 @@ class RMDX8Drive : public Drive {
 
     States getActvState() final;
     float getTempC() final;
+    float getVoltageV() final;
 
     bool isConnected() noexcept final;
 
    private:
     auto transceiveCANMsg(francor::can::Msg& req_msg, francor::can::Msg& resp_msg, bool& is_resp_valid);
 
+    void readMotorSts1();
     void readMotorSts2();
+    void readAccel();
     void disableMotor();
 
+    void updateVoltageFromResp(const francor::can::Msg& resp_msg);
+    void updateAccelFromResp(const francor::can::Msg& resp_msg);
     void updateTempCFromResp(const francor::can::Msg& resp_msg);
     void updateTorqueNmFromResp(const francor::can::Msg& resp_msg);
     void updateSpeedRpmFromResp(const francor::can::Msg& resp_msg);
@@ -64,9 +72,11 @@ class RMDX8Drive : public Drive {
 
     float _tgt_speed_rpm = {0.0F};
 
+    Value<float> _current_voltage_v = {Value<float>(0.0F, RMD_X8_DFT_DURABILITY_MS)};
     Value<float> _current_torque_nm = {Value<float>(0.0F, RMD_X8_DFT_DURABILITY_MS)};
     Value<float> _current_speed_rpm = {Value<float>(0.0F, RMD_X8_DFT_DURABILITY_MS)};
     Value<float> _current_temp_c = {Value<float>(0.0F, RMD_X8_DFT_DURABILITY_MS)};
+    Value<float> _current_accel_rpms = {Value<float>(0.0F, RMD_X8_DFT_DURABILITY_MS)};
 };
 
 };  // namespace drive

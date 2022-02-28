@@ -35,6 +35,9 @@ class Drive {
     virtual void enable() = 0;
     virtual void disable() = 0;
 
+    virtual void setAccelleration(float accel_rpms) = 0;
+    virtual float getAccelleration() = 0;
+
     virtual void setSpeedRPM(float speed_rpm) = 0;
     virtual float getCurrentSpeedRPM() = 0;
 
@@ -43,6 +46,7 @@ class Drive {
 
     virtual States getActvState() = 0;
     virtual float getTempC() = 0;
+    virtual float getVoltageV() = 0;
 
     virtual bool isConnected() noexcept = 0;
 };
