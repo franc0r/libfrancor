@@ -20,12 +20,12 @@ namespace francor {
 namespace drive {
 
 /* Typedefs */
-using Clock = std::chrono::steady_clock;
-using ValueTimepoint = std::chrono::steady_clock::time_point;
-using DurationMs = std::chrono::milliseconds;
+using ValueClock = std::chrono::steady_clock;
+using ValueTimepoint = ValueClock::time_point;
+using ValueDurationMs = std::chrono::milliseconds;
 
 /* Default Settings */
-static constexpr DurationMs DFT_VALUE_EXP_DURATION_MS = {DurationMs(5U)};
+static constexpr ValueDurationMs DFT_VALUE_EXP_DURATION_MS = {ValueDurationMs(5U)};
 
 /**
  * @brief Simple value representation with expiration time
@@ -35,14 +35,17 @@ class Value {
    public:
     Value() = default;
 
-    explicit Value(const DurationMs durability_ms) : _durability_ms(durability_ms) {}
+    explicit Value(const ValueDurationMs durability_ms) : _durability_ms(durability_ms) {}
+    explicit Value(const T value, const ValueDurationMs durability_ms) : _value(value), _durability_ms(durability_ms) {
+        _update_timepoint = ValueClock::now();
+    }
 
     /**
      * @brief Sets the new value and updates the timestamp to ::now()
      */
     void set(T new_value) {
         _value = new_value;
-        _update_timepoint = Clock::now();
+        _update_timepoint = ValueClock::now();
     }
 
     /**
@@ -59,7 +62,7 @@ class Value {
      * @brief True if data is up to date (::now() - set-timestamp < durability)
      */
     auto isUpToDate() const {
-        const auto delta_time = (Clock::now() - _update_timepoint);
+        const auto delta_time = (ValueClock::now() - _update_timepoint);
         return (delta_time < _durability_ms);
     }
 
@@ -71,7 +74,7 @@ class Value {
    private:
     T _value = {};
     ValueTimepoint _update_timepoint = {};
-    DurationMs _durability_ms = {DFT_VALUE_EXP_DURATION_MS};
+    ValueDurationMs _durability_ms = {DFT_VALUE_EXP_DURATION_MS};
 };
 
 };  // namespace drive

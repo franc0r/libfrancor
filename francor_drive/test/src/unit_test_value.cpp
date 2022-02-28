@@ -22,17 +22,33 @@ using namespace francor::drive;
 TEST(Value, ConstructDft) {  // NOLINT
     constexpr int DURABILITY_MS = {10};
 
-    auto test_value = Value<int>(DurationMs(DURABILITY_MS));
+    auto test_value = Value<int>(ValueDurationMs(DURABILITY_MS));
 
     EXPECT_EQ(DURABILITY_MS, test_value.getDurabilityMs().count());
     EXPECT_EQ(0, test_value.get());
+}
+
+TEST(Value, ConstructValue) {  // NOLINT
+    constexpr int DURABILITY_MS = {5};
+    constexpr int VALUE = {1234};
+
+    auto test_value = Value<int>(VALUE, ValueDurationMs(DURABILITY_MS));
+    EXPECT_EQ(false, test_value.isExpired());
+    EXPECT_EQ(true, test_value.isUpToDate());
+    EXPECT_EQ(VALUE, test_value.get());
+
+    std::this_thread::sleep_for(ValueDurationMs(DURABILITY_MS));
+
+    EXPECT_EQ(true, test_value.isExpired());
+    EXPECT_EQ(false, test_value.isUpToDate());
+    EXPECT_EQ(VALUE, test_value.get());
 }
 
 TEST(Value, ValueExpireTest) {  // NOLINT
     constexpr int DURABILITY_MS = {10};
     constexpr int VALUE = {-2202};
 
-    auto test_value = Value<int>(DurationMs(DURABILITY_MS));
+    auto test_value = Value<int>(ValueDurationMs(DURABILITY_MS));
 
     EXPECT_EQ(true, test_value.isExpired());
     EXPECT_EQ(false, test_value.isUpToDate());
@@ -43,13 +59,13 @@ TEST(Value, ValueExpireTest) {  // NOLINT
     EXPECT_EQ(true, test_value.isUpToDate());
     EXPECT_EQ(VALUE, test_value.get());
 
-    std::this_thread::sleep_for(DurationMs(DURABILITY_MS - 1U));
+    std::this_thread::sleep_for(ValueDurationMs(DURABILITY_MS - 1U));
 
     EXPECT_EQ(false, test_value.isExpired());
     EXPECT_EQ(true, test_value.isUpToDate());
     EXPECT_EQ(VALUE, test_value.get());
 
-    std::this_thread::sleep_for(DurationMs(1U));
+    std::this_thread::sleep_for(ValueDurationMs(1U));
 
     EXPECT_EQ(true, test_value.isExpired());
     EXPECT_EQ(false, test_value.isUpToDate());
