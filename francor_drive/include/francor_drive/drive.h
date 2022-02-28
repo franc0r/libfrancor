@@ -35,8 +35,11 @@ class Drive {
     virtual void enable() = 0;
     virtual void disable() = 0;
 
-    virtual void setSpeedRPM(const float speed_rpm) = 0;
+    virtual void setSpeedRPM(float speed_rpm) = 0;
     virtual float getCurrentSpeedRPM() = 0;
+
+    virtual void setTorqueNm(float torque_nm) = 0;
+    virtual float getCurrentTorqueNm() = 0;
 
     virtual States getActvState() = 0;
     virtual float getTempC() = 0;

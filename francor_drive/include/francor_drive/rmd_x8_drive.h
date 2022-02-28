@@ -17,12 +17,17 @@
 
 #include <francor_can/can.h>
 #include <francor_drive/drive.h>
+#include <francor_drive/value.h>
 
 #include <memory>
 
 namespace francor {
 
 namespace drive {
+
+/* Defines */
+static constexpr ValueDurationMs RMD_X8_DFT_DURABILITY_MS = {ValueDurationMs(5)};
+
 class RMDX8Drive : public Drive {
    public:
     RMDX8Drive(unsigned int id, std::shared_ptr<francor::can::CAN>& can_if);
@@ -31,8 +36,11 @@ class RMDX8Drive : public Drive {
     void enable() final;
     void disable() final;
 
-    void setSpeedRPM(const float speed_rpm) final;
+    void setSpeedRPM(float speed_rpm) final;
     float getCurrentSpeedRPM() final;
+
+    void setTorqueNm(float torque_nm);
+    float getCurrentTorqueNm() final;
 
     States getActvState() final;
     float getTempC() final;
@@ -40,10 +48,14 @@ class RMDX8Drive : public Drive {
     bool isConnected() noexcept final;
 
    private:
-    static auto getTempCFromResp(const francor::can::Msg& resp_msg);
-    static auto getTorqueNmFromResp(const francor::can::Msg& resp_msg);
-    static auto getSpeedRpmFromResp(const francor::can::Msg& resp_msg);
-    static auto isRespValid(const francor::can::Msg& req_msg, const francor::can::Msg& resp_msg);
+    auto transceiveCANMsg(francor::can::Msg& req_msg, francor::can::Msg& resp_msg, bool& is_resp_valid);
+
+    void readMotorSts2();
+    void disableMotor();
+
+    void updateTempCFromResp(const francor::can::Msg& resp_msg);
+    void updateTorqueNmFromResp(const francor::can::Msg& resp_msg);
+    void updateSpeedRpmFromResp(const francor::can::Msg& resp_msg);
 
     const unsigned int _can_id = {0};
     std::shared_ptr<francor::can::CAN> _can_if = {};
@@ -52,10 +64,9 @@ class RMDX8Drive : public Drive {
 
     float _tgt_speed_rpm = {0.0F};
 
-    float _current_torque_nm = {0.0F};
-    float _current_speed_rpm = {0.0F};
-
-    float _current_temp_c = {0.0F};
+    Value<float> _current_torque_nm = {Value<float>(0.0F, RMD_X8_DFT_DURABILITY_MS)};
+    Value<float> _current_speed_rpm = {Value<float>(0.0F, RMD_X8_DFT_DURABILITY_MS)};
+    Value<float> _current_temp_c = {Value<float>(0.0F, RMD_X8_DFT_DURABILITY_MS)};
 };
 
 };  // namespace drive
