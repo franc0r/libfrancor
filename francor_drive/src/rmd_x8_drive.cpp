@@ -59,10 +59,28 @@ enum CANCommandList : uint8_t {
 
 /* Private functions */
 auto RMDX8Drive::transceiveCANMsg(francor::can::Msg& req_msg, francor::can::Msg& resp_msg, bool& is_resp_valid) {
-    _can_if->tx(req_msg);
-    resp_msg = _can_if->rx(RxSettings(_can_id, MSG_ID_MASK));
+    auto retry_cnt = 0U;
+    for (;;) {
+        resp_msg = Msg();
+        is_resp_valid = false;
 
-    is_resp_valid = (req_msg.getId() == resp_msg.getId() && req_msg.getDlc() == resp_msg.getDlc());
+        try {
+            _can_if->tx(req_msg);
+            resp_msg = _can_if->rx(RxSettings(_can_id, MSG_ID_MASK));
+        } catch (can_exception& e) {
+            if (e.getType() != EXCEP_RX_TIMEOUT) {
+                throw can_exception(e);
+            }
+        }
+
+        is_resp_valid = (req_msg.getId() == resp_msg.getId() && req_msg.getDlc() == resp_msg.getDlc());
+
+        if (is_resp_valid || retry_cnt > RMD_X8_DFT_RETRY_LIMIT) {
+            break;
+        }
+
+        retry_cnt++;
+    }
 }
 
 void RMDX8Drive::readMotorSts1() {
@@ -290,19 +308,12 @@ float RMDX8Drive::getVoltageV() {
     return _current_voltage_v.get();
 }
 
-bool RMDX8Drive::isConnected() noexcept {
+bool RMDX8Drive::isConnected() {
     bool connected = {false};
 
-    try {
-        Msg req = Msg(_can_id, CAN_MAX_DLC, MsgData({CAN_CMD_READ_MOTOR_STS_1}));
-        Msg resp = Msg();
-        transceiveCANMsg(req, resp, connected);
-
-    } catch (can_exception& e) {
-        connected = false;
-    } catch (...) {
-        connected = false;
-    }
+    Msg req = Msg(_can_id, CAN_MAX_DLC, MsgData({CAN_CMD_READ_MOTOR_STS_1}));
+    Msg resp = Msg();
+    transceiveCANMsg(req, resp, connected);
 
     return connected;
 }

@@ -48,7 +48,7 @@ class Drive {
     virtual float getTempC() = 0;
     virtual float getVoltageV() = 0;
 
-    virtual bool isConnected() noexcept = 0;
+    virtual bool isConnected() = 0;
 };
 
 };  // namespace drive

@@ -26,7 +26,8 @@ namespace francor {
 namespace drive {
 
 /* Defines */
-static constexpr ValueDurationMs RMD_X8_DFT_DURABILITY_MS = {ValueDurationMs(5)};
+static constexpr ValueDurationMs RMD_X8_DFT_DURABILITY_MS = {ValueDurationMs(2U)};
+static constexpr unsigned int RMD_X8_DFT_RETRY_LIMIT = {1U};
 
 class RMDX8Drive : public Drive {
    public:
@@ -49,7 +50,7 @@ class RMDX8Drive : public Drive {
     float getTempC() final;
     float getVoltageV() final;
 
-    bool isConnected() noexcept final;
+    bool isConnected() final;
 
    private:
     auto transceiveCANMsg(francor::can::Msg& req_msg, francor::can::Msg& resp_msg, bool& is_resp_valid);
@@ -67,6 +68,7 @@ class RMDX8Drive : public Drive {
 
     const unsigned int _can_id = {0};
     std::shared_ptr<francor::can::CAN> _can_if = {};
+    const unsigned int _retry_limit = {RMD_X8_DFT_RETRY_LIMIT};
 
     States _actv_state = {DRIVE_STS_INIT};
 

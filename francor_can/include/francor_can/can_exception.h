@@ -38,6 +38,8 @@ enum ExceptionType {
  */
 class can_exception : public std::exception {
    public:
+    can_exception(can_exception& e) = default;
+
     explicit can_exception(ExceptionType type, std::string if_name, std::string desc) : _type(type), _if_name(if_name) {
         std::stringstream full_desc;
         full_desc << "Exception-ID['" << getExceptionDescription(type) << "'], Interface['" << _if_name
