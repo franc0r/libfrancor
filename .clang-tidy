@@ -1,0 +1,5 @@
+Checks: '*,
+         -abseil*,
+         -fuchsia*,
+         -google*,
+         -llvmlibc*'
