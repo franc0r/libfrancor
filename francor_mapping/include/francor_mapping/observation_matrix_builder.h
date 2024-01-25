@@ -91,7 +91,7 @@ struct ObservationMatrixBuilder<KinematicAttributePack<AttributesA...>, Kinemati
 private:
   static constexpr double estimateMatrixEntry(const std::size_t row, const std::size_t col)
   {
-
+    return 0.0;
   }
 };
 

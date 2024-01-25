@@ -189,15 +189,15 @@ public:
         switch (space)
         {
         case ColourSpace::GRAY:
-          cv::cvtColor(mat, mat, CV_BGR2GRAY);
+          cv::cvtColor(mat, mat, cv::COLOR_BGR2GRAY);
           break;
 
         case ColourSpace::HSV:
-          cv::cvtColor(mat, mat, CV_BGR2HSV);
+          cv::cvtColor(mat, mat, cv::COLOR_BGR2HSV);
           break;
 
         case ColourSpace::RGB:
-          cv::cvtColor(mat, mat, CV_BGR2RGB);
+          cv::cvtColor(mat, mat, cv::COLOR_BGR2RGB);
           break;
 
         default:
@@ -212,15 +212,15 @@ public:
         switch (space)
         {
         case ColourSpace::GRAY:
-          cv::cvtColor(mat, mat, CV_RGB2GRAY);
+          cv::cvtColor(mat, mat, cv::COLOR_RGB2GRAY);
           break;
 
         case ColourSpace::HSV:
-          cv::cvtColor(mat, mat, CV_RGB2HSV);
+          cv::cvtColor(mat, mat, cv::COLOR_RGB2HSV);
           break;
 
         case ColourSpace::BGR:
-          cv::cvtColor(mat, mat, CV_RGB2BGR);
+          cv::cvtColor(mat, mat, cv::COLOR_RGB2BGR);
           break;
 
         default:
@@ -235,11 +235,11 @@ public:
         switch (space)
         {
         case ColourSpace::RGB:
-          cv::cvtColor(mat, mat, CV_GRAY2RGB);
+          cv::cvtColor(mat, mat, cv::COLOR_GRAY2RGB);
           break;
         
         case ColourSpace::BGR:
-          cv::cvtColor(mat, mat, CV_GRAY2BGR);
+          cv::cvtColor(mat, mat, cv::COLOR_GRAY2BGR);
           break;
 
         default:
